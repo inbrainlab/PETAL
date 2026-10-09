@@ -855,15 +855,13 @@ if [ "$EVAL_TYPE" == "fdg" ] && [ -z "${FSROI_LIST:-}" ] && [ -n "${PUBLIC_PACKA
 fi
 echo ""
 echo "── Comparison with the published values ──────────────"
-if [ -n "${PUBLIC_PACKAGE:-}" ] && [ -n "${FS_LUT:-}" ] && [ -n "${FSROI_LIST:-}" ] && [ -f "$EVAL_PY" ]; then
+if [ -f "$EVAL_PY" ]; then
     "$PYTHON" "$EVAL_PY" --type "$EVAL_TYPE" --package "$PUBLIC_PACKAGE" \
         --fastsurfer-base "$SUBJECTS_DIR" --subject "$SUBJECT" \
         --fsroi-list "$FSROI_LIST" --lut "$FS_LUT" \
         --output "$SUBJECT_DIR/evaluation_$EVAL_TYPE" \
         || echo "  ⚠️  evaluate_subject.py finished with an error (the processing itself is complete)"
 else
-    echo "  (skipped) To compare with the published values, define PUBLIC_PACKAGE, FS_LUT and FSROI_LIST, and run:"
-    echo "    $PYTHON \"$EVAL_PY\" --type $EVAL_TYPE --package \"\$PUBLIC_PACKAGE\" --fastsurfer-base \"$SUBJECTS_DIR\" \\"
-    echo "        --subject $SUBJECT --fsroi-list \"\$FSROI_LIST\" --lut \"\$FS_LUT\""
+    echo "  (skipped) evaluate_subject.py not found next to this script."
 fi
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
