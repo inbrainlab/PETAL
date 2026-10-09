@@ -29,13 +29,13 @@
 set -e
 
 # ── configuration ─────────────────────────────────────────────────────────────
-FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/fastsurfer}"
-MRI_DATA_DIR="${MRI_DATA_DIR:-$FASTSURFER_BASE/mri_data}"
-SUBJECTS_DIR="$FASTSURFER_BASE/output"
-FS_LICENSE_DIR="$FASTSURFER_BASE/fs_license"
-FASTSURFER_IMAGE="deepmi/fastsurfer:cu126-v2.4.2"
-FREESURFER_IMAGE="freesurfer/freesurfer:7.4.1"
-PYTHON="${PYTHON:-$HOME/.venv_fastsurfer/bin/python3}"
+FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/fastsurfer}"      # working directory root -- override by exporting FASTSURFER_BASE
+MRI_DATA_DIR="${MRI_DATA_DIR:-$FASTSURFER_BASE/mri_data}"   # raw T1/PET source files, one subdirectory per subject
+SUBJECTS_DIR="$FASTSURFER_BASE/output"                      # FreeSurfer SUBJECTS_DIR -- recon-all output and this pipeline's own result CSVs land here
+FS_LICENSE_DIR="$FASTSURFER_BASE/fs_license"                # directory holding the FreeSurfer license file (.license)
+FASTSURFER_IMAGE="deepmi/fastsurfer:cu126-v2.4.2"           # optional GPU path, RECON_METHOD=fastsurfer
+FREESURFER_IMAGE="freesurfer/freesurfer:7.4.1"              # classic recon-all, the default method
+PYTHON="${PYTHON:-$HOME/.venv_fastsurfer/bin/python3}"      # virtualenv python3, used for small inline NIfTI-reading steps
 
 # ── arguments ──────────────────────────────────────────────────────────────────────
 # Non-positional parsing: --tracer and --rewrite may appear in any order after $1.
