@@ -36,6 +36,9 @@ FS_LICENSE_DIR="$FASTSURFER_BASE/fs_license"                # directory holding 
 FASTSURFER_IMAGE="deepmi/fastsurfer:cu126-v2.4.2"           # optional GPU path, RECON_METHOD=fastsurfer
 FREESURFER_IMAGE="freesurfer/freesurfer:7.4.1"              # classic recon-all, the default method
 PYTHON="${PYTHON:-$HOME/.venv_fastsurfer/bin/python3}"      # virtualenv python3, used for small inline NIfTI-reading steps
+PUBLIC_PACKAGE="${PUBLIC_PACKAGE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"  # folder of the public package (with data/) used for comparison; defaults to this repo's own root
+FS_LUT="${FS_LUT:-$HOME/freesurfer/FreeSurferColorLUT.txt}"  # generic placeholder -- FreeSurferColorLUT.txt is NOT shipped in this repo, set the real path on your machine
+FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"  # generic placeholder -- fsroi_list_FTP.csv is NOT shipped in this repo, set the real path on your machine (FDG instead defaults to data/fdg_config_rois.csv further below)
 
 # ── arguments ──────────────────────────────────────────────────────────────────────
 # Non-positional parsing: --tracer and --rewrite may appear in any order after $1.
