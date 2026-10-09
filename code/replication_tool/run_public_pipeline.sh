@@ -2,7 +2,7 @@
 # run_public_pipeline.sh -- PET processing for Tau (Flortaucipir, FTP) and FDG.
 # Usage:  bash run_public_pipeline.sh <SUBJECT> [--tracer FTP|FDG] [--rewrite N|0b|all]
 #
-# Expected layout (FASTSURFER_BASE, default ~/fastsurfer):
+# Expected layout (FASTSURFER_BASE, default ~/pet_pipeline):
 #   mri_data/<SUBJECT>/<SUBJECT>_T1.nii[.gz]
 #   mri_data/<SUBJECT>/<PET>.nii           (accepted names: see PET_GLOB_CANDIDATES;
 #                                           or set PET_GLOB_FTP / PET_GLOB_FDG)
@@ -11,7 +11,7 @@
 #
 # Requirements: Docker (images freesurfer/freesurfer:7.4.1 and
 # deepmi/fastsurfer:cu126-v2.4.2), a Python environment with nibabel (PYTHON,
-# default ~/.venv_fastsurfer/bin/python3) and progress_helpers.sh in the same
+# default ~/.venv_pet_pipeline/bin/python3) and progress_helpers.sh in the same
 # folder as this script (recon_progress.py is optional).
 #
 # Per-subject outputs (in output/<SUBJECT>/):
@@ -29,13 +29,13 @@
 set -e
 
 # ── configuration ─────────────────────────────────────────────────────────────
-FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/fastsurfer}"      # working directory root -- override by exporting FASTSURFER_BASE
+FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/pet_pipeline}"    # working directory root -- override by exporting FASTSURFER_BASE
 MRI_DATA_DIR="${MRI_DATA_DIR:-$FASTSURFER_BASE/mri_data}"   # raw T1/PET source files, one subdirectory per subject
 SUBJECTS_DIR="$FASTSURFER_BASE/output"                      # FreeSurfer SUBJECTS_DIR -- recon-all output and this pipeline's own result CSVs land here
 FS_LICENSE_DIR="$FASTSURFER_BASE/fs_license"                # directory holding the FreeSurfer license file (.license)
 FASTSURFER_IMAGE="deepmi/fastsurfer:cu126-v2.4.2"           # optional GPU path, RECON_METHOD=fastsurfer
 FREESURFER_IMAGE="freesurfer/freesurfer:7.4.1"              # classic recon-all, the default method
-PYTHON="${PYTHON:-$HOME/.venv_fastsurfer/bin/python3}"      # virtualenv python3, used for small inline NIfTI-reading steps
+PYTHON="${PYTHON:-$HOME/.venv_pet_pipeline/bin/python3}"    # virtualenv python3, used for small inline NIfTI-reading steps
 PUBLIC_PACKAGE="${PUBLIC_PACKAGE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"  # folder of the public package (with data/) used for comparison; defaults to this repo's own root
 FS_LUT="${FS_LUT:-$HOME/freesurfer/FreeSurferColorLUT.txt}"  # generic placeholder -- FreeSurferColorLUT.txt is NOT shipped in this repo, set the real path on your machine
 FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"  # generic placeholder -- fsroi_list_FTP.csv is NOT shipped in this repo, set the real path on your machine (FDG instead defaults to data/fdg_config_rois.csv further below)
@@ -139,7 +139,7 @@ if [ ! -f "$FS_LICENSE_DIR/.license" ]; then
 fi
 if [ ! -f "$PYTHON" ]; then
     echo "ERROR: Python not found at $PYTHON"
-    echo "Run: python3 -m venv ~/.venv_fastsurfer && ~/.venv_fastsurfer/bin/pip install nibabel"
+    echo "Run: python3 -m venv ~/.venv_pet_pipeline && ~/.venv_pet_pipeline/bin/pip install nibabel"
     exit 1
 fi
 
