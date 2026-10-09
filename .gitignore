@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+# local run outputs
+subject_evaluation/
+evaluation_*/
+*.nii
+*.nii.gz
+*.mgz
+# never commit reference or controlled-access data
+A4_*
+TAUSUVR*
+license.txt
