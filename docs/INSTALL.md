@@ -21,7 +21,7 @@ this is where to change it in the code:**
 | Working directory | `~/fastsurfer/` | `FASTSURFER_BASE` — `code/replication_tool/run_public_pipeline.sh` line 32 |
 | FreeSurfer license | `~/fastsurfer/fs_license/.license` | `FS_LICENSE_DIR` — `code/replication_tool/run_public_pipeline.sh` line 35 (derives from `FASTSURFER_BASE` by default) |
 | Matlab Compiled Runtime (MCR v97) | `~/freesurfer-mcr/MCRv97` | Not a variable here — it's a hardcoded Docker mount path at `code/replication_tool/run_public_pipeline.sh` line 185 |
-| Python virtualenv | `~/.venv_fastsurfer` | `PYTHON` — `code/replication_tool/run_public_pipeline.sh` line 38 |
+| Python virtualenv | `~/.venv_pet_pipeline` | `PYTHON` — `code/replication_tool/run_public_pipeline.sh` line 38 |
 | Subject data folder | `$FASTSURFER_BASE/mri_data` | `MRI_DATA_DIR` — `code/replication_tool/run_public_pipeline.sh` line 33 (or export the `MRI_DATA_DIR` environment variable instead of editing the script) |
 
 Line numbers are for this version of the script; if they've drifted,
@@ -119,9 +119,9 @@ in the script, see the table above).
 ## 5. Python virtualenv
 
 ```bash
-python3 -m venv ~/.venv_fastsurfer
-~/.venv_fastsurfer/bin/pip install --upgrade pip
-~/.venv_fastsurfer/bin/pip install nibabel numpy
+python3 -m venv ~/.venv_pet_pipeline
+~/.venv_pet_pipeline/bin/pip install --upgrade pip
+~/.venv_pet_pipeline/bin/pip install nibabel numpy
 ```
 
 `nibabel`/`numpy` are the only third-party packages needed — they back a
