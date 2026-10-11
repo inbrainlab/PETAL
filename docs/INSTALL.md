@@ -28,6 +28,21 @@ Line numbers are for this version of the script; if they've drifted,
 search for the `# ── configuration ──` block near the top of the file
 — every path used by the script is declared there.
 
+## Checking everything is installed
+
+Once you have gone through the steps above, run:
+
+```bash
+bash code/replication_tool/check_install.sh [--tracer FTP|FDG]
+```
+
+It reads the same variables and defaults as `run_public_pipeline.sh` (so it checks exactly what the pipeline will
+use on this machine): Docker and the FreeSurfer/FastSurfer images, the FreeSurfer license, the MCR runtime, the
+Python virtualenv and its packages, the helper scripts next to the pipeline, `FS_LUT`/`FSROI_LIST` (only needed to
+compare against the published values), and whether `MRI_DATA_DIR` has subject folders directly inside it. Each line
+is `OK`, `WARN` (optional, the pipeline still runs without it) or `FAIL` (the pipeline will stop on this), with the
+exact command to fix it. Exit code is 0 only if nothing failed.
+
 ## 1. Docker
 
 Linux — the official convenience script installs Docker Engine on most

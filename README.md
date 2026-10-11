@@ -17,7 +17,7 @@ The reference data (A4/LEARN, LEADS) and the volume-of-interest masks are **not*
 ```
 data/   Values produced by the authors' pipelines (one CSV per analysis) - see the data dictionary below
 code/
-  replication_tool/   process your subject and compare it with the published values; resolve_subjects.py restores IDs if a release ships coded tables
+  replication_tool/   process your subject and compare it with the published values; check_install.sh verifies the setup; resolve_subjects.py restores IDs if a release ships coded tables
   centiloid/          Centiloid pipeline (DICOM -> SUVR) and comparison with the A4 reference
   tau_fdg/            cohort-level comparison scripts for Tau and FDG (they need the reference data)
   gaain_validation/   validation of a Centiloid pipeline against the GAAIN Centiloid Project
