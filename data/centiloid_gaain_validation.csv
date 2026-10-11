@@ -5,7 +5,7 @@ subject_id,ctx_suvr,centiloid_pipeline,status,error
 119551,1.1125758520308573,12.661037758765588,ok,
 123723,0.9533074130405944,-15.239607383548645,ok,
 123950,1.3529671376248955,54.77278316912924,ok,
-130779,,,error,Cerebelo con valor 0 o nan -- el PET no overlapa con el VOI. Verificar registracion con: fsleyes wPET.nii avg152T1.nii
+130779,,,error,Cerebellar reference value is 0 or NaN: the PET does not overlap the VOI. Check the registration with: fsleyes wPET.nii avg152T1.nii
 146743,1.687540093926992,113.38327365413043,ok,
 164067,1.359722917093959,55.95626061651976,ok,
 168001,1.6166784966154804,100.96973903709984,ok,

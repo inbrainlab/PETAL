@@ -17,13 +17,44 @@ The reference data (A4/LEARN, LEADS) and the volume-of-interest masks are **not*
 ```
 data/   Values produced by the authors' pipelines (one CSV per analysis) - see the data dictionary below
 code/
-  replication_tool/   process your subject and compare it with the published values
+  replication_tool/   process your subject and compare it with the published values; resolve_subjects.py restores IDs if a release ships coded tables
   centiloid/          Centiloid pipeline (DICOM -> SUVR) and comparison with the A4 reference
   tau_fdg/            cohort-level comparison scripts for Tau and FDG (they need the reference data)
   gaain_validation/   validation of a Centiloid pipeline against the GAAIN Centiloid Project
+  dicom_to_nifti/     DICOM -> NIfTI conversion and organisation of downloaded ADNI scans (no MATLAB)
 MANIFEST.csv, SHA256SUMS.txt   integrity:  sha256sum -c SHA256SUMS.txt
 requirements.txt
 ```
+
+## Participant codes (only if your data/ tables are coded)
+
+In this release the participant column of the tables in `data/` (`subject` or `subject_id`) holds the real ADNI
+or A4 identifier directly -- no decoding step is needed to use them as they are.
+
+Some releases of this repository instead ship these tables with a coded participant column, so that only people
+with approved ADNI/A4 access can recover the real identifiers. If you are working from one of those releases, each
+code looks like:
+
+```
+ADNI:<n>:<check>     A4:<n>:<check>        e.g.  ADNI:23:627e
+```
+
+`<n>` is the row where that participant first appears in a file that only approved ADNI / A4 users can download:
+`ROSTER.csv` (ADNI, column `PTID`) or `A4_PTDEMOG*.csv` (A4, column `BID`); row 1 is the first data row. `<check>` is
+a 4-character code that detects a different version of that file. A coded release also ships `data/INDEX_FILES.csv`,
+listing the file names and sha256 of the index versions used.
+
+To restore the IDs in a coded release, with your own copies of the index files:
+
+```bash
+python3 code/replication_tool/resolve_subjects.py --data data --out resolved/data \
+    --adni-index ROSTER.csv --a4-index A4_PTDEMOG.csv
+```
+
+Then use `resolved` as the package folder (`--package resolved`, or `PUBLIC_PACKAGE=resolved`) and
+`resolved/data/...` in place of `data/...`. You can give only one index; the other source stays coded. The tools in
+`code/replication_tool/` stop with this instruction if they find coded tables. The restored files contain participant
+identifiers: keep them inside your approved storage and do not redistribute them.
 
 ## Quick start: process and compare one subject
 
@@ -44,7 +75,9 @@ requirements.txt
    `$HOME/freesurfer-mcr/MCRv97`; the container mounts it and FreeSurfer's `segmentBS.sh` uses it to obtain the
    pons mask. Centiloid: `code/centiloid/centiloid_pipeline_tracers.py` (DICOM to SUVR).
 
-2. **Compare with the published values.** If `PUBLIC_PACKAGE` (this folder), `FS_LUT` (`FreeSurferColorLUT.txt`) and
+2. **Compare with the published values.** If `PUBLIC_PACKAGE` (this folder, or the `resolved` folder if your data
+   is a coded release -- see [Participant codes](#participant-codes-only-if-your-data-tables-are-coded)), `FS_LUT`
+   (`FreeSurferColorLUT.txt`) and
    `FSROI_LIST` (`fsroi_list_FTP.csv` for Tau; FDG uses `data/fdg_config_rois.csv`) are defined, the pipeline script
    does this at the end. You can also run it yourself:
 
@@ -76,7 +109,19 @@ Besides the composites, `evaluate_subject.py` writes the SUVR of every bilateral
 Columns: `subject, region, suvr, nvoxels, volume_mm3` (empty for PVC). A region is reported only when both
 hemispheres are present in your segmentation. The published counterparts are
 `data/tau_bilateral_published.csv`, `data/tau_bilateral_pvc_published.csv` and `data/fdg_bilateral_published.csv`
-(same columns): merge on `(subject, region)` to compare. These bilateral tables are not compared automatically.
+(same columns). `evaluate_subject.py` does not compare the bilateral tables by itself; use
+`code/replication_tool/compare_bilateral.py`, which matches rows on `(subject, region)`:
+
+```bash
+python3 code/replication_tool/compare_bilateral.py --mine values_tau_bilateral.csv \
+    --published data/tau_bilateral_published.csv
+# with PVC:  --mine values_tau_bilateral_pvc.csv --published data/tau_bilateral_pvc_published.csv --pvc
+# FDG:       --mine values_fdg_bilateral.csv --published data/fdg_bilateral_published.csv --type fdg
+# coded release: use resolved/data/... instead of data/... (see Participant codes)
+```
+
+For one subject it lists the regions with the largest differences; for several subjects it reports the MAPE per
+region. `--output` saves the per-row comparison.
 
 ### Validate your Centiloid pipeline against GAAIN (optional)
 
@@ -134,6 +179,38 @@ same container image (`freesurfer/freesurfer:7.4.1`) and then processed with thi
 
 Rows are keyed by the participant identifiers of the source studies (A4/LEARN and the FDG cohort), so that the values
 can be merged with the data obtained from the original providers and the analyses replicated.
+
+## From DICOM to NIfTI
+
+The images used in this work were downloaded from ADNI as DICOM and converted to NIfTI with the setup stage of the
+LEADS processing code (<https://github.com/dschonhaut/leads_processing>, GPL-3.0), which calls
+`dcm2niix` v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` does the same steps in plain Python (no MATLAB; it
+is a new implementation, not a copy of the LEADS code):
+
+```bash
+python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata <downloaded zips / DICOM folders> \
+    --raw <output folder> --out scans_index.csv --dcm2niix <path to dcm2niix>
+```
+
+Steps (also available one by one): `unzip`, `convert` (`dcm2niix -d 9 -o <folder> <folder>`, default output names,
+only for folders with DICOMs and no NIfTI), `organize` (move to `raw/<subject>/...`) and `index` (CSV with subject,
+scan type, date, image ID and PET resolution).
+
+**Check against the LEADS conversion.** For one ADNI participant (one MRI IR-SPGR series with 196 slices and one
+FDG series) we converted the DICOM files with this script and with the LEADS setup. The NIfTI files were
+byte-identical (same sha256). This is a check on one participant and two series, with the dcm2niix version above;
+`code/dicom_to_nifti/compare_nifti.py` compares data, affine and header of two folders if you want to repeat it.
+
+**Differences between our LEADS installation and the original code** (none of them changes the converted images):
+
+| Change | Reason |
+|---|---|
+| DICOM folders converted one after the other instead of in a parallel pool | the conversion itself is unchanged |
+| Python interpreter path set to the system Python | the original path pointed to another machine |
+| Scan tag parsed from the end of the string, so subject IDs may contain underscores (`NNN_S_NNNN`) | the original assumed IDs without underscores |
+| `ir-spgr` added to the scan-type table as `MRI-T1` | without it these T1 series are not recognised as MRI |
+
+The last change decides which series are accepted as T1; the scan-type table in `dicom_to_nifti.py` includes it.
 
 ## Data provenance (FDG cohort)
 

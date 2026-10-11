@@ -15,5 +15,5 @@ processing of ADNI participants.
 * Do not add imaging data or clinical data to this repository.
 * Any release beyond the laboratory requires written permission from the data providers.
 
-Contact: [name, email]
-Version: [tag / date]
+Contact: [Matias Salinas, matiasfsalinass@gmail.com]
+Version: [10/10/2026]
