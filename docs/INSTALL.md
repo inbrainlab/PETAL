@@ -183,7 +183,7 @@ your own glob pattern before running the script.
 
 ## What you get out
 
-Running `run_public_pipeline.sh <SUBJECT>` produces, per subject, under
+Running `bash run_public_pipeline.sh <SUBJECT>` produces, per subject, under
 `~/Downloads/pet_pipeline/output/<SUBJECT>/`:
 
 - `output.csv` (FTP) / `output_fdg.csv` (FDG) — raw regional means from
