@@ -20,7 +20,7 @@ this is where to change it in the code:**
 |---|---|---|
 | Working directory | `~/fastsurfer/` | `FASTSURFER_BASE` — `code/replication_tool/run_public_pipeline.sh` line 32 |
 | FreeSurfer license | `~/fastsurfer/fs_license/.license` | `FS_LICENSE_DIR` — `code/replication_tool/run_public_pipeline.sh` line 35 (derives from `FASTSURFER_BASE` by default) |
-| Matlab Compiled Runtime (MCR v97) | `$FASTSURFER_BASE/MCRv97` | Not a variable here — it's a hardcoded Docker mount path at `code/replication_tool/run_public_pipeline.sh` line 188 (derives from `FASTSURFER_BASE` by default) |
+| Matlab Compiled Runtime (MCR v97) | `$FASTSURFER_BASE/MCRv97` | `MCR_DIR` in `code/replication_tool/run_public_pipeline.sh` (configuration block, next to `FASTSURFER_BASE`/`FS_LICENSE_DIR`), defaults to `$FASTSURFER_BASE/MCRv97` and can be overridden by exporting `MCR_DIR` |
 | Python virtualenv | `~/.venv_pet_pipeline` | `PYTHON` — `code/replication_tool/run_public_pipeline.sh` line 38 |
 | Subject data folder | `$FASTSURFER_BASE/mri_data` | `MRI_DATA_DIR` — `code/replication_tool/run_public_pipeline.sh` line 33 (or export the `MRI_DATA_DIR` environment variable instead of editing the script) |
 

@@ -39,6 +39,7 @@ PYTHON="${PYTHON:-$HOME/.venv_pet_pipeline/bin/python3}"    # virtualenv python3
 PUBLIC_PACKAGE="${PUBLIC_PACKAGE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"  # folder of the public package (with data/) used for comparison; defaults to this repo's own root
 FS_LUT="${FS_LUT:-$HOME/freesurfer/FreeSurferColorLUT.txt}"  # generic placeholder -- FreeSurferColorLUT.txt is NOT shipped in this repo, set the real path on your machine
 FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"  # generic placeholder -- fsroi_list_FTP.csv is NOT shipped in this repo, set the real path on your machine (FDG instead defaults to data/fdg_config_rois.csv further below)
+MCR_DIR="${MCR_DIR:-$FASTSURFER_BASE/MCRv97}"                # Matlab Compiled Runtime v97, needed by segmentBS.sh (FDG and classic recon-all brainstem step)
 
 # ── arguments ──────────────────────────────────────────────────────────────────────
 # Non-positional parsing: --tracer and --rewrite may appear in any order after $1.
@@ -185,7 +186,7 @@ run_fs() {
         -v "$MRI_DATA_DIR":/data \
         -v "$SUBJECTS_DIR":/output \
         -v "$FS_LICENSE_DIR/.license":/usr/local/freesurfer/.license \
-        -v "$FASTSURFER_BASE/MCRv97":/usr/local/freesurfer/MCRv97 \
+        -v "$MCR_DIR":/usr/local/freesurfer/MCRv97 \
         -e SUBJECTS_DIR=/output \
         --entrypoint bash \
         "$FREESURFER_IMAGE" -c "$1"
