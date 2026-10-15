@@ -66,7 +66,7 @@ identifiers: keep them inside your approved storage and do not redistribute them
 
    Requirements: Docker (`freesurfer/freesurfer:7.4.1`), a FreeSurfer license (not distributed) and
    `progress_helpers.sh` next to the script. Input: `<FASTSURFER_BASE>/mri_data/<ID>/<ID>_T1.nii` and the PET
-   (`FASTSURFER_BASE` defaults to `~/fastsurfer`). Output: `<FASTSURFER_BASE>/output/<ID>/output.csv` (Tau; with PVC
+   (`FASTSURFER_BASE` defaults to `~/Downloads/pet_pipeline` -- no edit needed if you download the repo and run it from `~/Downloads`). Output: `<FASTSURFER_BASE>/output/<ID>/output.csv` (Tau; with PVC
    also `gtmpvc_T1space_mask.output/gtm.stats.dat`) or `output_fdg.csv` + `output_brainstem_fdg.csv` (FDG).
 
    Input file names: `<ID>_T1.nii[.gz]` and the PET as `<ID>_FTP.nii` or `<ID>_AV1451.nii` (Tau) or `<ID>_FDG.nii`

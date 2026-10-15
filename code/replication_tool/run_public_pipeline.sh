@@ -29,7 +29,7 @@
 set -e
 
 # ── configuration ─────────────────────────────────────────────────────────────
-FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/pet_pipeline}"    # working directory root -- override by exporting FASTSURFER_BASE
+FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/Downloads/pet_pipeline}"    # working directory root -- override by exporting FASTSURFER_BASE
 MRI_DATA_DIR="${MRI_DATA_DIR:-$FASTSURFER_BASE/mri_data}"   # raw T1/PET source files, one subdirectory per subject
 SUBJECTS_DIR="$FASTSURFER_BASE/output"                      # FreeSurfer SUBJECTS_DIR -- recon-all output and this pipeline's own result CSVs land here
 FS_LICENSE_DIR="$FASTSURFER_BASE/fs_license"                # directory holding the FreeSurfer license file (.license)

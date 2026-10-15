@@ -8,7 +8,7 @@ default method, `RECON_METHOD=freesurfer`). The GPU/FastSurfer path
 (`RECON_METHOD=fastsurfer`) is optional — skip it if you only plan to
 use classic FreeSurfer.
 
-The working directory used throughout this guide, `~/fastsurfer/`, is
+The working directory used throughout this guide, `~/Downloads/pet_pipeline/`, is
 just an example (set by the `FASTSURFER_BASE` variable at the top of
 the script) — use whatever path you prefer, as long as it matches what
 `FASTSURFER_BASE` points to.
@@ -18,8 +18,8 @@ this is where to change it in the code:**
 
 | What | Default in this guide | Edit this variable, in this file |
 |---|---|---|
-| Working directory | `~/fastsurfer/` | `FASTSURFER_BASE` — `code/replication_tool/run_public_pipeline.sh` line 32 |
-| FreeSurfer license | `~/fastsurfer/fs_license/.license` | `FS_LICENSE_DIR` — `code/replication_tool/run_public_pipeline.sh` line 35 (derives from `FASTSURFER_BASE` by default) |
+| Working directory | `~/Downloads/pet_pipeline/` (this is the default -- no edit needed if you download the repo and run it from `~/Downloads`) | `FASTSURFER_BASE` — `code/replication_tool/run_public_pipeline.sh` line 32 |
+| FreeSurfer license | `~/Downloads/pet_pipeline/fs_license/.license` | `FS_LICENSE_DIR` — `code/replication_tool/run_public_pipeline.sh` line 35 (derives from `FASTSURFER_BASE` by default) |
 | Matlab Compiled Runtime (MCR v97) | `$FASTSURFER_BASE/MCRv97` | `MCR_DIR` in `code/replication_tool/run_public_pipeline.sh` (configuration block, next to `FASTSURFER_BASE`/`FS_LICENSE_DIR`), defaults to `$FASTSURFER_BASE/MCRv97` and can be overridden by exporting `MCR_DIR` |
 | Python virtualenv | `~/.venv_pet_pipeline` | `PYTHON` — `code/replication_tool/run_public_pipeline.sh` line 38 |
 | Subject data folder | `$FASTSURFER_BASE/mri_data` | `MRI_DATA_DIR` — `code/replication_tool/run_public_pipeline.sh` line 33 (or export the `MRI_DATA_DIR` environment variable instead of editing the script) |
@@ -93,9 +93,9 @@ Request a free license at
 https://surfer.nmr.mgh.harvard.edu/registration.html, then save it as:
 
 ```bash
-mkdir -p ~/fastsurfer/fs_license
+mkdir -p ~/Downloads/pet_pipeline/fs_license
 # paste the license content you received into this file:
-nano ~/fastsurfer/fs_license/.license
+nano ~/Downloads/pet_pipeline/fs_license/.license
 ```
 
 The script checks for this exact path and hard-fails if it is missing.
@@ -158,14 +158,14 @@ scheme (don't mix them within the same subject folder):
 
 ```
 # A4 convention (subject IDs like A4:35:7415)
-~/fastsurfer/mri_data/A4:35:7415/A4:35:7415_T1.nii
-~/fastsurfer/mri_data/A4:35:7415/A4_A4:35:7415_MR_Flortaucipir_Br_*.nii   # FTP
-~/fastsurfer/mri_data/A4:35:7415/A4_A4:35:7415_MR_FDG_Br_*.nii            # FDG
+~/Downloads/pet_pipeline/mri_data/A4:35:7415/A4:35:7415_T1.nii
+~/Downloads/pet_pipeline/mri_data/A4:35:7415/A4_A4:35:7415_MR_Flortaucipir_Br_*.nii   # FTP
+~/Downloads/pet_pipeline/mri_data/A4:35:7415/A4_A4:35:7415_MR_FDG_Br_*.nii            # FDG
 
 # ADNI convention (subject IDs like ADNI:294:ec36, with the ADNI Image ID)
-~/fastsurfer/mri_data/ADNI:294:ec36/ADNI:294:ec36_I123456_T1.nii
-~/fastsurfer/mri_data/ADNI:294:ec36/ADNI:294:ec36_I123456_FTP.nii             # or _AV1451.nii
-~/fastsurfer/mri_data/ADNI:294:ec36/ADNI:294:ec36_I123456_FDG.nii
+~/Downloads/pet_pipeline/mri_data/ADNI:294:ec36/ADNI:294:ec36_I123456_T1.nii
+~/Downloads/pet_pipeline/mri_data/ADNI:294:ec36/ADNI:294:ec36_I123456_FTP.nii             # or _AV1451.nii
+~/Downloads/pet_pipeline/mri_data/ADNI:294:ec36/ADNI:294:ec36_I123456_FDG.nii
 ```
 
 If your files use neither naming, set `PET_GLOB_FTP`/`PET_GLOB_FDG` to
@@ -174,7 +174,7 @@ your own glob pattern before running the script.
 ## What you get out
 
 Running `run_public_pipeline.sh <SUBJECT>` produces, per subject, under
-`~/fastsurfer/output/<SUBJECT>/`:
+`~/Downloads/pet_pipeline/output/<SUBJECT>/`:
 
 - `output.csv` (FTP) / `output_fdg.csv` (FDG) — raw regional means from
   `mri_segstats` for the target region.

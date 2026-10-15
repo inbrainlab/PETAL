@@ -11,7 +11,7 @@ TRACER="FTP"
 [ "$1" == "--tracer" ] && TRACER="${2:-FTP}"
 
 # ── same configuration as run_public_pipeline.sh ───────────────────────────────
-FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/pet_pipeline}"
+FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/Downloads/pet_pipeline}"
 MRI_DATA_DIR="${MRI_DATA_DIR:-$FASTSURFER_BASE/mri_data}"
 SUBJECTS_DIR="$FASTSURFER_BASE/output"
 FS_LICENSE_DIR="$FASTSURFER_BASE/fs_license"
