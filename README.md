@@ -187,13 +187,11 @@ v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` runs this conversion in p
 
 ```bash
 python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata <downloaded zips / DICOM folders> \
-    --raw <output folder>
+    --raw <output folder> [--out <metadata csv, defaults to scans_index.csv>]
 ```
 
-Output: converted NIfTI files organized under `raw/<subject>/...`, plus `scans_index.csv` with the metadata
-of every converted scan (subject, scan type, date, image ID and PET resolution). `code/dicom_to_nifti/compare_nifti.py`
-compares data, affine and header of two folders of NIfTI files by name, if you want to check a conversion against
-another one.
+Output: converted NIfTI files organized under `raw/<subject>/...`, plus `scans_index.csv` (or the name given to
+`--out`) with the metadata of every converted scan (subject, scan type, date, image ID and PET resolution).
 
 The script calls the `dcm2niix` command directly, so if it is already on your `PATH` no extra flag is needed.
 Only pass `--dcm2niix <path to dcm2niix>` if the binary is not on your `PATH` (the script otherwise defaults to
