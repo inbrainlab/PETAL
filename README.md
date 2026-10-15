@@ -182,10 +182,8 @@ can be merged with the data obtained from the original providers and the analyse
 
 ## From DICOM to NIfTI
 
-The images used in this work were downloaded from ADNI as DICOM and converted to NIfTI with the setup stage of the
-LEADS processing code (<https://github.com/dschonhaut/leads_processing>, GPL-3.0), which calls
-`dcm2niix` v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` does the same steps in plain Python (no MATLAB; it
-is a new implementation, not a copy of the LEADS code):
+The images used in this work were downloaded from ADNI as DICOM and converted to NIfTI with `dcm2niix`
+v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` runs this conversion in plain Python (no MATLAB):
 
 ```bash
 python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata <downloaded zips / DICOM folders> \
@@ -194,23 +192,8 @@ python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata <downloaded zips / D
 
 Steps (also available one by one): `unzip`, `convert` (`dcm2niix -d 9 -o <folder> <folder>`, default output names,
 only for folders with DICOMs and no NIfTI), `organize` (move to `raw/<subject>/...`) and `index` (CSV with subject,
-scan type, date, image ID and PET resolution).
-
-**Check against the LEADS conversion.** For one ADNI participant (one MRI IR-SPGR series with 196 slices and one
-FDG series) we converted the DICOM files with this script and with the LEADS setup. The NIfTI files were
-byte-identical (same sha256). This is a check on one participant and two series, with the dcm2niix version above;
-`code/dicom_to_nifti/compare_nifti.py` compares data, affine and header of two folders if you want to repeat it.
-
-**Differences between our LEADS installation and the original code** (none of them changes the converted images):
-
-| Change | Reason |
-|---|---|
-| DICOM folders converted one after the other instead of in a parallel pool | the conversion itself is unchanged |
-| Python interpreter path set to the system Python | the original path pointed to another machine |
-| Scan tag parsed from the end of the string, so subject IDs may contain underscores (`NNN_S_NNNN`) | the original assumed IDs without underscores |
-| `ir-spgr` added to the scan-type table as `MRI-T1` | without it these T1 series are not recognised as MRI |
-
-The last change decides which series are accepted as T1; the scan-type table in `dicom_to_nifti.py` includes it.
+scan type, date, image ID and PET resolution). `code/dicom_to_nifti/compare_nifti.py` compares data, affine and
+header of two folders of NIfTI files by name, if you want to check a conversion against another one.
 
 ## Data provenance (FDG cohort)
 
@@ -251,11 +234,11 @@ from these data. The acquisition date of each scan is taken from the folder name
 | Cohort (tracers) | T1 files | Matrix (most common) | Voxel size, mm | Scanner information |
 |---|---|---|---|---|
 | A4 (Tau and amyloid; the same T1 serves both) | 196 participants | 176x240x256 (132), 196x256x256 (40), 170x256x256 (22), 2 others | 1.20x1.05x1.05 (195), 1.20x1.09x1.09 (1) | not available (no JSON sidecars) |
-| ADNI/LEADS (FDG) | 489 | 176x240x256 (167), 196x256x256 (119), 208x240x256 (93), 211x256x256 (40), 170x256x256 (37), 166x256x256 (9), others | 1.0x1.0x1.0 (215), 1.20x1.05x1.05 (115), 1.20x1.00x1.00 (93), 1.20x1.02x1.02 (34), 1.20x0.94x0.94 (14), 1.20x1.25x1.25 (9), others | field strength 3 T (459) and 1.5 T (28), 2 invalid values; Siemens 271, GE 136, Philips 82 (Prisma_fit, Skyra, TrioTim, Ingenia, DISCOVERY MR750, among others) |
+| ADNI (FDG) | 489 | 176x240x256 (167), 196x256x256 (119), 208x240x256 (93), 211x256x256 (40), 170x256x256 (37), 166x256x256 (9), others | 1.0x1.0x1.0 (215), 1.20x1.05x1.05 (115), 1.20x1.00x1.00 (93), 1.20x1.02x1.02 (34), 1.20x0.94x0.94 (14), 1.20x1.25x1.25 (9), others | field strength 3 T (459) and 1.5 T (28), 2 invalid values; Siemens 271, GE 136, Philips 82 (Prisma_fit, Skyra, TrioTim, Ingenia, DISCOVERY MR750, among others) |
 
-The ADNI/LEADS table counts the T1 files found for the FDG participants, which is more than the 472 participants in
+The ADNI table counts the T1 files found for the FDG participants, which is more than the 472 participants in
 this repository (some participants may have more than one T1, or may be outside the final cohort). The A4 T1 images
-share an almost uniform voxel size, whereas the ADNI/LEADS T1 images differ in voxel size, matrix, scanner
+share an almost uniform voxel size, whereas the ADNI T1 images differ in voxel size, matrix, scanner
 manufacturer and field strength.
 
 ### Voxel size ranges (mm, from the NIfTI headers)
@@ -263,7 +246,7 @@ manufacturer and field strength.
 | Image | Files | Axis 1 | Axis 2 | Axis 3 |
 |---|---|---|---|---|
 | T1, A4 | 196 | 1.20 | 1.05 - 1.09 | 1.05 - 1.09 |
-| T1, ADNI/LEADS | 489 | 0.94 - 1.20 | 0.94 - 1.25 | 0.94 - 1.25 |
+| T1, ADNI | 489 | 0.94 - 1.20 | 0.94 - 1.25 | 0.94 - 1.25 |
 | PET Flortaucipir, A4 | 196 | 2.00 - 3.18 | 2.00 - 3.18 | 1.50 - 4.00 |
 | PET Florbetapir, A4 | 14 (NIfTI files only) | 2.53 - 3.18 | 2.53 - 3.18 | 1.50 - 4.00 |
 | PET FDG, ADNI (preprocessed) | 489 | 1.50 | 1.50 | 1.50 |
