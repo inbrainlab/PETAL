@@ -183,12 +183,16 @@ can be merged with the data obtained from the original providers and the analyse
 ## From DICOM to NIfTI
 
 The images used in this work were downloaded from ADNI as DICOM and converted to NIfTI with `dcm2niix`
-v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` runs this conversion in plain Python (no MATLAB):
+v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` runs this conversion in plain Python (no MATLAB). It calls
+the `dcm2niix` command directly, so if it is already on your `PATH` no extra flag is needed:
 
 ```bash
 python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata <downloaded zips / DICOM folders> \
-    --raw <output folder> --out scans_index.csv --dcm2niix <path to dcm2niix>
+    --raw <output folder> --out scans_index.csv
 ```
+
+Only pass `--dcm2niix <path to dcm2niix>` if the binary is not on your `PATH` (the script otherwise defaults to
+plain `dcm2niix` and fails with a clear message if it cannot find it).
 
 Steps (also available one by one): `unzip`, `convert` (`dcm2niix -d 9 -o <folder> <folder>`, default output names,
 only for folders with DICOMs and no NIfTI), `organize` (move to `raw/<subject>/...`) and `index` (CSV with subject,
