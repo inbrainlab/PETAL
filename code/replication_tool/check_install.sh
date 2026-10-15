@@ -21,7 +21,7 @@ PYTHON="${PYTHON:-$HOME/.venv_pet_pipeline/bin/python3}"
 PUBLIC_PACKAGE="${PUBLIC_PACKAGE:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 FS_LUT="${FS_LUT:-$HOME/freesurfer/FreeSurferColorLUT.txt}"
 if [ "$TRACER" == "FDG" ]; then
-    FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fdg_config_rois.csv}"
+    FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FDG.csv}"
 else
     FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"
 fi

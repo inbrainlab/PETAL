@@ -19,7 +19,7 @@ bilateral region (left + right hemisphere, divided by the reference region):
   Tau (no PVC)  44 regions (BILATERAL_TAU), weighted by volume (mm3); reference = whole cerebellar cortex.
   Tau (PVC)     same 44 regions from mri_gtmpvc (gtm.stats.dat), weighted by number of voxels;
                 written to values_tau_bilateral_pvc.csv when gtm.stats.dat exists.
-  FDG (no PVC)  regions of the FDG ROI list (--fsroi-list data/fdg_config_rois.csv), weighted by
+  FDG (no PVC)  regions of the FDG ROI list (--fsroi-list data/fsroi_list_FDG.csv), weighted by
                 volume (mm3); reference = pons.
 A region is reported only when both hemispheres are present in your segmentation. Published bilateral
 values are in data/tau_bilateral_published.csv, data/tau_bilateral_pvc_published.csv and
@@ -29,14 +29,14 @@ Inputs by type:
   tau        <base>/<subject>/output.csv  (mri_segstats; normalised by the whole cerebellar cortex)
              + --fsroi-list fsroi_list_FTP.csv + --lut FreeSurferColorLUT.txt
   fdg        <base>/<subject>/output_fdg.csv and output_brainstem_fdg.csv (reference: pons)
-             + --fsroi-list data/fdg_config_rois.csv + --lut FreeSurferColorLUT.txt
+             + --fsroi-list data/fsroi_list_FDG.csv + --lut FreeSurferColorLUT.txt
   centiloid  CSV written by centiloid_pipeline_tracers.py (--results)
 
 Examples:
   python3 evaluate_subject.py --type tau --package /path/to/repo --fastsurfer-base /path/to/output \\
       --subject S001 --fsroi-list fsroi_list_FTP.csv --lut FreeSurferColorLUT.txt
   python3 evaluate_subject.py --type fdg --package /path/to/repo --fastsurfer-base /path/to/output --all \\
-      --fsroi-list /path/to/repo/data/fdg_config_rois.csv --lut FreeSurferColorLUT.txt
+      --fsroi-list /path/to/repo/data/fsroi_list_FDG.csv --lut FreeSurferColorLUT.txt
   python3 evaluate_subject.py --type centiloid --package /path/to/repo --results centiloid_results.csv --all
 """
 import argparse
@@ -385,7 +385,7 @@ def main():
     p.add_argument("--all", action="store_true", help="every subject that has output")
     p.add_argument("--fastsurfer-base", help="tau/fdg: folder containing <subject>/output*.csv")
     p.add_argument("--seg-filename", default="output.csv", help="tau: name of the segstats table")
-    p.add_argument("--fsroi-list", help="tau/fdg: ROI list (fsroi_list_FTP.csv for Tau; data/fdg_config_rois.csv for FDG)")
+    p.add_argument("--fsroi-list", help="tau/fdg: ROI list (fsroi_list_FTP.csv for Tau; data/fsroi_list_FDG.csv for FDG)")
     p.add_argument("--lut", help="FreeSurferColorLUT.txt")
     p.add_argument("--results", help="centiloid: CSV written by centiloid_pipeline_tracers.py")
     p.add_argument("--output", default="subject_evaluation", help="output folder")

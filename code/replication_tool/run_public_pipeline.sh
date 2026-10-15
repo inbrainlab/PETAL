@@ -22,7 +22,7 @@
 #
 # At the end, if you define PUBLIC_PACKAGE (folder of the public package, with
 # data/), FS_LUT (FreeSurferColorLUT.txt) and FSROI_LIST (fsroi_list_FTP.csv for
-# Tau; for FDG data/fdg_config_rois.csv is used if you do not set it),
+# Tau; for FDG data/fsroi_list_FDG.csv is used if you do not set it),
 # evaluate_subject.py is run: if the subject is among the published values, your
 # result is compared against them; otherwise only your output is reported.
 
@@ -38,7 +38,7 @@ FREESURFER_IMAGE="freesurfer/freesurfer:7.4.1"              # classic recon-all,
 PYTHON="${PYTHON:-$HOME/.venv_pet_pipeline/bin/python3}"    # virtualenv python3, used for small inline NIfTI-reading steps
 PUBLIC_PACKAGE="${PUBLIC_PACKAGE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"  # folder of the public package (with data/) used for comparison; defaults to this repo's own root
 FS_LUT="${FS_LUT:-$HOME/freesurfer/FreeSurferColorLUT.txt}"  # generic placeholder -- FreeSurferColorLUT.txt is NOT shipped in this repo, set the real path on your machine
-FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"  # generic placeholder -- fsroi_list_FTP.csv is NOT shipped in this repo, set the real path on your machine (FDG instead defaults to data/fdg_config_rois.csv further below)
+FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"  # generic placeholder -- fsroi_list_FTP.csv is NOT shipped in this repo, set the real path on your machine (FDG instead defaults to data/fsroi_list_FDG.csv further below)
 MCR_DIR="${MCR_DIR:-$FASTSURFER_BASE/MCRv97}"                # Matlab Compiled Runtime v97, needed by segmentBS.sh (FDG and classic recon-all brainstem step)
 
 # ── arguments ──────────────────────────────────────────────────────────────────────
@@ -852,7 +852,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 EVAL_PY="$(dirname "${BASH_SOURCE[0]}")/evaluate_subject.py"
 if [ "$TRACER" == "FTP" ]; then EVAL_TYPE="tau"; else EVAL_TYPE="fdg"; fi
 if [ "$EVAL_TYPE" == "fdg" ] && [ -z "${FSROI_LIST:-}" ] && [ -n "${PUBLIC_PACKAGE:-}" ]; then
-    FSROI_LIST="$PUBLIC_PACKAGE/data/fdg_config_rois.csv"
+    FSROI_LIST="$PUBLIC_PACKAGE/data/fsroi_list_FDG.csv"
 fi
 echo ""
 echo "── Comparison with the published values ──────────────"

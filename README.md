@@ -78,7 +78,7 @@ identifiers: keep them inside your approved storage and do not redistribute them
 2. **Compare with the published values.** If `PUBLIC_PACKAGE` (this folder, or the `resolved` folder if your data
    is a coded release -- see [Participant codes](#participant-codes-only-if-your-data-tables-are-coded)), `FS_LUT`
    (`FreeSurferColorLUT.txt`) and
-   `FSROI_LIST` (`fsroi_list_FTP.csv` for Tau; FDG uses `data/fdg_config_rois.csv`) are defined, the pipeline script
+   `FSROI_LIST` (`fsroi_list_FTP.csv` for Tau; FDG uses `data/fsroi_list_FDG.csv`) are defined, the pipeline script
    does this at the end. You can also run it yourself:
 
    ```bash
@@ -87,7 +87,7 @@ identifiers: keep them inside your approved storage and do not redistribute them
        --fsroi-list fsroi_list_FTP.csv --lut FreeSurferColorLUT.txt
    ```
 
-   `--type fdg` works the same way with `--fsroi-list data/fdg_config_rois.csv`; `--type centiloid` takes
+   `--type fdg` works the same way with `--fsroi-list data/fsroi_list_FDG.csv`; `--type centiloid` takes
    `--results <CSV written by centiloid_pipeline_tracers.py>`. If the subject is in `data/`, your values are compared
    with the published ones; if it is not, only your own output is returned and nothing is compared. Use `--all` for
    every subject with output. `fsroi_list_FTP.csv` (Tau) must be obtained from its original source.
@@ -104,7 +104,7 @@ Besides the composites, `evaluate_subject.py` writes the SUVR of every bilateral
 |---|---|
 | `values_tau_bilateral.csv` | Tau without PVC: 44 regions, hemispheres averaged weighted by volume (mm³); reference = whole cerebellar cortex |
 | `values_tau_bilateral_pvc.csv` | Tau with PVC (`mri_gtmpvc`, values already rescaled to the cerebellar cortex): same 44 regions, weighted by number of voxels. Written only if `gtm.stats.dat` exists |
-| `values_fdg_bilateral.csv` | FDG without PVC: bilateral regions of `data/fdg_config_rois.csv`, weighted by volume (mm³); reference = pons |
+| `values_fdg_bilateral.csv` | FDG without PVC: bilateral regions of `data/fsroi_list_FDG.csv`, weighted by volume (mm³); reference = pons |
 
 Columns: `subject, region, suvr, nvoxels, volume_mm3` (empty for PVC). A region is reported only when both
 hemispheres are present in your segmentation. The published counterparts are
@@ -174,7 +174,7 @@ same container image (`freesurfer/freesurfer:7.4.1`) and then processed with thi
 | `centiloid_gm_6vois.csv` | Gray-matter values for the 6 VOIs, n = 164 |
 | `centiloid_gaain_validation.csv` | GAAIN Centiloid Project validation: 46 subjects, 45 ok, 1 error; own values only |
 | `klunk_composite.csv` | Parietal and precuneus from the Klunk zones; the other four from the Avid VOIs |
-| `fdg_config_rois.csv` | ROI configuration (label lists) used for FDG |
+| `fsroi_list_FDG.csv` | ROI configuration (label lists) used for FDG |
 | `tau_composites.csv`, `fdg_composites.csv`, `fdg_by_region.csv`, `centiloid_voi_agreement.csv`, `tau_summary.csv`, `fdg_summary.csv` | Agreement summaries of this work against the reference; the reference values themselves are not distributed |
 
 Rows are keyed by the participant identifiers of the source studies (A4/LEARN and the FDG cohort), so that the values
