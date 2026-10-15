@@ -65,14 +65,14 @@ identifiers: keep them inside your approved storage and do not redistribute them
    ```
 
    Requirements: Docker (`freesurfer/freesurfer:7.4.1`), a FreeSurfer license (not distributed) and
-   `progress_helpers.sh` next to the script. Input: `<FASTSURFER_BASE>/mri_data/<ID>/<ID>_T1.nii` and the PET
-   (`FASTSURFER_BASE` defaults to `~/Downloads/pet_pipeline` -- no edit needed if you download the repo and run it from `~/Downloads`). Output: `<FASTSURFER_BASE>/output/<ID>/output.csv` (Tau; with PVC
+   `progress_helpers.sh` next to the script. Input: `<PETPIPELINE_BASE>/mri_data/<ID>/<ID>_T1.nii` and the PET
+   (`PETPIPELINE_BASE` defaults to `~/Downloads/pet_pipeline` -- no edit needed if you download the repo and run it from `~/Downloads`). Output: `<PETPIPELINE_BASE>/output/<ID>/output.csv` (Tau; with PVC
    also `gtmpvc_T1space_mask.output/gtm.stats.dat`) or `output_fdg.csv` + `output_brainstem_fdg.csv` (FDG).
 
    Input file names: `<ID>_T1.nii[.gz]` and the PET as `<ID>_FTP.nii` or `<ID>_AV1451.nii` (Tau) or `<ID>_FDG.nii`
    (FDG); alternatively set `PET_GLOB_FTP` / `PET_GLOB_FDG`. Files with other names (for example original ADNI or
    LEADS files) must be renamed or copied with these names. FDG also needs the MATLAB Runtime R2019b (MCRv97) in
-   `$FASTSURFER_BASE/MCRv97`; the container mounts it and FreeSurfer's `segmentBS.sh` uses it to obtain the
+   `$PETPIPELINE_BASE/MCRv97`; the container mounts it and FreeSurfer's `segmentBS.sh` uses it to obtain the
    pons mask. Centiloid: `code/centiloid/centiloid_pipeline_tracers.py` (DICOM to SUVR).
 
 2. **Compare with the published values.** If `PUBLIC_PACKAGE` (this folder, or the `resolved` folder if your data

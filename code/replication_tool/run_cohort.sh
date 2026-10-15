@@ -23,9 +23,9 @@ set -o pipefail   # no "set -e": one subject failing should not take down the wh
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELINE_SCRIPT="$SCRIPT_DIR/run_public_pipeline.sh"        # per-subject pipeline, called once per subject below
 
-FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/pet_pipeline}"    # same default as run_public_pipeline.sh
-MRI_DATA_DIR="${MRI_DATA_DIR:-$FASTSURFER_BASE/mri_data}"   # one subdirectory per subject
-LOGS_DIR="${LOGS_DIR:-$FASTSURFER_BASE/logs}"               # per-subject cohort logs (created automatically)
+PETPIPELINE_BASE="${PETPIPELINE_BASE:-$HOME/Downloads/pet_pipeline}"    # same default as run_public_pipeline.sh
+MRI_DATA_DIR="${MRI_DATA_DIR:-$PETPIPELINE_BASE/mri_data}"   # one subdirectory per subject
+LOGS_DIR="${LOGS_DIR:-$PETPIPELINE_BASE/logs}"               # per-subject cohort logs (created automatically)
 
 [ -f "$PIPELINE_SCRIPT" ] || { echo "ERROR: $PIPELINE_SCRIPT does not exist"; exit 1; }
 mkdir -p "$LOGS_DIR"

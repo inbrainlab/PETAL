@@ -11,10 +11,10 @@ TRACER="FTP"
 [ "$1" == "--tracer" ] && TRACER="${2:-FTP}"
 
 # ── same configuration as run_public_pipeline.sh ───────────────────────────────
-FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/Downloads/pet_pipeline}"
-MRI_DATA_DIR="${MRI_DATA_DIR:-$FASTSURFER_BASE/mri_data}"
-SUBJECTS_DIR="$FASTSURFER_BASE/output"
-FS_LICENSE_DIR="$FASTSURFER_BASE/fs_license"
+PETPIPELINE_BASE="${PETPIPELINE_BASE:-$HOME/Downloads/pet_pipeline}"
+MRI_DATA_DIR="${MRI_DATA_DIR:-$PETPIPELINE_BASE/mri_data}"
+SUBJECTS_DIR="$PETPIPELINE_BASE/output"
+FS_LICENSE_DIR="$PETPIPELINE_BASE/fs_license"
 FASTSURFER_IMAGE="deepmi/fastsurfer:cu126-v2.4.2"
 FREESURFER_IMAGE="freesurfer/freesurfer:7.4.1"
 PYTHON="${PYTHON:-$HOME/.venv_pet_pipeline/bin/python3}"
@@ -25,7 +25,7 @@ if [ "$TRACER" == "FDG" ]; then
 else
     FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"
 fi
-MCR_DIR="${MCR_DIR:-$FASTSURFER_BASE/MCRv97}"               # same variable as run_public_pipeline.sh
+MCR_DIR="${MCR_DIR:-$PETPIPELINE_BASE/MCRv97}"               # same variable as run_public_pipeline.sh
 
 PASS=0; WARN=0; FAIL=0
 ok()   { echo "  OK    $1"; PASS=$((PASS+1)); }
@@ -71,7 +71,7 @@ echo ""; echo "── FreeSurfer license"
 if [ -f "$FS_LICENSE_DIR/.license" ]; then
     ok "license found at $FS_LICENSE_DIR/.license"
 else
-    bad "license NOT found at $FS_LICENSE_DIR/.license -- see docs/INSTALL.md section 3 (FS_LICENSE_DIR derives from FASTSURFER_BASE=$FASTSURFER_BASE)"
+    bad "license NOT found at $FS_LICENSE_DIR/.license -- see docs/INSTALL.md section 3 (FS_LICENSE_DIR derives from PETPIPELINE_BASE=$PETPIPELINE_BASE)"
 fi
 
 # 4. MCR (needed for FDG's segmentBS.sh; also used whenever classic recon-all runs the brainstem step)

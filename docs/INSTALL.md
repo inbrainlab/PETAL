@@ -9,20 +9,20 @@ default method, `RECON_METHOD=freesurfer`). The GPU/FastSurfer path
 use classic FreeSurfer.
 
 The working directory used throughout this guide, `~/Downloads/pet_pipeline/`, is
-just an example (set by the `FASTSURFER_BASE` variable at the top of
+just an example (set by the `PETPIPELINE_BASE` variable at the top of
 the script) — use whatever path you prefer, as long as it matches what
-`FASTSURFER_BASE` points to.
+`PETPIPELINE_BASE` points to.
 
 **If you install anything below at a different path than shown here,
 this is where to change it in the code:**
 
 | What | Default in this guide | Edit this variable, in this file |
 |---|---|---|
-| Working directory | `~/Downloads/pet_pipeline/` (this is the default -- no edit needed if you download the repo and run it from `~/Downloads`) | `FASTSURFER_BASE` — `code/replication_tool/run_public_pipeline.sh` line 32 |
-| FreeSurfer license | `~/Downloads/pet_pipeline/fs_license/.license` | `FS_LICENSE_DIR` — `code/replication_tool/run_public_pipeline.sh` line 35 (derives from `FASTSURFER_BASE` by default) |
-| Matlab Compiled Runtime (MCR v97) | `$FASTSURFER_BASE/MCRv97` | `MCR_DIR` in `code/replication_tool/run_public_pipeline.sh` (configuration block, next to `FASTSURFER_BASE`/`FS_LICENSE_DIR`), defaults to `$FASTSURFER_BASE/MCRv97` and can be overridden by exporting `MCR_DIR` |
+| Working directory | `~/Downloads/pet_pipeline/` (this is the default -- no edit needed if you download the repo and run it from `~/Downloads`) | `PETPIPELINE_BASE` — `code/replication_tool/run_public_pipeline.sh` line 32 |
+| FreeSurfer license | `~/Downloads/pet_pipeline/fs_license/.license` | `FS_LICENSE_DIR` — `code/replication_tool/run_public_pipeline.sh` line 35 (derives from `PETPIPELINE_BASE` by default) |
+| Matlab Compiled Runtime (MCR v97) | `$PETPIPELINE_BASE/MCRv97` | `MCR_DIR` in `code/replication_tool/run_public_pipeline.sh` (configuration block, next to `PETPIPELINE_BASE`/`FS_LICENSE_DIR`), defaults to `$PETPIPELINE_BASE/MCRv97` and can be overridden by exporting `MCR_DIR` |
 | Python virtualenv | `~/.venv_pet_pipeline` | `PYTHON` — `code/replication_tool/run_public_pipeline.sh` line 38 |
-| Subject data folder | `$FASTSURFER_BASE/mri_data` | `MRI_DATA_DIR` — `code/replication_tool/run_public_pipeline.sh` line 33 (or export the `MRI_DATA_DIR` environment variable instead of editing the script) |
+| Subject data folder | `$PETPIPELINE_BASE/mri_data` | `MRI_DATA_DIR` — `code/replication_tool/run_public_pipeline.sh` line 33 (or export the `MRI_DATA_DIR` environment variable instead of editing the script) |
 
 Line numbers are for this version of the script; if they've drifted,
 search for the `# ── configuration ──` block near the top of the file
@@ -111,8 +111,8 @@ https://www.mathworks.com/products/compiler/matlab-runtime.html.
 always creates its own version-named subfolder (`v97`) inside whatever
 `-destinationFolder` you give it — it never places the runtime files
 directly in that folder. If you install straight into
-`$FASTSURFER_BASE/MCRv97`, you end up with the real files one level too
-deep, at `$FASTSURFER_BASE/MCRv97/v97/...`, and FreeSurfer's Docker image
+`$PETPIPELINE_BASE/MCRv97`, you end up with the real files one level too
+deep, at `$PETPIPELINE_BASE/MCRv97/v97/...`, and FreeSurfer's Docker image
 will fail to find the runtime (or fail with a `libmwmclmcrrt.so.9.7`
 error if a previous, partial install already left some files directly in
 that path). Install into a temporary folder instead, then move the `v97`
@@ -126,17 +126,17 @@ downloaded). Run it from there:
 ```bash
 cd ~/Downloads/MATLAB_Runtime_R2019b_Update_*_glnxa64   # go to the folder where you extracted the installer (the * matches whatever update number you downloaded; must match exactly one folder)
 ./install -mode silent -agreeToLicense yes -destinationFolder ~/mcr_install_tmp   # run the installer into a temporary folder, never straight into the final MCRv97 path
-mv ~/mcr_install_tmp/v97 "$FASTSURFER_BASE/MCRv97"   # move the installer's own v97 subfolder up, renaming it to the final MCRv97 path
+mv ~/mcr_install_tmp/v97 "$PETPIPELINE_BASE/MCRv97"   # move the installer's own v97 subfolder up, renaming it to the final MCRv97 path
 rmdir ~/mcr_install_tmp   # remove the now-empty temporary folder
 ```
 
-Confirm the runtime lands directly at `$FASTSURFER_BASE/MCRv97` (FreeSurfer's
+Confirm the runtime lands directly at `$PETPIPELINE_BASE/MCRv97` (FreeSurfer's
 Docker image expects that exact path — it is hardcoded in the script,
-see the table above, and derives from `FASTSURFER_BASE`):
+see the table above, and derives from `PETPIPELINE_BASE`):
 
 ```bash
-ls "$FASTSURFER_BASE/MCRv97/bin/glnxa64/libmwlaunchermain.so"
-ls "$FASTSURFER_BASE/MCRv97/runtime/glnxa64/libmwmclmcrrt.so.9.7"
+ls "$PETPIPELINE_BASE/MCRv97/bin/glnxa64/libmwlaunchermain.so"
+ls "$PETPIPELINE_BASE/MCRv97/runtime/glnxa64/libmwmclmcrrt.so.9.7"
 ```
 
 Both files must exist, or `segmentBS.sh` will fail (the second one only

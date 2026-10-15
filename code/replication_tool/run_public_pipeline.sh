@@ -2,7 +2,7 @@
 # run_public_pipeline.sh -- PET processing for Tau (Flortaucipir, FTP) and FDG.
 # Usage:  bash run_public_pipeline.sh <SUBJECT> [--tracer FTP|FDG] [--rewrite N|0b|all]
 #
-# Expected layout (FASTSURFER_BASE, default ~/pet_pipeline):
+# Expected layout (PETPIPELINE_BASE, default ~/pet_pipeline):
 #   mri_data/<SUBJECT>/<SUBJECT>_T1.nii[.gz]
 #   mri_data/<SUBJECT>/<PET>.nii           (accepted names: see PET_GLOB_CANDIDATES;
 #                                           or set PET_GLOB_FTP / PET_GLOB_FDG)
@@ -29,17 +29,17 @@
 set -e
 
 # ── configuration ─────────────────────────────────────────────────────────────
-FASTSURFER_BASE="${FASTSURFER_BASE:-$HOME/Downloads/pet_pipeline}"    # working directory root -- override by exporting FASTSURFER_BASE
-MRI_DATA_DIR="${MRI_DATA_DIR:-$FASTSURFER_BASE/mri_data}"   # raw T1/PET source files, one subdirectory per subject
-SUBJECTS_DIR="$FASTSURFER_BASE/output"                      # FreeSurfer SUBJECTS_DIR -- recon-all output and this pipeline's own result CSVs land here
-FS_LICENSE_DIR="$FASTSURFER_BASE/fs_license"                # directory holding the FreeSurfer license file (.license)
+PETPIPELINE_BASE="${PETPIPELINE_BASE:-$HOME/Downloads/pet_pipeline}"    # working directory root -- override by exporting PETPIPELINE_BASE
+MRI_DATA_DIR="${MRI_DATA_DIR:-$PETPIPELINE_BASE/mri_data}"   # raw T1/PET source files, one subdirectory per subject
+SUBJECTS_DIR="$PETPIPELINE_BASE/output"                      # FreeSurfer SUBJECTS_DIR -- recon-all output and this pipeline's own result CSVs land here
+FS_LICENSE_DIR="$PETPIPELINE_BASE/fs_license"                # directory holding the FreeSurfer license file (.license)
 FASTSURFER_IMAGE="deepmi/fastsurfer:cu126-v2.4.2"           # optional GPU path, RECON_METHOD=fastsurfer
 FREESURFER_IMAGE="freesurfer/freesurfer:7.4.1"              # classic recon-all, the default method
 PYTHON="${PYTHON:-$HOME/.venv_pet_pipeline/bin/python3}"    # virtualenv python3, used for small inline NIfTI-reading steps
 PUBLIC_PACKAGE="${PUBLIC_PACKAGE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"  # folder of the public package (with data/) used for comparison; defaults to this repo's own root
 FS_LUT="${FS_LUT:-$HOME/freesurfer/FreeSurferColorLUT.txt}"  # generic placeholder -- FreeSurferColorLUT.txt is NOT shipped in this repo, set the real path on your machine
 FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"  # generic placeholder -- fsroi_list_FTP.csv is NOT shipped in this repo, set the real path on your machine (FDG instead defaults to data/fsroi_list_FDG.csv further below)
-MCR_DIR="${MCR_DIR:-$FASTSURFER_BASE/MCRv97}"                # Matlab Compiled Runtime v97, needed by segmentBS.sh (FDG and classic recon-all brainstem step)
+MCR_DIR="${MCR_DIR:-$PETPIPELINE_BASE/MCRv97}"                # Matlab Compiled Runtime v97, needed by segmentBS.sh (FDG and classic recon-all brainstem step)
 
 # ── arguments ──────────────────────────────────────────────────────────────────────
 # Non-positional parsing: --tracer and --rewrite may appear in any order after $1.
