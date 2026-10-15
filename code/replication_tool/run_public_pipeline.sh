@@ -185,7 +185,7 @@ run_fs() {
         -v "$MRI_DATA_DIR":/data \
         -v "$SUBJECTS_DIR":/output \
         -v "$FS_LICENSE_DIR/.license":/usr/local/freesurfer/.license \
-        -v "$HOME/freesurfer-mcr/MCRv97":/usr/local/freesurfer/MCRv97 \
+        -v "$FASTSURFER_BASE/MCRv97":/usr/local/freesurfer/MCRv97 \
         -e SUBJECTS_DIR=/output \
         --entrypoint bash \
         "$FREESURFER_IMAGE" -c "$1"

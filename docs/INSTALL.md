@@ -20,7 +20,7 @@ this is where to change it in the code:**
 |---|---|---|
 | Working directory | `~/fastsurfer/` | `FASTSURFER_BASE` — `code/replication_tool/run_public_pipeline.sh` line 32 |
 | FreeSurfer license | `~/fastsurfer/fs_license/.license` | `FS_LICENSE_DIR` — `code/replication_tool/run_public_pipeline.sh` line 35 (derives from `FASTSURFER_BASE` by default) |
-| Matlab Compiled Runtime (MCR v97) | `~/freesurfer-mcr/MCRv97` | Not a variable here — it's a hardcoded Docker mount path at `code/replication_tool/run_public_pipeline.sh` line 185 |
+| Matlab Compiled Runtime (MCR v97) | `$FASTSURFER_BASE/MCRv97` | Not a variable here — it's a hardcoded Docker mount path at `code/replication_tool/run_public_pipeline.sh` line 188 (derives from `FASTSURFER_BASE` by default) |
 | Python virtualenv | `~/.venv_pet_pipeline` | `PYTHON` — `code/replication_tool/run_public_pipeline.sh` line 38 |
 | Subject data folder | `$FASTSURFER_BASE/mri_data` | `MRI_DATA_DIR` — `code/replication_tool/run_public_pipeline.sh` line 33 (or export the `MRI_DATA_DIR` environment variable instead of editing the script) |
 
@@ -105,16 +105,37 @@ The script checks for this exact path and hard-fails if it is missing.
 Needed by `segmentBS.sh` (brainstem/pons segmentation) — a free runtime
 only, not a full Matlab install. Download MCR v97 (R2019b) for your
 platform from MathWorks:
-https://www.mathworks.com/products/compiler/matlab-runtime.html, then
-run its installer in silent mode, e.g.:
+https://www.mathworks.com/products/compiler/matlab-runtime.html.
+
+**Installer quirk (read this before running it):** the MathWorks installer
+always creates its own version-named subfolder (`v97`) inside whatever
+`-destinationFolder` you give it — it never places the runtime files
+directly in that folder. If you install straight into
+`$FASTSURFER_BASE/MCRv97`, you end up with the real files one level too
+deep, at `$FASTSURFER_BASE/MCRv97/v97/...`, and FreeSurfer's Docker image
+will fail to find the runtime (or fail with a `libmwmclmcrrt.so.9.7`
+error if a previous, partial install already left some files directly in
+that path). Install into a temporary folder instead, then move the `v97`
+subfolder up into place with the exact name `MCRv97`:
 
 ```bash
-./install -mode silent -agreeToLicense yes -destinationFolder ~/freesurfer-mcr
+./install -mode silent -agreeToLicense yes -destinationFolder ~/mcr_install_tmp
+mv ~/mcr_install_tmp/v97 "$FASTSURFER_BASE/MCRv97"
+rmdir ~/mcr_install_tmp   # should now be empty
 ```
 
-Confirm the runtime lands at `~/freesurfer-mcr/MCRv97` (FreeSurfer's
-Docker image expects that exact path/version — this path is hardcoded
-in the script, see the table above).
+Confirm the runtime lands directly at `$FASTSURFER_BASE/MCRv97` (FreeSurfer's
+Docker image expects that exact path — it is hardcoded in the script,
+see the table above, and derives from `FASTSURFER_BASE`):
+
+```bash
+ls "$FASTSURFER_BASE/MCRv97/bin/glnxa64/libmwlaunchermain.so"
+ls "$FASTSURFER_BASE/MCRv97/runtime/glnxa64/libmwmclmcrrt.so.9.7"
+```
+
+Both files must exist, or `segmentBS.sh` will fail (the second one only
+shows up once the full runtime, not just a partial install, is in place).
+`check_install.sh` (see below) verifies this for you.
 
 ## 5. Python virtualenv
 

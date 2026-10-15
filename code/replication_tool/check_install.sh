@@ -25,7 +25,7 @@ if [ "$TRACER" == "FDG" ]; then
 else
     FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"
 fi
-MCR_DIR="$HOME/freesurfer-mcr/MCRv97"   # hardcoded Docker mount path in run_public_pipeline.sh, not a variable
+MCR_DIR="$FASTSURFER_BASE/MCRv97"   # hardcoded Docker mount path in run_public_pipeline.sh, not a variable (derives from FASTSURFER_BASE)
 
 PASS=0; WARN=0; FAIL=0
 ok()   { echo "  OK    $1"; PASS=$((PASS+1)); }

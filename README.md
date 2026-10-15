@@ -72,7 +72,7 @@ identifiers: keep them inside your approved storage and do not redistribute them
    Input file names: `<ID>_T1.nii[.gz]` and the PET as `<ID>_FTP.nii` or `<ID>_AV1451.nii` (Tau) or `<ID>_FDG.nii`
    (FDG); alternatively set `PET_GLOB_FTP` / `PET_GLOB_FDG`. Files with other names (for example original ADNI or
    LEADS files) must be renamed or copied with these names. FDG also needs the MATLAB Runtime R2019b (MCRv97) in
-   `$HOME/freesurfer-mcr/MCRv97`; the container mounts it and FreeSurfer's `segmentBS.sh` uses it to obtain the
+   `$FASTSURFER_BASE/MCRv97`; the container mounts it and FreeSurfer's `segmentBS.sh` uses it to obtain the
    pons mask. Centiloid: `code/centiloid/centiloid_pipeline_tracers.py` (DICOM to SUVR).
 
 2. **Compare with the published values.** If `PUBLIC_PACKAGE` (this folder, or the `resolved` folder if your data
