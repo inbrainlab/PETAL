@@ -190,11 +190,8 @@ python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata <downloaded zips / D
     --raw <output folder>
 ```
 
-Steps (also available one by one): `unzip`, `convert` (`dcm2niix -d 9 -o <folder> <folder>`, default output names,
-only for folders with DICOMs and no NIfTI), `organize` (move to `raw/<subject>/...`) and `index` (writes the
-metadata of every converted scan -- subject, scan type, date, image ID and PET resolution -- into a CSV; this is
-the only step that actually writes `--out`, which is optional and defaults to `scans_index.csv` in the current
-directory, so pass it only if you want a different name or location). `code/dicom_to_nifti/compare_nifti.py`
+Output: converted NIfTI files organized under `raw/<subject>/...`, plus `scans_index.csv` with the metadata
+of every converted scan (subject, scan type, date, image ID and PET resolution). `code/dicom_to_nifti/compare_nifti.py`
 compares data, affine and header of two folders of NIfTI files by name, if you want to check a conversion against
 another one.
 
