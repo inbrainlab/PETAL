@@ -123,20 +123,24 @@ else in this guide), the installer binary ends up somewhere like
 `~/Downloads/MATLAB_Runtime_R2019b_Update_*_glnxa64/install` (the exact folder name depends on the file you
 downloaded). Run it from there:
 
+These commands use the literal default path (`~/Downloads/pet_pipeline`, matching this guide); if you set
+`PETPIPELINE_BASE` to something else, replace it accordingly -- `$PETPIPELINE_BASE` is a variable read inside
+`run_public_pipeline.sh`/`check_install.sh`, it is not set in your shell:
+
 ```bash
 cd ~/Downloads/MATLAB_Runtime_R2019b_Update_*_glnxa64   # go to the folder where you extracted the installer (the * matches whatever update number you downloaded; must match exactly one folder)
 ./install -mode silent -agreeToLicense yes -destinationFolder ~/mcr_install_tmp   # run the installer into a temporary folder, never straight into the final MCRv97 path
-mv ~/mcr_install_tmp/v97 "$PETPIPELINE_BASE/MCRv97"   # move the installer's own v97 subfolder up, renaming it to the final MCRv97 path
+mv ~/mcr_install_tmp/v97 ~/Downloads/pet_pipeline/MCRv97   # move the installer's own v97 subfolder up, renaming it to the final MCRv97 path
 rmdir ~/mcr_install_tmp   # remove the now-empty temporary folder
 ```
 
-Confirm the runtime lands directly at `$PETPIPELINE_BASE/MCRv97` (FreeSurfer's
+Confirm the runtime lands directly at `~/Downloads/pet_pipeline/MCRv97` (FreeSurfer's
 Docker image expects that exact path — it is hardcoded in the script,
 see the table above, and derives from `PETPIPELINE_BASE`):
 
 ```bash
-ls "$PETPIPELINE_BASE/MCRv97/bin/glnxa64/libmwlaunchermain.so"
-ls "$PETPIPELINE_BASE/MCRv97/runtime/glnxa64/libmwmclmcrrt.so.9.7"
+ls ~/Downloads/pet_pipeline/MCRv97/bin/glnxa64/libmwlaunchermain.so
+ls ~/Downloads/pet_pipeline/MCRv97/runtime/glnxa64/libmwmclmcrrt.so.9.7
 ```
 
 Both files must exist, or `segmentBS.sh` will fail (the second one only
