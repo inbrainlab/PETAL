@@ -124,10 +124,10 @@ else in this guide), the installer binary ends up somewhere like
 downloaded). Run it from there:
 
 ```bash
-cd ~/Downloads/MATLAB_Runtime_R2019b_Update_*_glnxa64   # the folder where you extracted the installer
-./install -mode silent -agreeToLicense yes -destinationFolder ~/mcr_install_tmp
-mv ~/mcr_install_tmp/v97 "$FASTSURFER_BASE/MCRv97"
-rmdir ~/mcr_install_tmp   # should now be empty
+cd ~/Downloads/MATLAB_Runtime_R2019b_Update_*_glnxa64   # go to the folder where you extracted the installer (the * matches whatever update number you downloaded; must match exactly one folder)
+./install -mode silent -agreeToLicense yes -destinationFolder ~/mcr_install_tmp   # run the installer into a temporary folder, never straight into the final MCRv97 path
+mv ~/mcr_install_tmp/v97 "$FASTSURFER_BASE/MCRv97"   # move the installer's own v97 subfolder up, renaming it to the final MCRv97 path
+rmdir ~/mcr_install_tmp   # remove the now-empty temporary folder
 ```
 
 Confirm the runtime lands directly at `$FASTSURFER_BASE/MCRv97` (FreeSurfer's
