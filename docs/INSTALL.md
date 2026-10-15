@@ -116,9 +116,15 @@ deep, at `$FASTSURFER_BASE/MCRv97/v97/...`, and FreeSurfer's Docker image
 will fail to find the runtime (or fail with a `libmwmclmcrrt.so.9.7`
 error if a previous, partial install already left some files directly in
 that path). Install into a temporary folder instead, then move the `v97`
-subfolder up into place with the exact name `MCRv97`:
+subfolder up into place with the exact name `MCRv97`.
+
+MathWorks ships the MCR installer as a zip; once you download and extract it (into `~/Downloads`, like everything
+else in this guide), the installer binary ends up somewhere like
+`~/Downloads/MATLAB_Runtime_R2019b_Update_*_glnxa64/install` (the exact folder name depends on the file you
+downloaded). Run it from there:
 
 ```bash
+cd ~/Downloads/MATLAB_Runtime_R2019b_Update_*_glnxa64   # the folder where you extracted the installer
 ./install -mode silent -agreeToLicense yes -destinationFolder ~/mcr_install_tmp
 mv ~/mcr_install_tmp/v97 "$FASTSURFER_BASE/MCRv97"
 rmdir ~/mcr_install_tmp   # should now be empty
