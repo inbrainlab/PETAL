@@ -75,9 +75,23 @@ else
 fi
 
 # 4. MCR (needed for FDG's segmentBS.sh; also used whenever classic recon-all runs the brainstem step)
+#    Checks the two specific files Docker's freesurfer image actually loads, not just that the
+#    folder is non-empty -- a non-empty folder can still be missing one of them (partial install)
+#    or have them nested one level too deep (installer's own v97 subfolder quirk).
 echo ""; echo "── Matlab Compiled Runtime (MCR v97)"
-if [ -d "$MCR_DIR" ] && [ -n "$(ls -A "$MCR_DIR" 2>/dev/null)" ]; then
-    ok "MCR found at $MCR_DIR"
+MCR_LAUNCHER="$MCR_DIR/bin/glnxa64/libmwlaunchermain.so"
+MCR_RUNTIME="$MCR_DIR/runtime/glnxa64/libmwmclmcrrt.so.9.7"
+MCR_LAUNCHER_NESTED="$MCR_DIR/v97/bin/glnxa64/libmwlaunchermain.so"
+MCR_RUNTIME_NESTED="$MCR_DIR/v97/runtime/glnxa64/libmwmclmcrrt.so.9.7"
+if [ -f "$MCR_LAUNCHER" ] && [ -f "$MCR_RUNTIME" ]; then
+    ok "MCR completo en $MCR_DIR (launcher y runtime library presentes)"
+elif [ -f "$MCR_LAUNCHER_NESTED" ] || [ -f "$MCR_RUNTIME_NESTED" ]; then
+    bad "MCR anidado un nivel de mas en $MCR_DIR/v97 -- el instalador siempre crea su propia subcarpeta v97; muevela: mv \"$MCR_DIR/v97\"/* \"$MCR_DIR/\" && rmdir \"$MCR_DIR/v97\" -- ver docs/INSTALL.md seccion 4"
+elif [ -d "$MCR_DIR" ] && [ -n "$(ls -A "$MCR_DIR" 2>/dev/null)" ]; then
+    MISSING=""
+    [ -f "$MCR_LAUNCHER" ] || MISSING="$MISSING bin/glnxa64/libmwlaunchermain.so"
+    [ -f "$MCR_RUNTIME" ]  || MISSING="$MISSING runtime/glnxa64/libmwmclmcrrt.so.9.7"
+    bad "MCR en $MCR_DIR esta incompleto (instalacion parcial/fallida) -- falta:$MISSING -- reinstala en una carpeta temporal y movela a su lugar, ver docs/INSTALL.md seccion 4"
 else
     bad "MCR NOT found at $MCR_DIR -- see docs/INSTALL.md section 4"
 fi
