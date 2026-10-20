@@ -75,6 +75,18 @@ identifiers: keep them inside your approved storage and do not redistribute them
    `$PETPIPELINE_BASE/MCRv97`; the container mounts it and FreeSurfer's `segmentBS.sh` uses it to obtain the
    pons mask. Centiloid: `code/centiloid/centiloid_pipeline_tracers.py` (DICOM to SUVR).
 
+   **Several subjects:** `code/replication_tool/run_cohort.sh` runs `run_public_pipeline.sh` once per
+   subject (auto-discovered under `MRI_DATA_DIR`), in turn, with one log file per subject:
+
+   ```bash
+   nohup bash code/replication_tool/run_cohort.sh [--tracer FTP|FDG] > logs/cohort.out 2>&1 &
+   tail -f logs/cohort.out
+   ```
+
+   Any flags you pass (for example `--tracer FDG`) are forwarded to `run_public_pipeline.sh` for every
+   subject. One subject failing does not stop the rest; see its own log under `logs/<SUBJECT>.log`.
+   Re-running the same command later continues where it left off instead of redoing finished subjects.
+
 2. **Compare with the published values.** If `PUBLIC_PACKAGE` (this folder, or the `resolved` folder if your data
    is a coded release -- see [Participant codes](#participant-codes-only-if-your-data-tables-are-coded)), `FS_LUT`
    (`FreeSurferColorLUT.txt`) and
@@ -189,23 +201,20 @@ v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` runs this conversion in p
 ```bash
 python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata <downloaded zips / DICOM folders> \
     --raw <output folder> [--out <metadata csv, defaults to scans_index.csv>] \
-    [--mri-data <mri_data folder, see below>]
+    [--rename <mri_data folder, see below>]
 ```
 
 Output: converted NIfTI files organized under `raw/<subject>/...`, plus `scans_index.csv` (or the name given to
 `--out`) with the metadata of every converted scan (subject, scan type, date, image ID and PET resolution).
 
-Pass `--mri-data <folder>` to also copy each subject's files straight into `<folder>/<SUBJECT>/<SUBJECT>_T1.nii`,
+Pass `--rename <folder>` to also copy each subject's files straight into `<folder>/<SUBJECT>/<SUBJECT>_T1.nii`,
 `<SUBJECT>_FTP.nii`, `<SUBJECT>_FDG.nii`, etc. -- the exact names `run_public_pipeline.sh` expects (see
-[Quick start](#quick-start-process-and-compare-one-subject)), instead of renaming them by hand.
+[Quick start](#quick-start-process-and-compare-one-subject)), instead of renaming them by hand. If a subject
+has more than one file of the same scan type, the one with the earliest scan date is used.
 
 The script calls the `dcm2niix` command directly, so if it is already on your `PATH` no extra flag is needed.
 Only pass `--dcm2niix <path to dcm2niix>` if the binary is not on your `PATH` (the script otherwise defaults to
 plain `dcm2niix` and fails with a clear message if it cannot find it).
-
-To convert many subjects at once, point `--newdata` at a folder holding all of their downloads (it is scanned
-recursively) and raise `--jobs N` to convert N folders in parallel; see docs/INSTALL.md section 7 for a full
-batch example.
 
 ## Data provenance (FDG cohort)
 

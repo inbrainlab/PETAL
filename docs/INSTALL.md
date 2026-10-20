@@ -208,28 +208,35 @@ dcm2niix -v
 
 **Getting the NIfTI files named the way `run_public_pipeline.sh` expects.** `dicom_to_nifti.py` converts and
 organizes files under its own `--raw` folder using dcm2niix's own output names, which do not match section 6's
-naming convention by themselves -- that previously had to be renamed by hand. Pass `--mri-data` (to the `all`
+naming convention by themselves -- that previously had to be renamed by hand. Pass `--rename` (to the `all`
 step, or on its own as the `rename` step) to have it also copy each subject's files straight into
 `mri_data/<SUBJECT>/<SUBJECT>_T1.nii`, `<SUBJECT>_FTP.nii`, `<SUBJECT>_FDG.nii`, etc. -- exactly what
-`run_public_pipeline.sh` looks for, no manual renaming needed:
+`run_public_pipeline.sh` looks for, no manual renaming needed. If a subject has more than one file of the
+same scan type, the one with the earliest scan date is used, and the rest are printed so you can review them
+by hand:
 
 ```bash
 python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata ~/Downloads/adni_download \
-    --raw ~/Downloads/pet_pipeline_raw --mri-data ~/Downloads/pet_pipeline/mri_data
+    --raw ~/Downloads/pet_pipeline_raw --rename ~/Downloads/pet_pipeline/mri_data
 ```
 
-**Batches.** `--newdata` is scanned recursively, so pointing it at a folder that holds many subjects'
-downloads converts all of them in one run; `--jobs N` converts N folders in parallel instead of one at a
-time (CPU-bound, so match it to your machine's core count):
+## Running the whole cohort
+
+Once `mri_data/` has more than one subject, use `code/replication_tool/run_cohort.sh` instead of calling
+`run_public_pipeline.sh` once per subject by hand. It auto-discovers every subject folder under
+`MRI_DATA_DIR`, runs `run_public_pipeline.sh` for each one in turn, and keeps one log file per subject under
+`PETPIPELINE_BASE/logs/<SUBJECT>.log`:
 
 ```bash
-python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata ~/Downloads/adni_batch_03 \
-    --raw ~/Downloads/pet_pipeline_raw --mri-data ~/Downloads/pet_pipeline/mri_data --jobs 4
+nohup bash code/replication_tool/run_cohort.sh [--tracer FTP|FDG] [--rewrite N|0b|all] > logs/cohort.out 2>&1 &
+tail -f logs/cohort.out
 ```
 
-Running the same command again later (for example after adding more subjects' downloads into the same
-`--newdata` folder) only converts/organizes/renames what is new -- it skips files and folders that already
-exist unless you pass `--overwrite`.
+Any arguments given to `run_cohort.sh` (for example `--tracer FDG`) are forwarded as-is to
+`run_public_pipeline.sh` for every subject. One subject failing does not stop the cohort; a failed subject
+is reported at the end together with its log file. `run_public_pipeline.sh` is resumable per subject, so if
+the cohort run is interrupted, simply running the same command again continues where it left off instead of
+reprocessing finished subjects.
 
 ## What you get out
 
