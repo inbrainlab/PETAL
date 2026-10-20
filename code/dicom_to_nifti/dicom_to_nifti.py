@@ -15,10 +15,25 @@ Steps (run one by one or all together):
     python3 dicom_to_nifti.py convert  --newdata DIR [--dcm2niix PATH] [--jobs N]
     python3 dicom_to_nifti.py organize --newdata DIR --raw DIR [--overwrite] [--wipe]
     python3 dicom_to_nifti.py index    --raw DIR --out scans_index.csv
-    python3 dicom_to_nifti.py all      --newdata DIR --raw DIR --out scans_index.csv
+    python3 dicom_to_nifti.py rename   --raw DIR --mri-data DIR [--overwrite]
+    python3 dicom_to_nifti.py all      --newdata DIR --raw DIR --out scans_index.csv [--mri-data DIR]
 
 `index` writes one row per NIfTI in raw: subject, scan_type (tracer or MRI-T1), scan_date, image_id, pet_res_mm.
 Scan type comes from file and folder names (table SCAN_TYPES below; change it for your data).
+
+`rename` (optional step; also runs as part of `all` when --mri-data is given) copies each subject's NIfTI
+files from raw/ into --mri-data using exactly the file names run_public_pipeline.sh expects:
+<subject>/<subject>_T1.nii, <subject>/<subject>_FTP.nii, <subject>/<subject>_FDG.nii, etc. -- no manual
+renaming needed afterward. If a subject has more than one file of the same scan type, the first one (by
+path) is used and the rest are reported as skipped; review those cases manually.
+
+Batches: converting many subjects at once is just pointing --newdata at a folder that contains all of them
+(DICOM folders are discovered recursively) and raising --jobs to convert several folders in parallel, e.g.:
+    python3 dicom_to_nifti.py all --newdata ~/Downloads/adni_batch_03 --raw ~/Downloads/pet_pipeline_raw \
+        --mri-data ~/Downloads/pet_pipeline/mri_data --jobs 4
+Re-running the same command later (e.g. after downloading more subjects into the same --newdata folder) is
+safe: already-converted/organized/renamed files are skipped unless --overwrite is passed.
+
 Requires dcm2niix (https://github.com/rordenlab/dcm2niix) and Python >= 3.8. No other packages.
 """
 import argparse
@@ -206,25 +221,84 @@ def build_index(raw, out):
         print(f"  WARNING: {len(bad)} file(s) with unknown/multiple scan type or no date (check the index)")
 
 
+# ------------------------------------------------------------------ rename for pipeline
+# Scan type (classify()) -> suffix run_public_pipeline.sh expects in <SUBJECT>_<suffix>.nii.
+# Every scan type not listed here keeps its own name (FTP, FDG, FBP, FBB, PIB, MK6240, NAV, PI2620, FLUTE
+# already match what the pipeline's PET_GLOB_CANDIDATES look for).
+PIPELINE_SUFFIX = {"MRI-T1": "T1"}
+
+
+def rename_for_pipeline(raw, mri_data, overwrite=False):
+    """Copy each subject's NIfTI files from raw/ into mri_data/<subject>/<subject>_<suffix>.nii -- the
+    exact names run_public_pipeline.sh looks for, so no manual renaming is needed afterward."""
+    by_subject_type = {}
+    for root, _, files in os.walk(raw):
+        for f in files:
+            if f.endswith(".nii"):
+                p = os.path.join(root, f)
+                subject = os.path.relpath(p, raw).split(os.sep)[0]
+                t = classify(p, raw)
+                if t in (UNKNOWN, MULTIPLE):
+                    continue
+                by_subject_type.setdefault((subject, t), []).append(p)
+
+    copied = skipped = 0
+    for (subject, t), paths in sorted(by_subject_type.items()):
+        paths = sorted(paths)
+        if len(paths) > 1:
+            print(f"  WARNING: {subject} has {len(paths)} {t} file(s), using the first: {paths[0]}"
+                  f" -- check the others manually: {paths[1:]}")
+        src = paths[0]
+        suffix = PIPELINE_SUFFIX.get(t, t)
+        dst_dir = os.path.join(mri_data, subject)
+        dst = os.path.join(dst_dir, f"{subject}_{suffix}.nii")
+        if os.path.exists(dst) and not overwrite:
+            print(f"  skip (exists): {dst}")
+            skipped += 1
+            continue
+        os.makedirs(dst_dir, exist_ok=True)
+        shutil.copy2(src, dst)
+        src_json = src[:-len(".nii")] + ".json"
+        if os.path.isfile(src_json):
+            shutil.copy2(src_json, dst[:-len(".nii")] + ".json")
+        copied += 1
+    print(f"rename: {copied} file(s) copied into {mri_data} ({skipped} already existed, skipped)")
+    unknown = sum(1 for root, _, files in os.walk(raw) for f in files
+                  if f.endswith(".nii") and classify(os.path.join(root, f), raw) in (UNKNOWN, MULTIPLE))
+    if unknown:
+        print(f"  NOTE: {unknown} file(s) in {raw} have unknown/multiple scan type and were not copied -- "
+              f"see the scans_index.csv UNKNOWN/MULTIPLE rows and rename those manually if needed")
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("step", choices=["unzip", "convert", "organize", "index", "all"])
+    p.add_argument("step", choices=["unzip", "convert", "organize", "index", "rename", "all"])
     p.add_argument("--newdata")
     p.add_argument("--raw")
     p.add_argument("--out", default="scans_index.csv")
+    p.add_argument("--mri-data", help="optional: also copy converted NIfTI files into this folder using the "
+                                       "exact names run_public_pipeline.sh expects (<SUBJECT>_T1.nii, "
+                                       "<SUBJECT>_FTP.nii, <SUBJECT>_FDG.nii, ...); required for the 'rename' "
+                                       "step, optional for 'all'")
     p.add_argument("--dcm2niix", default="dcm2niix")
     p.add_argument("--jobs", type=int, default=1, help="folders converted in parallel (default 1)")
     p.add_argument("--dcm-ext", default=".dcm", help="DICOM extension(s), comma separated (default .dcm)")
-    p.add_argument("--overwrite", action="store_true", help="replace folders that already exist in raw")
+    p.add_argument("--overwrite", action="store_true", help="replace folders that already exist in raw, or"
+                                                              " files that already exist in --mri-data")
     p.add_argument("--wipe", action="store_true", help="empty newdata after organizing (off by default)")
     a = p.parse_args()
     ext = tuple(e.strip().lower() for e in a.dcm_ext.split(","))
-    steps = ["unzip", "convert", "organize", "index"] if a.step == "all" else [a.step]
+    if a.step == "all":
+        steps = ["unzip", "convert", "organize", "index"] + (["rename"] if a.mri_data else [])
+    else:
+        steps = [a.step]
     for s in steps:
         if s in ("unzip", "convert", "organize") and not (a.newdata and os.path.isdir(a.newdata)):
             sys.exit("ERROR: --newdata must be an existing folder")
         if s in ("organize", "index") and not a.raw:
             sys.exit("ERROR: --raw is required")
+        if s == "rename" and not (a.raw and a.mri_data):
+            sys.exit("ERROR: --raw and --mri-data are both required for the 'rename' step")
     for s in steps:
         if s == "unzip":
             unzip(a.newdata)
@@ -236,6 +310,9 @@ def main():
             organize(a.newdata, a.raw, a.overwrite, a.wipe)
         elif s == "index":
             build_index(a.raw, a.out)
+        elif s == "rename":
+            os.makedirs(a.mri_data, exist_ok=True)
+            rename_for_pipeline(a.raw, a.mri_data, a.overwrite)
 
 
 if __name__ == "__main__":

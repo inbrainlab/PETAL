@@ -183,19 +183,29 @@ can be merged with the data obtained from the original providers and the analyse
 ## From DICOM to NIfTI
 
 The images used in this work were downloaded from ADNI as DICOM and converted to NIfTI with `dcm2niix`
-v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` runs this conversion in plain Python (no MATLAB):
+v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` runs this conversion in plain Python (no MATLAB); see
+[docs/INSTALL.md](docs/INSTALL.md) section 7 for installing `dcm2niix` itself:
 
 ```bash
 python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata <downloaded zips / DICOM folders> \
-    --raw <output folder> [--out <metadata csv, defaults to scans_index.csv>]
+    --raw <output folder> [--out <metadata csv, defaults to scans_index.csv>] \
+    [--mri-data <mri_data folder, see below>]
 ```
 
 Output: converted NIfTI files organized under `raw/<subject>/...`, plus `scans_index.csv` (or the name given to
 `--out`) with the metadata of every converted scan (subject, scan type, date, image ID and PET resolution).
 
+Pass `--mri-data <folder>` to also copy each subject's files straight into `<folder>/<SUBJECT>/<SUBJECT>_T1.nii`,
+`<SUBJECT>_FTP.nii`, `<SUBJECT>_FDG.nii`, etc. -- the exact names `run_public_pipeline.sh` expects (see
+[Quick start](#quick-start-process-and-compare-one-subject)), instead of renaming them by hand.
+
 The script calls the `dcm2niix` command directly, so if it is already on your `PATH` no extra flag is needed.
 Only pass `--dcm2niix <path to dcm2niix>` if the binary is not on your `PATH` (the script otherwise defaults to
 plain `dcm2niix` and fails with a clear message if it cannot find it).
+
+To convert many subjects at once, point `--newdata` at a folder holding all of their downloads (it is scanned
+recursively) and raise `--jobs N` to convert N folders in parallel; see docs/INSTALL.md section 7 for a full
+batch example.
 
 ## Data provenance (FDG cohort)
 

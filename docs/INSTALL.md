@@ -181,6 +181,56 @@ scheme (don't mix them within the same subject folder):
 If your files use neither naming, set `PET_GLOB_FTP`/`PET_GLOB_FDG` to
 your own glob pattern before running the script.
 
+## 7. dcm2niix (only if you are converting DICOM to NIfTI yourself)
+
+Only needed for `code/dicom_to_nifti/dicom_to_nifti.py` (section 6 above assumes you already have NIfTI
+files). Skip this if your data is already NIfTI.
+
+```bash
+# Debian/Ubuntu
+sudo apt-get update && sudo apt-get install -y dcm2niix
+
+# macOS (Homebrew)
+brew install dcm2niix
+```
+
+If your distribution's package is older than v1.0.20240202 (the version used in this work) or unavailable,
+download a prebuilt binary from the project's releases page instead:
+https://github.com/rordenlab/dcm2niix/releases. Extract it anywhere and either add that folder to your
+`PATH`, or pass `--dcm2niix /path/to/dcm2niix` to `dicom_to_nifti.py` every time (see `code/dicom_to_nifti/`'s
+own usage in its docstring, `python3 code/dicom_to_nifti/dicom_to_nifti.py --help`).
+
+Verify either way:
+
+```bash
+dcm2niix -v
+```
+
+**Getting the NIfTI files named the way `run_public_pipeline.sh` expects.** `dicom_to_nifti.py` converts and
+organizes files under its own `--raw` folder using dcm2niix's own output names, which do not match section 6's
+naming convention by themselves -- that previously had to be renamed by hand. Pass `--mri-data` (to the `all`
+step, or on its own as the `rename` step) to have it also copy each subject's files straight into
+`mri_data/<SUBJECT>/<SUBJECT>_T1.nii`, `<SUBJECT>_FTP.nii`, `<SUBJECT>_FDG.nii`, etc. -- exactly what
+`run_public_pipeline.sh` looks for, no manual renaming needed:
+
+```bash
+python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata ~/Downloads/adni_download \
+    --raw ~/Downloads/pet_pipeline_raw --mri-data ~/Downloads/pet_pipeline/mri_data
+```
+
+**Batches.** `--newdata` is scanned recursively, so pointing it at a folder that holds many subjects'
+downloads converts all of them in one run; `--jobs N` converts N folders in parallel instead of one at a
+time (CPU-bound, so match it to your machine's core count):
+
+```bash
+python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata ~/Downloads/adni_batch_03 \
+    --raw ~/Downloads/pet_pipeline_raw --mri-data ~/Downloads/pet_pipeline/mri_data --jobs 4
+```
+
+Running the same command again later (for example after adding more subjects' downloads into the same
+`--newdata` folder) only converts/organizes/renames what is new -- it skips files and folders that already
+exist unless you pass `--overwrite`.
+
 ## What you get out
 
 Running `bash run_public_pipeline.sh <SUBJECT>` produces, per subject, under
