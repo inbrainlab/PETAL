@@ -117,10 +117,6 @@ python3 code/gaain_validation/klunk_gaain_validation_plot.py --centiloid_results
     --gaain_xlsx Avid_Centiloid_standard_method.xlsx --out validation.png
 ```
 
-See [docs/DATA_REFERENCE.md](docs/DATA_REFERENCE.md) for the data dictionary of every file in `data/`
-and for how to interpret the comparison against the published values (what a given % difference does or does not
-mean).
-
 ## From DICOM to NIfTI
 
 `code/dicom_to_nifti/dicom_to_nifti.py` converts DICOM downloads to NIfTI and organizes them under `--outdir`.
