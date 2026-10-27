@@ -145,6 +145,14 @@ already know your data is well-centered.
 (`105858_...` or `231642` -> `105858`, `231642`), or, for PiB, a 6-digit ID after `PiB-` (`PiB-105858` ->
 `105858`). A folder name that matches neither pattern is skipped.
 
+**A4 cohort (alphanumeric IDs like `A4:56:571e`, already NIfTI):** `--all` cannot discover these subjects --
+their IDs and folder layout do not match the pattern above. Use `code/centiloid/run_all_A4_florbetapir.sh`
+instead, which lists the subject subfolders itself and calls `--test` once per subject:
+
+```bash
+A4_DATA_DIR=<folder with one subfolder per subject> bash code/centiloid/run_all_A4_florbetapir.sh
+```
+
 ### Validate your Centiloid pipeline against GAAIN (optional)
 
 Compares your own Centiloid results (the CSV from `--all` above) against the published GAAIN calibration
