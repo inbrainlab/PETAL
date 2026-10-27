@@ -129,27 +129,20 @@ mean).
 
 ## From DICOM to NIfTI
 
-The images used in this work were downloaded from ADNI as DICOM and converted to NIfTI with `dcm2niix`
-v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` runs this conversion in plain Python (no MATLAB); see
-[docs/INSTALL.md](docs/INSTALL.md) section 7 for installing `dcm2niix` itself:
+`code/dicom_to_nifti/dicom_to_nifti.py` converts DICOM downloads to NIfTI, organizes them, and copies each file
+into `mri_data/` with the exact names `run_public_pipeline.sh` expects -- no manual renaming needed. See
+[docs/INSTALL.md](docs/INSTALL.md) section 7 for installing `dcm2niix` and the full details (duplicate-file
+handling, defaults, etc.).
 
 ```bash
+# renames into the default mri_data folder (PETPIPELINE_BASE/mri_data)
 python3 code/dicom_to_nifti/dicom_to_nifti.py all --indir <downloaded zips / DICOM folders> \
     --outdir <folder for the organized NIfTI files>
+
+# renames into a different folder instead
+python3 code/dicom_to_nifti/dicom_to_nifti.py all --indir <downloaded zips / DICOM folders> \
+    --outdir <folder for the organized NIfTI files> --rename <folder>
 ```
-
-Output: converted NIfTI files organized under `<outdir>/<subject>/...`; `scans_index.csv` (or the name given to
-`--out`) with the metadata of every converted scan (subject, scan type, date, image ID and PET resolution);
-and, copied straight into `<PETPIPELINE_BASE>/mri_data/<SUBJECT>/<SUBJECT>_T1.nii`, `<SUBJECT>_FTP.nii`,
-`<SUBJECT>_FDG.nii`, etc. -- the exact names `run_public_pipeline.sh` expects (see
-[Quick start](#quick-start-process-and-compare-one-subject)) -- no manual renaming needed. That last part
-uses the same `mri_data` folder `run_public_pipeline.sh` itself defaults to, so you don't need to pass
-anything extra for it; pass `--rename <folder>` only to put those renamed files somewhere else. If a subject
-has more than one file of the same scan type, the one with the earliest scan date is used.
-
-The script calls the `dcm2niix` command directly, so if it is already on your `PATH` no extra flag is needed.
-Only pass `--dcm2niix <path to dcm2niix>` if the binary is not on your `PATH` (the script otherwise defaults to
-plain `dcm2niix` and fails with a clear message if it cannot find it).
 
 ## Data provenance (FDG cohort)
 
