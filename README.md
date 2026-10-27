@@ -36,6 +36,9 @@ Process your subject (Tau or FDG PET, from the images):
 bash code/replication_tool/run_public_pipeline.sh <ID> [--tracer FTP|FDG]
 ```
 
+Several subjects: `code/replication_tool/run_cohort.sh` runs the command above once per subject,
+auto-discovered under `MRI_DATA_DIR`.
+
 Compare with the published values:
 
 ```bash
@@ -45,7 +48,7 @@ python3 code/replication_tool/evaluate_subject.py --type tau --package . \
 ```
 
 See [docs/REPLICATION.md](docs/REPLICATION.md) for requirements, input file names, FDG/Centiloid,
-several subjects at once, comparing three or more subjects, and bilateral regions.
+`run_cohort.sh` usage, comparing three or more subjects, and bilateral regions.
 
 ### Centiloid (florbetapir)
 
