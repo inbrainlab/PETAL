@@ -134,11 +134,11 @@ v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` runs this conversion in p
 [docs/INSTALL.md](docs/INSTALL.md) section 7 for installing `dcm2niix` itself:
 
 ```bash
-python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata <downloaded zips / DICOM folders> \
-    --raw <output folder>
+python3 code/dicom_to_nifti/dicom_to_nifti.py all --indir <downloaded zips / DICOM folders> \
+    --outdir <folder for the organized NIfTI files>
 ```
 
-Output: converted NIfTI files organized under `raw/<subject>/...`; `scans_index.csv` (or the name given to
+Output: converted NIfTI files organized under `<outdir>/<subject>/...`; `scans_index.csv` (or the name given to
 `--out`) with the metadata of every converted scan (subject, scan type, date, image ID and PET resolution);
 and, copied straight into `<PETPIPELINE_BASE>/mri_data/<SUBJECT>/<SUBJECT>_T1.nii`, `<SUBJECT>_FTP.nii`,
 `<SUBJECT>_FDG.nii`, etc. -- the exact names `run_public_pipeline.sh` expects (see

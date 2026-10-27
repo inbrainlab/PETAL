@@ -6,23 +6,23 @@ It reproduces the "setup" stage that the LEADS pipeline (https://github.com/dsch
 GPL-3.0) runs before processing, without MATLAB. The code is a new implementation of the same steps; the
 dcm2niix call is identical (`dcm2niix -d 9 -o <dir> <dir>`, default output names).
 
-Layout (the folder names `newdata` and `raw` are only suggestions):
-    <base>/newdata/<ADNI|LEADS|...>/<subject>/<series>/<date>/<image id>/*.dcm   (or *.zip files)
-    <base>/raw/<subject>/<series>/<date>/<image id>/*.nii (+ .json)
+Layout (the folder names `indir` and `outdir` are only suggestions):
+    <base>/indir/<ADNI|LEADS|...>/<subject>/<series>/<date>/<image id>/*.dcm   (or *.zip files)
+    <base>/outdir/<subject>/<series>/<date>/<image id>/*.nii (+ .json)
 
 Steps (run one by one or all together):
-    python3 dicom_to_nifti.py unzip    --newdata DIR
-    python3 dicom_to_nifti.py convert  --newdata DIR [--dcm2niix PATH] [--jobs N]
-    python3 dicom_to_nifti.py organize --newdata DIR --raw DIR [--overwrite] [--wipe]
-    python3 dicom_to_nifti.py index    --raw DIR --out scans_index.csv
-    python3 dicom_to_nifti.py rename   --raw DIR [--rename DIR] [--overwrite]
-    python3 dicom_to_nifti.py all      --newdata DIR --raw DIR --out scans_index.csv [--rename DIR]
+    python3 dicom_to_nifti.py unzip    --indir DIR
+    python3 dicom_to_nifti.py convert  --indir DIR [--dcm2niix PATH] [--jobs N]
+    python3 dicom_to_nifti.py organize --indir DIR --outdir DIR [--overwrite] [--wipe]
+    python3 dicom_to_nifti.py index    --outdir DIR --out scans_index.csv
+    python3 dicom_to_nifti.py rename   --outdir DIR [--rename DIR] [--overwrite]
+    python3 dicom_to_nifti.py all      --indir DIR --outdir DIR --out scans_index.csv [--rename DIR]
 
-`index` writes one row per NIfTI in raw: subject, scan_type (tracer or MRI-T1), scan_date, image_id, pet_res_mm.
+`index` writes one row per NIfTI in outdir: subject, scan_type (tracer or MRI-T1), scan_date, image_id, pet_res_mm.
 Scan type comes from file and folder names (table SCAN_TYPES below; change it for your data).
 
 `rename` (always runs as part of `all`, also available on its own) copies each subject's NIfTI files from
-raw/ into --rename using exactly the file names run_public_pipeline.sh expects: <subject>/<subject>_T1.nii,
+outdir/ into --rename using exactly the file names run_public_pipeline.sh expects: <subject>/<subject>_T1.nii,
 <subject>/<subject>_FTP.nii, <subject>/<subject>_FDG.nii, etc. -- no manual renaming needed afterward.
 --rename defaults to the same mri_data folder run_public_pipeline.sh itself uses
 (PETPIPELINE_BASE/mri_data, i.e. ~/Downloads/pet_pipeline/mri_data unless you export PETPIPELINE_BASE), so
@@ -63,14 +63,14 @@ UNKNOWN, MULTIPLE = "UNKNOWN", "MULTIPLE"
 
 
 # ------------------------------------------------------------------ unzip
-def unzip(newdata):
-    zips = sorted(f for f in os.listdir(newdata) if f.lower().endswith(".zip"))
-    print(f"unzip: {len(zips)} zip file(s) in {newdata}")
+def unzip(indir):
+    zips = sorted(f for f in os.listdir(indir) if f.lower().endswith(".zip"))
+    print(f"unzip: {len(zips)} zip file(s) in {indir}")
     for z in zips:
-        p = os.path.join(newdata, z)
+        p = os.path.join(indir, z)
         try:
             with zipfile.ZipFile(p) as zf:
-                zf.extractall(newdata)
+                zf.extractall(indir)
             print(f"  extracted {z}")
         except zipfile.BadZipFile:
             print(f"  ERROR: {z} is not a valid zip file")
@@ -81,19 +81,19 @@ def _has(files, exts):
     return any(f.lower().endswith(exts) for f in files)
 
 
-def dirs_to_convert(newdata, dcm_ext=(".dcm",)):
+def dirs_to_convert(indir, dcm_ext=(".dcm",)):
     """Folders with DICOM files and no NIfTI inside them."""
     out = []
-    for root, _, files in os.walk(newdata):
+    for root, _, files in os.walk(indir):
         if _has(files, dcm_ext) and not _has(files, (".nii", ".nii.gz")):
             out.append(root)
     return sorted(out)
 
 
-def convert(newdata, dcm2niix="dcm2niix", jobs=1, dcm_ext=(".dcm",)):
+def convert(indir, dcm2niix="dcm2niix", jobs=1, dcm_ext=(".dcm",)):
     if shutil.which(dcm2niix) is None and not os.path.isfile(dcm2niix):
         sys.exit(f"ERROR: dcm2niix not found ({dcm2niix}). Install it or pass --dcm2niix PATH")
-    dirs = dirs_to_convert(newdata, dcm_ext)
+    dirs = dirs_to_convert(indir, dcm_ext)
     print(f"convert: {len(dirs)} folder(s) with DICOMs and no NIfTI")
 
     def run(d):
@@ -111,20 +111,20 @@ def convert(newdata, dcm2niix="dcm2niix", jobs=1, dcm_ext=(".dcm",)):
 
 
 # ------------------------------------------------------------------ organize
-def organize(newdata, raw, overwrite=False, wipe=False):
+def organize(indir, outdir, overwrite=False, wipe=False):
     niis = []
-    for root, _, files in os.walk(newdata):
+    for root, _, files in os.walk(indir):
         if _has(files, (".nii", ".nii.gz")):
             niis.append(root)
-    print(f"organize: {len(niis)} folder(s) with NIfTI in {newdata}")
+    print(f"organize: {len(niis)} folder(s) with NIfTI in {indir}")
     moved = 0
     for src in sorted(niis):
         if not os.path.isdir(src):          # already moved with a parent folder
             continue
-        rel = os.path.relpath(src, newdata).split(os.sep)
+        rel = os.path.relpath(src, indir).split(os.sep)
         if rel[0].upper() in TOP_LEVEL_TO_STRIP and len(rel) > 1:
             rel = rel[1:]
-        dst = os.path.join(raw, *rel)
+        dst = os.path.join(outdir, *rel)
         if os.path.exists(dst):
             if not overwrite:
                 print(f"  skip (exists): {dst}")
@@ -133,12 +133,12 @@ def organize(newdata, raw, overwrite=False, wipe=False):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.move(src, dst)
         moved += 1
-    print(f"organize: {moved} folder(s) moved to {raw}")
+    print(f"organize: {moved} folder(s) moved to {outdir}")
     if wipe:
-        for name in os.listdir(newdata):
-            p = os.path.join(newdata, name)
+        for name in os.listdir(indir):
+            p = os.path.join(indir, name)
             shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
-        print(f"organize: {newdata} emptied")
+        print(f"organize: {indir} emptied")
 
 
 # ------------------------------------------------------------------ index
@@ -150,17 +150,17 @@ def scan_type_of(name_or_path):
     return vals
 
 
-def classify(nii_path, raw):
+def classify(nii_path, outdir):
     base = os.path.basename(nii_path)
     vals = scan_type_of(base)
     if not vals:
-        vals = scan_type_of(os.path.dirname(os.path.relpath(nii_path, raw)))
+        vals = scan_type_of(os.path.dirname(os.path.relpath(nii_path, outdir)))
     if len(vals) == 1:
         return next(iter(vals))
     return MULTIPLE if vals else UNKNOWN
 
 
-def scan_date_of(nii_path, raw):
+def scan_date_of(nii_path, outdir):
     def test(token):
         t = token.replace("-", "").replace("_", "")
         if not re.match(r"^\d{8}", t):
@@ -174,34 +174,34 @@ def scan_date_of(nii_path, raw):
     for part in os.path.basename(nii_path).split("_"):
         if test(part):
             return test(part)
-    for part in os.path.relpath(os.path.dirname(nii_path), raw).split(os.sep):
+    for part in os.path.relpath(os.path.dirname(nii_path), outdir).split(os.sep):
         if test(part):
             return test(part)
     return ""
 
 
-def image_id_of(nii_path, raw):
-    for part in os.path.basename(nii_path).split("_") + os.path.relpath(nii_path, raw).split(os.sep):
+def image_id_of(nii_path, outdir):
+    for part in os.path.basename(nii_path).split("_") + os.path.relpath(nii_path, outdir).split(os.sep):
         if re.match(r"^I\d+$", part):
             return part
     return ""
 
 
-def pet_res_of(nii_path, raw):
+def pet_res_of(nii_path, outdir):
     m = re.search(r"uniform_?(\d)mm_?res", nii_path.lower().replace(",", "_"))
     return int(m.group(1)) if m else ""
 
 
-def build_index(raw, out):
+def build_index(outdir, out):
     rows = []
-    for root, _, files in os.walk(raw):
+    for root, _, files in os.walk(outdir):
         for f in files:
             if f.endswith(".nii"):
                 p = os.path.join(root, f)
-                rel = os.path.relpath(p, raw).split(os.sep)
-                rows.append({"subject": rel[0], "scan_type": classify(p, raw), "scan_date": scan_date_of(p, raw),
-                             "image_id": image_id_of(p, raw), "pet_res_mm": pet_res_of(p, raw),
-                             "nifti": os.path.relpath(p, raw)})
+                rel = os.path.relpath(p, outdir).split(os.sep)
+                rows.append({"subject": rel[0], "scan_type": classify(p, outdir), "scan_date": scan_date_of(p, outdir),
+                             "image_id": image_id_of(p, outdir), "pet_res_mm": pet_res_of(p, outdir),
+                             "nifti": os.path.relpath(p, outdir)})
     rows.sort(key=lambda r: (r["subject"], r["scan_type"], r["scan_date"]))
     with open(out, "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=["subject", "scan_type", "scan_date", "image_id", "pet_res_mm", "nifti"])
@@ -224,18 +224,18 @@ def build_index(raw, out):
 PIPELINE_SUFFIX = {"MRI-T1": "T1"}
 
 
-def rename_for_pipeline(raw, mri_data, overwrite=False):
-    """Copy each subject's NIfTI files from raw/ into mri_data/<subject>/<subject>_<suffix>.nii -- the
+def rename_for_pipeline(outdir, mri_data, overwrite=False):
+    """Copy each subject's NIfTI files from outdir/ into mri_data/<subject>/<subject>_<suffix>.nii -- the
     exact names run_public_pipeline.sh looks for, so no manual renaming is needed afterward. If a subject
     has more than one file of the same scan type, the one with the earliest scan date (the first part of
     the file name, see scan_date_of()) is used."""
     by_subject_type = {}
-    for root, _, files in os.walk(raw):
+    for root, _, files in os.walk(outdir):
         for f in files:
             if f.endswith(".nii"):
                 p = os.path.join(root, f)
-                subject = os.path.relpath(p, raw).split(os.sep)[0]
-                t = classify(p, raw)
+                subject = os.path.relpath(p, outdir).split(os.sep)[0]
+                t = classify(p, outdir)
                 if t in (UNKNOWN, MULTIPLE):
                     continue
                 by_subject_type.setdefault((subject, t), []).append(p)
@@ -243,7 +243,7 @@ def rename_for_pipeline(raw, mri_data, overwrite=False):
     copied = skipped = 0
     for (subject, t), paths in sorted(by_subject_type.items()):
         # earliest scan_date first; files with no date sort last, path as tie-break
-        paths = sorted(paths, key=lambda p: (scan_date_of(p, raw) or "9999-99-99", p))
+        paths = sorted(paths, key=lambda p: (scan_date_of(p, outdir) or "9999-99-99", p))
         if len(paths) > 1:
             print(f"  WARNING: {subject} has {len(paths)} {t} file(s), using the earliest-dated: {paths[0]}"
                   f" -- check the others manually: {paths[1:]}")
@@ -262,10 +262,10 @@ def rename_for_pipeline(raw, mri_data, overwrite=False):
             shutil.copy2(src_json, dst[:-len(".nii")] + ".json")
         copied += 1
     print(f"rename: {copied} file(s) copied into {mri_data} ({skipped} already existed, skipped)")
-    unknown = sum(1 for root, _, files in os.walk(raw) for f in files
-                  if f.endswith(".nii") and classify(os.path.join(root, f), raw) in (UNKNOWN, MULTIPLE))
+    unknown = sum(1 for root, _, files in os.walk(outdir) for f in files
+                  if f.endswith(".nii") and classify(os.path.join(root, f), outdir) in (UNKNOWN, MULTIPLE))
     if unknown:
-        print(f"  NOTE: {unknown} file(s) in {raw} have unknown/multiple scan type and were not copied -- "
+        print(f"  NOTE: {unknown} file(s) in {outdir} have unknown/multiple scan type and were not copied -- "
               f"see the scans_index.csv UNKNOWN/MULTIPLE rows and rename those manually if needed")
 
 
@@ -276,8 +276,8 @@ def main():
 
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("step", choices=["unzip", "convert", "organize", "index", "rename", "all"])
-    p.add_argument("--newdata")
-    p.add_argument("--raw")
+    p.add_argument("--indir")
+    p.add_argument("--outdir")
     p.add_argument("--out", default="scans_index.csv")
     p.add_argument("--rename", default=default_rename,
                    help="copy converted NIfTI files into this folder using the exact names "
@@ -289,33 +289,33 @@ def main():
     p.add_argument("--dcm2niix", default="dcm2niix")
     p.add_argument("--jobs", type=int, default=1, help="folders converted in parallel (default 1)")
     p.add_argument("--dcm-ext", default=".dcm", help="DICOM extension(s), comma separated (default .dcm)")
-    p.add_argument("--overwrite", action="store_true", help="replace folders that already exist in raw, or"
+    p.add_argument("--overwrite", action="store_true", help="replace folders that already exist in outdir, or"
                                                               " files that already exist in --rename")
-    p.add_argument("--wipe", action="store_true", help="empty newdata after organizing (off by default)")
+    p.add_argument("--wipe", action="store_true", help="empty indir after organizing (off by default)")
     a = p.parse_args()
     ext = tuple(e.strip().lower() for e in a.dcm_ext.split(","))
     steps = ["unzip", "convert", "organize", "index", "rename"] if a.step == "all" else [a.step]
     for s in steps:
-        if s in ("unzip", "convert", "organize") and not (a.newdata and os.path.isdir(a.newdata)):
-            sys.exit("ERROR: --newdata must be an existing folder")
-        if s in ("organize", "index") and not a.raw:
-            sys.exit("ERROR: --raw is required")
-        if s == "rename" and not a.raw:
-            sys.exit("ERROR: --raw is required for the 'rename' step")
+        if s in ("unzip", "convert", "organize") and not (a.indir and os.path.isdir(a.indir)):
+            sys.exit("ERROR: --indir must be an existing folder")
+        if s in ("organize", "index") and not a.outdir:
+            sys.exit("ERROR: --outdir is required")
+        if s == "rename" and not a.outdir:
+            sys.exit("ERROR: --outdir is required for the 'rename' step")
     for s in steps:
         if s == "unzip":
-            unzip(a.newdata)
+            unzip(a.indir)
         elif s == "convert":
-            if convert(a.newdata, a.dcm2niix, a.jobs, ext):
+            if convert(a.indir, a.dcm2niix, a.jobs, ext):
                 sys.exit("ERROR: some conversions failed; fix them before organizing")
         elif s == "organize":
-            os.makedirs(a.raw, exist_ok=True)
-            organize(a.newdata, a.raw, a.overwrite, a.wipe)
+            os.makedirs(a.outdir, exist_ok=True)
+            organize(a.indir, a.outdir, a.overwrite, a.wipe)
         elif s == "index":
-            build_index(a.raw, a.out)
+            build_index(a.outdir, a.out)
         elif s == "rename":
             os.makedirs(a.rename, exist_ok=True)
-            rename_for_pipeline(a.raw, a.rename, a.overwrite)
+            rename_for_pipeline(a.outdir, a.rename, a.overwrite)
 
 
 if __name__ == "__main__":

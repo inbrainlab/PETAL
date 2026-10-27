@@ -207,7 +207,7 @@ dcm2niix -v
 ```
 
 **Getting the NIfTI files named the way `run_public_pipeline.sh` expects.** `dicom_to_nifti.py` converts and
-organizes files under its own `--raw` folder using dcm2niix's own output names, which do not match section 6's
+organizes files under its own `--outdir` folder using dcm2niix's own output names, which do not match section 6's
 naming convention by themselves. The `rename` step (always run as part of `all`, also available on its own)
 fixes this automatically: it copies each subject's files straight into
 `mri_data/<SUBJECT>/<SUBJECT>_T1.nii`, `<SUBJECT>_FTP.nii`, `<SUBJECT>_FDG.nii`, etc. -- exactly what
@@ -218,8 +218,8 @@ subject has more than one file of the same scan type, the one with the earliest 
 rest are printed so you can review them by hand:
 
 ```bash
-python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata ~/Downloads/adni_download \
-    --raw ~/Downloads/pet_pipeline_raw
+python3 code/dicom_to_nifti/dicom_to_nifti.py all --indir ~/Downloads/adni_download \
+    --outdir ~/Downloads/pet_pipeline_raw
 ```
 
 ## Running the whole cohort
