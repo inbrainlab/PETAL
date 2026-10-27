@@ -135,13 +135,12 @@ into `mri_data/` with the exact names `run_public_pipeline.sh` expects -- no man
 handling, defaults, etc.).
 
 ```bash
-# renames into the default mri_data folder (PETPIPELINE_BASE/mri_data)
+# convert, organize and rename in one go
 python3 code/dicom_to_nifti/dicom_to_nifti.py all --indir <downloaded zips / DICOM folders> \
     --outdir <folder for the organized NIfTI files>
 
-# renames into a different folder instead
-python3 code/dicom_to_nifti/dicom_to_nifti.py all --indir <downloaded zips / DICOM folders> \
-    --outdir <folder for the organized NIfTI files> --rename <folder>
+# or just the rename step on its own (e.g. after converting more scans into the same --outdir)
+python3 code/dicom_to_nifti/dicom_to_nifti.py rename --outdir <folder with the organized NIfTI files>
 ```
 
 ## Data provenance (FDG cohort)
