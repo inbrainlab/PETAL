@@ -228,23 +228,6 @@ python3 code/dicom_to_nifti/dicom_to_nifti.py --indir ~/Downloads/adni_download 
     --outdir ~/Downloads/pet_pipeline_raw --rename ~/Downloads/pet_pipeline/mri_data
 ```
 
-## 8. Validating your Centiloid pipeline against GAAIN (optional)
-
-`data/centiloid_gaain_validation.csv` holds our own Centiloid values (Klunk VOIs, standard method,
-florbetapir) for the 46 GAAIN calibration subjects (45 processed, 1 error: the PET did not overlap the VOI,
-so the cerebellar reference was 0/NaN). The published GAAIN Centiloid values are not distributed here:
-download `Avid_Centiloid_standard_method.xlsx` from GAAIN.
-
-`code/gaain_validation/klunk_gaain_validation_plot.py --centiloid_results <your CSV>` expects `<your CSV>`
-to be the results file `code/centiloid/centiloid_pipeline_tracers.py` writes. Run that script with `--all`
-(not `--test <SUBJECT_ID>`, which only processes one subject) so the CSV ends up with every subject, one
-row each. Only three of its columns are read: `subject_id` (to match against the GAAIN table), `status`
-(only rows marked `ok` are used; rows with an error are skipped), and `centiloid_pipeline` (the Centiloid
-value your pipeline calculated for that subject).
-
-Our own result: slope 1.0007, intercept −0.66 CL, R² 0.9925, n = 45/46. The script flags a slope outside
-0.98-1.02, an intercept outside ±2 CL, or R² ≤ 0.98 (the Klunk 2015 criteria, set in this script).
-
 ## Running the whole cohort
 
 Once `mri_data/` has more than one subject, use `code/replication_tool/run_cohort.sh` instead of calling

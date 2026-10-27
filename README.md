@@ -110,7 +110,7 @@ region. `--output` saves the per-row comparison.
 ### Validate your Centiloid pipeline against GAAIN (optional)
 
 Compares your own Centiloid results against the published GAAIN calibration values. See
-[docs/INSTALL.md](docs/INSTALL.md) section 8 for what the input CSV needs and our own reference result.
+[docs/DATA_REFERENCE.md](docs/DATA_REFERENCE.md) for what the input CSV needs and our own reference result.
 
 ```bash
 python3 code/gaain_validation/klunk_gaain_validation_plot.py --centiloid_results <your CSV> \
