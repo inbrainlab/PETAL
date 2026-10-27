@@ -114,21 +114,21 @@ DICOM-to-NIfTI conversion, so you don't need `dicom_to_nifti.py` for this tracer
 
 ```bash
 # one subject, to try it out or debug
-python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID>
+python3 code/centiloid/centiloid_pipeline_tracers.py --base_dir <folder from the layout below> --test <SUBJECT_ID>
 
 # every subject, writing one CSV with one row each (under results/ by default)
-python3 code/centiloid/centiloid_pipeline_tracers.py --all
+python3 code/centiloid/centiloid_pipeline_tracers.py --base_dir <folder from the layout below> --all
 
 # every subject, also auto-reorienting PET/MRI towards the MNI origin before SPM Coregister --
 # rescues subjects whose center of mass is far off, without affecting the ones that were already fine
-python3 code/centiloid/centiloid_pipeline_tracers.py --all --auto_reorient
+python3 code/centiloid/centiloid_pipeline_tracers.py --base_dir <folder from the layout below> --all --auto_reorient
 ```
 
 Without `--auto_reorient`, a subject whose images are far from the MNI origin can fail or come out
 misaligned at the SPM Coregister step. `--auto_reorient` is recommended as the default; only skip it if you
 already know your data is well-centered.
 
-`--base_dir` (default `.`, the current folder) is where it looks for everything:
+`--base_dir` is where it looks for everything (defaults to `.`, the current folder, if you omit it):
 
 ```
 <base_dir>/
@@ -140,8 +140,7 @@ already know your data is well-centered.
   VOIs_klunk/                              VOI masks (VOIs_2mm/ if --voi_method avid)
 ```
 
-Pass `--base_dir <folder>` if your data lives somewhere else; `--all` discovers every `<SUBJECT_ID>` by
-scanning the `florbetapir/.../` folders above.
+`--all` discovers every `<SUBJECT_ID>` by scanning the `florbetapir/.../` folders above.
 
 ### Validate your Centiloid pipeline against GAAIN (optional)
 
