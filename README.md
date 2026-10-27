@@ -119,8 +119,17 @@ python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID>
 Every subject (writes one CSV with one row each, under `results/` by default):
 
 ```bash
+# without auto-reorientation: fine for subjects whose PET/MRI are already reasonably centered on MNI
+python3 code/centiloid/centiloid_pipeline_tracers.py --all
+
+# with auto-reorientation: shifts PET and MRI towards the MNI origin before SPM Coregister,
+# rescuing subjects whose center of mass is far off, without affecting the ones that were already fine
 python3 code/centiloid/centiloid_pipeline_tracers.py --all --auto_reorient
 ```
+
+Without `--auto_reorient`, a subject whose images are far from the MNI origin can fail or come out
+misaligned at the SPM Coregister step. `--auto_reorient` is recommended as the default; only skip it if you
+already know your data is well-centered.
 
 By default it looks for your subjects, the `Avid_Centiloid_standard_method.xlsx` reference and the VOI masks
 under the current folder (`--base_dir .`); pass `--base_dir <folder>` if your data is somewhere else.
