@@ -15,13 +15,15 @@ The reference data (A4/LEARN, LEADS) and the volume-of-interest masks are **not*
 ## Repository layout
 
 ```
-data/   Values produced by the authors' pipelines (one CSV per analysis) - see the data dictionary below
+data/   Values produced by the authors' pipelines (one CSV per analysis) - see docs/DATA_REFERENCE.md
 code/
   replication_tool/   process your subject and compare it with the published values; check_install.sh verifies the setup; resolve_subjects.py restores IDs if a release ships coded tables
   centiloid/          Centiloid pipeline (DICOM -> SUVR) and comparison with the A4 reference
   tau_fdg/            cohort-level comparison scripts for Tau and FDG (they need the reference data)
   gaain_validation/   validation of a Centiloid pipeline against the GAAIN Centiloid Project
   dicom_to_nifti/     DICOM -> NIfTI conversion and organisation of downloaded ADNI scans (no MATLAB)
+docs/   detailed reference docs kept out of this README -- INSTALL.md, PIPELINE_STEPS.md, DATA_REFERENCE.md,
+        DATA_PROVENANCE.md, PARTICIPANT_CODES.md
 MANIFEST.csv, SHA256SUMS.txt   integrity:  sha256sum -c SHA256SUMS.txt
 requirements.txt
 ```
@@ -29,32 +31,9 @@ requirements.txt
 ## Participant codes (only if your data/ tables are coded)
 
 In this release the participant column of the tables in `data/` (`subject` or `subject_id`) holds the real ADNI
-or A4 identifier directly -- no decoding step is needed to use them as they are.
-
-Some releases of this repository instead ship these tables with a coded participant column, so that only people
-with approved ADNI/A4 access can recover the real identifiers. If you are working from one of those releases, each
-code looks like:
-
-```
-ADNI:<n>:<check>     A4:<n>:<check>        e.g.  ADNI:23:627e
-```
-
-`<n>` is the row where that participant first appears in a file that only approved ADNI / A4 users can download:
-`ROSTER.csv` (ADNI, column `PTID`) or `A4_PTDEMOG*.csv` (A4, column `BID`); row 1 is the first data row. `<check>` is
-a 4-character code that detects a different version of that file. A coded release also ships `data/INDEX_FILES.csv`,
-listing the file names and sha256 of the index versions used.
-
-To restore the IDs in a coded release, with your own copies of the index files:
-
-```bash
-python3 code/replication_tool/resolve_subjects.py --data data --out resolved/data \
-    --adni-index ROSTER.csv --a4-index A4_PTDEMOG.csv
-```
-
-Then use `resolved` as the package folder (`--package resolved`, or `PUBLIC_PACKAGE=resolved`) and
-`resolved/data/...` in place of `data/...`. You can give only one index; the other source stays coded. The tools in
-`code/replication_tool/` stop with this instruction if they find coded tables. The restored files contain participant
-identifiers: keep them inside your approved storage and do not redistribute them.
+or A4 identifier directly -- no decoding step is needed to use them as they are. If you are instead working from a
+release that ships these tables with a coded participant column, see
+[docs/PARTICIPANT_CODES.md](docs/PARTICIPANT_CODES.md) for how to restore the real IDs.
 
 ## Quick start: process and compare one subject
 
@@ -151,46 +130,9 @@ Your CSV needs the columns `subject_id`, `centiloid_pipeline` and `status` (rows
 slope 1.0007, intercept −0.66 CL, R² 0.9925, n = 45/46. The script flags a slope outside 0.98–1.02, an intercept
 outside ±2 CL and R² ≤ 0.98 (the criteria set in this script).
 
-## How to read the differences
-
-One subject compares one value with one value: it shows whether your installation resembles ours, not agreement.
-No pass/fail threshold is applied, and the paper's figures (this work vs the reference) are shown only as context.
-
-Whether an error below 1% is small enough depends on the variability that the measurement already carries. For
-flortaucipir, the standard deviation of the test–retest change in cortical SUVR ranged from 1.5% to 5.0% across regions
-(Devous et al., 2018), and the longitudinal measurement error of a temporal meta-ROI referenced to the cerebellum
-without PVC, the configuration reproduced here, has been estimated at about 2–3% (Schwarz et al., 2021). The global and
-meta-temporal reproduction errors obtained for tau (0.45% and 0.25%) are therefore an order of magnitude below the
-variability between two scans of the same participant, so that regenerating the reference values from their
-documentation adds little to the uncertainty already inherent in the measurement.
-
-The same comparison shows where reproduction does matter: **PVC-corrected values in small structures**, with mean
-errors of 2–3% and individual errors of up to 25% (Section 4.2 of the paper), reach or exceed that variability. The
-tools print this note after each comparison.
-
-**Processing note.** The published Tau/FDG values were produced from a FreeSurfer 7.4.1 run done beforehand with the
-same container image (`freesurfer/freesurfer:7.4.1`) and then processed with this script; the script itself runs
-`recon-all` with that same image. Small differences are therefore expected if you run `recon-all` from scratch.
-
-## Data dictionary (`data/`)
-
-| File | Content |
-|---|---|
-| `tau_values.csv` | Tau PET: participant × composite region, 196 × 7 = 1,372 rows |
-| `fdg_values.csv` | FDG PET: 472 participants; 3,301 rows = 472 × 7 − 3 (N = 471 for entorhinal, parahippocampal and meta_temporal: one participant lacks labels) |
-| `tau_bilateral_published.csv` | Tau PET without PVC: 196 participants × 44 bilateral regions = 8,624 rows (`subject, region, suvr, nvoxels, volume_mm3`); volume-weighted |
-| `tau_bilateral_pvc_published.csv` | Tau PET with PVC (`mri_gtmpvc`): 196 × 44 = 8,624 rows; voxel-weighted |
-| `fdg_bilateral_published.csv` | FDG PET without PVC: 472 participants, 22,654 rows (46–48 bilateral regions per participant; one participant lacks entorhinal and parahippocampal); volume-weighted |
-| `centiloid_avid.csv` | Florbetapir: 182 processed; 164 ok, 18 error (17 of them reoriented) |
-| `centiloid_voi_values.csv` | 164 participants × 7 VOIs, own values only |
-| `centiloid_gm_6vois.csv` | Gray-matter values for the 6 VOIs, n = 164 |
-| `centiloid_gaain_validation.csv` | GAAIN Centiloid Project validation: 46 subjects, 45 ok, 1 error; own values only |
-| `klunk_composite.csv` | Parietal and precuneus from the Klunk zones; the other four from the Avid VOIs |
-| `fsroi_list_FDG.csv` | ROI configuration (label lists) used for FDG |
-| `tau_composites.csv`, `fdg_composites.csv`, `fdg_by_region.csv`, `centiloid_voi_agreement.csv`, `tau_summary.csv`, `fdg_summary.csv` | Agreement summaries of this work against the reference; the reference values themselves are not distributed |
-
-Rows are keyed by the participant identifiers of the source studies (A4/LEARN and the FDG cohort), so that the values
-can be merged with the data obtained from the original providers and the analyses replicated.
+See [docs/DATA_REFERENCE.md](docs/DATA_REFERENCE.md) for the data dictionary of every file in `data/`
+and for how to interpret the comparison against the published values (what a given % difference does or does not
+mean).
 
 ## From DICOM to NIfTI
 
@@ -218,63 +160,9 @@ plain `dcm2niix` and fails with a clear message if it cannot find it).
 
 ## Data provenance (FDG cohort)
 
-The 472 FDG participants carry ADNI identifiers (`NNN_S_NNNN`). Their FDG scans were acquired between
-2007-10-26 and 2023-03-23. Assigning each scan to the ADNI phase that was running on its acquisition date (approximate
-boundaries, since phases overlap in practice) gives:
-
-| ADNI period (by scan date) | Participants |
-|---|---|
-| ADNI1 (before 2009-10) | 5 |
-| ADNI-GO (2009-10 to 2011-08) | 25 |
-| ADNI2 (2011-09 to 2016-08) | 202 |
-| ADNI3 (2016-09 to 2022-08) | 237 |
-| ADNI4 (2022-09 onwards) | 3 |
-
-The cohort is therefore **not** restricted to ADNI3. Each participant contributes one scan. Data used in this work
-were obtained from the Alzheimer's Disease Neuroimaging Initiative (ADNI) database (adni.loni.usc.edu); ADNI
-investigators contributed to the design and implementation of ADNI and/or provided data but did not participate in
-the analysis or writing of this work.
-
-### Dynamic frames (from the NIfTI headers)
-
-| Tracer | Frames | Files inspected |
-|---|---|---|
-| Flortaucipir (A4) | 6 | 197 (all with 6 frames) |
-| Florbetapir (A4) | 4 | 15 (all with 4 frames); the other participants were processed from DICOM and were not inspected |
-| FDG (ADNI) | 1 | 489 (all 1 frame, 160 x 160 x 96) |
-
-The number of frames was read from the fourth dimension of the NIfTI header. Frame durations and acquisition
-windows were not verified here.
-
-The FDG input is the ADNI preprocessed series *Coreg, Avg, Std Img and Vox Siz, Uniform 6mm Res* (uniform 6 mm
-resolution): ADNI had already averaged the frames, so the frame count of the original acquisition is not available
-from these data. The acquisition date of each scan is taken from the folder name of the downloaded series.
-
-### Structural MRI (T1), read from the NIfTI headers
-
-| Cohort (tracers) | T1 files | Matrix (most common) | Voxel size, mm | Scanner information |
-|---|---|---|---|---|
-| A4 (Tau and amyloid; the same T1 serves both) | 196 participants | 176x240x256 (132), 196x256x256 (40), 170x256x256 (22), 2 others | 1.20x1.05x1.05 (195), 1.20x1.09x1.09 (1) | not available (no JSON sidecars) |
-| ADNI (FDG) | 489 | 176x240x256 (167), 196x256x256 (119), 208x240x256 (93), 211x256x256 (40), 170x256x256 (37), 166x256x256 (9), others | 1.0x1.0x1.0 (215), 1.20x1.05x1.05 (115), 1.20x1.00x1.00 (93), 1.20x1.02x1.02 (34), 1.20x0.94x0.94 (14), 1.20x1.25x1.25 (9), others | field strength 3 T (459) and 1.5 T (28), 2 invalid values; Siemens 271, GE 136, Philips 82 (Prisma_fit, Skyra, TrioTim, Ingenia, DISCOVERY MR750, among others) |
-
-The ADNI table counts the T1 files found for the FDG participants, which is more than the 472 participants in
-this repository (some participants may have more than one T1, or may be outside the final cohort). The A4 T1 images
-share an almost uniform voxel size, whereas the ADNI T1 images differ in voxel size, matrix, scanner
-manufacturer and field strength.
-
-### Voxel size ranges (mm, from the NIfTI headers)
-
-| Image | Files | Axis 1 | Axis 2 | Axis 3 |
-|---|---|---|---|---|
-| T1, A4 | 196 | 1.20 | 1.05 - 1.09 | 1.05 - 1.09 |
-| T1, ADNI | 489 | 0.94 - 1.20 | 0.94 - 1.25 | 0.94 - 1.25 |
-| PET Flortaucipir, A4 | 196 | 2.00 - 3.18 | 2.00 - 3.18 | 1.50 - 4.00 |
-| PET Florbetapir, A4 | 14 (NIfTI files only) | 2.53 - 3.18 | 2.53 - 3.18 | 1.50 - 4.00 |
-| PET FDG, ADNI (preprocessed) | 489 | 1.50 | 1.50 | 1.50 |
-
-Axes follow the order stored in each file. The FDG voxel size is the grid of the preprocessed series, not its
-effective resolution (the series is delivered at uniform 6 mm resolution). The Florbetapir range comes only from the
-files available as NIfTI; the remaining participants were processed from DICOM and were not inspected.
+The 472 FDG participants carry ADNI identifiers, with scans acquired between 2007 and 2023 across ADNI1 through
+ADNI4 (not restricted to ADNI3). See [docs/DATA_PROVENANCE.md](docs/DATA_PROVENANCE.md) for the full breakdown by
+ADNI period, frame counts, and T1/PET image dimensions.
 
 ## What is not included
 

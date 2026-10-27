@@ -1,0 +1,43 @@
+# Data dictionary and how to read the comparison
+
+## Data dictionary (`data/`)
+
+| File | Content |
+|---|---|
+| `tau_values.csv` | Tau PET: participant × composite region, 196 × 7 = 1,372 rows |
+| `fdg_values.csv` | FDG PET: 472 participants; 3,301 rows = 472 × 7 − 3 (N = 471 for entorhinal, parahippocampal and meta_temporal: one participant lacks labels) |
+| `tau_bilateral_published.csv` | Tau PET without PVC: 196 participants × 44 bilateral regions = 8,624 rows (`subject, region, suvr, nvoxels, volume_mm3`); volume-weighted |
+| `tau_bilateral_pvc_published.csv` | Tau PET with PVC (`mri_gtmpvc`): 196 × 44 = 8,624 rows; voxel-weighted |
+| `fdg_bilateral_published.csv` | FDG PET without PVC: 472 participants, 22,654 rows (46–48 bilateral regions per participant; one participant lacks entorhinal and parahippocampal); volume-weighted |
+| `centiloid_avid.csv` | Florbetapir: 182 processed; 164 ok, 18 error (17 of them reoriented) |
+| `centiloid_voi_values.csv` | 164 participants × 7 VOIs, own values only |
+| `centiloid_gm_6vois.csv` | Gray-matter values for the 6 VOIs, n = 164 |
+| `centiloid_gaain_validation.csv` | GAAIN Centiloid Project validation: 46 subjects, 45 ok, 1 error; own values only |
+| `klunk_composite.csv` | Parietal and precuneus from the Klunk zones; the other four from the Avid VOIs |
+| `fsroi_list_FDG.csv` | ROI configuration (label lists) used for FDG |
+| `tau_composites.csv`, `fdg_composites.csv`, `fdg_by_region.csv`, `centiloid_voi_agreement.csv`, `tau_summary.csv`, `fdg_summary.csv` | Agreement summaries of this work against the reference; the reference values themselves are not distributed |
+
+Rows are keyed by the participant identifiers of the source studies (A4/LEARN and the FDG cohort), so that the values
+can be merged with the data obtained from the original providers and the analyses replicated.
+
+## How to read the differences
+
+One subject compares one value with one value: it shows whether your installation resembles ours, not agreement.
+No pass/fail threshold is applied, and the paper's figures (this work vs the reference) are shown only as context.
+
+Whether an error below 1% is small enough depends on the variability that the measurement already carries. For
+flortaucipir, the standard deviation of the test–retest change in cortical SUVR ranged from 1.5% to 5.0% across regions
+(Devous et al., 2018), and the longitudinal measurement error of a temporal meta-ROI referenced to the cerebellum
+without PVC, the configuration reproduced here, has been estimated at about 2–3% (Schwarz et al., 2021). The global and
+meta-temporal reproduction errors obtained for tau (0.45% and 0.25%) are therefore an order of magnitude below the
+variability between two scans of the same participant, so that regenerating the reference values from their
+documentation adds little to the uncertainty already inherent in the measurement.
+
+The same comparison shows where reproduction does matter: **PVC-corrected values in small structures**, with mean
+errors of 2–3% and individual errors of up to 25% (Section 4.2 of the paper), reach or exceed that variability. The
+tools print this note after each comparison.
+
+**Processing note.** The published Tau/FDG values were produced from a FreeSurfer 7.4.1 run done beforehand with the
+same container image (`freesurfer/freesurfer:7.4.1`) and then processed with this script; the script itself runs
+`recon-all` with that same image. Small differences are therefore expected if you run `recon-all` from scratch.
+
