@@ -12,3 +12,11 @@ evaluation_*/
 A4_*
 TAUSUVR*
 license.txt
+
+# keep the ready-made, empty PETPIPELINE_BASE skeleton even though its subfolder names
+# match the ignore rules above (local run outputs / controlled-access data)
+!pet_pipeline/
+!pet_pipeline/subject_evaluation/
+!pet_pipeline/subject_evaluation/.gitkeep
+!pet_pipeline/A4_pipeline_input/
+!pet_pipeline/A4_pipeline_input/.gitkeep

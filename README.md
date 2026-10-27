@@ -24,9 +24,36 @@ code/
   dicom_to_nifti/     DICOM -> NIfTI conversion and organisation of downloaded ADNI scans (no MATLAB)
 docs/   detailed reference docs kept out of this README -- INSTALL.md, REPLICATION.md, PIPELINE_STEPS.md,
         DATA_REFERENCE.md, DATA_PROVENANCE.md
+pet_pipeline/   ready-made, empty PETPIPELINE_BASE -- see "Working folder" below
 MANIFEST.csv, SHA256SUMS.txt   integrity:  sha256sum -c SHA256SUMS.txt
 requirements.txt
 ```
+
+## Working folder
+
+Every script above reads and writes under one folder, `PETPIPELINE_BASE` (default
+`~/Downloads/pet_pipeline`), so paths like `--output_dir` or `--base_dir` never need to be typed out by
+hand. This repository already ships that folder, empty, at [`pet_pipeline/`](pet_pipeline/) -- point
+`PETPIPELINE_BASE` there and put your data straight into its subfolders:
+
+```bash
+export PETPIPELINE_BASE="$(pwd)/pet_pipeline"
+```
+
+```
+pet_pipeline/
+  mri_data/             <ID>/<ID>_T1.nii + the PET, for run_public_pipeline.sh / run_cohort.sh
+  output/                written by run_public_pipeline.sh; read by evaluate_subject.py / compare_fdg_leads.py
+  centiloid_input/       for centiloid_pipeline_tracers.py (--base_dir)
+  A4_pipeline_input/     for run_all_A4_florbetapir.sh
+  subject_evaluation/    written by evaluate_subject.py
+  leads_data/             LEADS reference data, for compare_fdg_leads.py (--leads-base)
+  fs_license/             FreeSurfer license file, for run_public_pipeline.sh
+  MCRv97/                 MATLAB Runtime R2019b, for FDG processing
+```
+
+If you leave `PETPIPELINE_BASE` unset, the same folders are expected at `~/Downloads/pet_pipeline`
+instead -- move or copy this `pet_pipeline/` folder there, or symlink it.
 
 ## Quick start: process and compare one subject
 
