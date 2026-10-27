@@ -119,8 +119,11 @@ python3 code/gaain_validation/klunk_gaain_validation_plot.py --centiloid_results
     --gaain_xlsx Avid_Centiloid_standard_method.xlsx --out validation.png
 ```
 
-Your CSV needs the columns `subject_id`, `centiloid_pipeline` and `status` (rows with `ok` are used). Our result:
-slope 1.0007, intercept −0.66 CL, R² 0.9925, n = 45/46. The script flags a slope outside 0.98–1.02, an intercept
+`<your CSV>` is the results file that `code/centiloid/centiloid_pipeline_tracers.py` itself writes when you run
+it on your own subjects (one row per subject). This script only reads three of its columns: `subject_id`
+(to match against the GAAIN table), `status` (only rows marked `ok` are used; rows with an error are skipped),
+and `centiloid_pipeline` (the Centiloid value your pipeline calculated for that subject). Our result: slope
+1.0007, intercept −0.66 CL, R² 0.9925, n = 45/46. The script flags a slope outside 0.98–1.02, an intercept
 outside ±2 CL and R² ≤ 0.98 (the criteria set in this script).
 
 See [docs/DATA_REFERENCE.md](docs/DATA_REFERENCE.md) for the data dictionary of every file in `data/`
