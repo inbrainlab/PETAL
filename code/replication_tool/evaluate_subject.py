@@ -33,9 +33,9 @@ Inputs by type:
   centiloid  CSV written by centiloid_pipeline_tracers.py (--results)
 
 Examples:
-  python3 evaluate_subject.py --type tau --package /path/to/repo --fastsurfer-base /path/to/output \\
+  python3 evaluate_subject.py --type tau --package /path/to/repo --output_dir /path/to/output \\
       --subject S001 --fsroi-list fsroi_list_FTP.csv --lut FreeSurferColorLUT.txt
-  python3 evaluate_subject.py --type fdg --package /path/to/repo --fastsurfer-base /path/to/output --all \\
+  python3 evaluate_subject.py --type fdg --package /path/to/repo --output_dir /path/to/output --all \\
       --fsroi-list /path/to/repo/data/fsroi_list_FDG.csv --lut FreeSurferColorLUT.txt
   python3 evaluate_subject.py --type centiloid --package /path/to/repo --results centiloid_results.csv --all
 """
@@ -177,7 +177,7 @@ def tau_fdg_regions(seg, ref_mean, composites, lut, resolver=None):
 
 def load_seg(a, subject):
     """Return (seg, ref_mean, error). Reference = whole cerebellar cortex (Tau) or pons (FDG)."""
-    base = os.path.join(a.fastsurfer_base, subject)
+    base = os.path.join(a.output_dir, subject)
     if a.type == "tau":
         path = os.path.join(base, a.seg_filename)
         if not os.path.isfile(path):
@@ -283,7 +283,7 @@ def load_gtm(path):
 def own_bilaterals_pvc(a, subject):
     """Tau WITH PVC (mri_gtmpvc): voxel-weighted bilateral SUVR, same BILATERAL_TAU list.
     A region is returned only if BOTH hemispheres are present. Return (rows, note)."""
-    path = os.path.join(a.fastsurfer_base, subject, "gtmpvc_T1space_mask.output", "gtm.stats.dat")
+    path = os.path.join(a.output_dir, subject, "gtmpvc_T1space_mask.output", "gtm.stats.dat")
     if not os.path.isfile(path):
         return [], f"{path} does not exist"
     gtm = load_gtm(path)
@@ -384,7 +384,7 @@ def main():
     # by hand on every call.
     petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
     default_package = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    default_fastsurfer_base = os.path.join(petpipeline_base, "output")
+    default_output_dir = os.path.join(petpipeline_base, "output")
     default_lut = os.path.expanduser("~/freesurfer/FreeSurferColorLUT.txt")
     default_output = os.path.join(petpipeline_base, "subject_evaluation")
 
@@ -394,9 +394,9 @@ def main():
                    "defaults to this repo's own root")
     p.add_argument("--subject", action="append", default=[], help="subject ID; repeat for several")
     p.add_argument("--all", action="store_true", help="every subject that has output")
-    p.add_argument("--fastsurfer-base", default=default_fastsurfer_base,
+    p.add_argument("--output_dir", default=default_output_dir,
                    help="tau/fdg: folder containing <subject>/output*.csv "
-                        f"(default: {default_fastsurfer_base}, i.e. PETPIPELINE_BASE/output)")
+                        f"(default: {default_output_dir}, i.e. PETPIPELINE_BASE/output)")
     p.add_argument("--seg-filename", default="output.csv", help="tau: name of the segstats table")
     p.add_argument("--fsroi-list", help="tau/fdg: ROI list (fsroi_list_FTP.csv for Tau, default "
                    "<package>/fsroi_list_FTP.csv; data/fsroi_list_FDG.csv for FDG, default "
@@ -443,16 +443,16 @@ def main():
             _write_rows(os.path.join(a.output, "values_centiloid.csv"), list(values_out[0].keys()), values_out,
                         extrasaction="ignore")
     else:
-        if not (a.fastsurfer_base and a.fsroi_list and a.lut):
-            p.error("tau/fdg require --fastsurfer-base, --fsroi-list and --lut")
+        if not (a.output_dir and a.fsroi_list and a.lut):
+            p.error("tau/fdg require --output_dir, --fsroi-list and --lut")
         allc = read_composites(a.fsroi_list)
         if "meta_temporal" not in allc:
             sys.exit(f"ERROR: 'meta_temporal' is not in {a.fsroi_list}")
         composites = {"meta_temporal": allc["meta_temporal"]}
         lut = load_lut(a.lut)
         seg_name = a.seg_filename if a.type == "tau" else "output_fdg.csv"
-        base = os.path.expanduser(a.fastsurfer_base)
-        a.fastsurfer_base = base
+        base = os.path.expanduser(a.output_dir)
+        a.output_dir = base
         ids = (sorted(s for s in os.listdir(base) if os.path.isfile(os.path.join(base, s, seg_name)))
                if a.all else a.subject)
         bilat_out, bilat_pvc = [], []

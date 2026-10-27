@@ -41,15 +41,28 @@ yourself:
 
 ```bash
 python3 code/replication_tool/evaluate_subject.py --type tau --package . \
-    --fastsurfer-base <output folder> --subject <ID> \
+    --output_dir <PETPIPELINE_BASE>/output --subject <ID> \
     --fsroi-list fsroi_list_FTP.csv --lut FreeSurferColorLUT.txt
 ```
+
+`--output_dir` is the folder containing `<subject>/output.csv` (Tau) or `<subject>/output_fdg.csv` +
+`output_brainstem_fdg.csv` (FDG) -- the same folder `run_public_pipeline.sh` writes into. It defaults to
+`PETPIPELINE_BASE/output`, so it can be omitted if you used that default.
 
 `--type fdg` works the same way with `--fsroi-list data/fsroi_list_FDG.csv`; `--type centiloid` takes
 `--results <CSV written by centiloid_pipeline_tracers.py>`. If the subject is in `data/`, your values are
 compared with the published ones; if it is not, only your own output is returned and nothing is compared.
 Use `--all` for every subject with output. `fsroi_list_FTP.csv` (Tau) must be obtained from its original
-source.
+source. `FreeSurferColorLUT.txt` is not distributed either, but it ships inside the FreeSurfer Docker
+image already required above; copy it out once:
+
+```bash
+docker run --rm -v ~/freesurfer:/out freesurfer/freesurfer:7.4.1 \
+    cp "$FREESURFER_HOME/FreeSurferColorLUT.txt" /out/FreeSurferColorLUT.txt
+```
+
+That matches the `--lut` default (`~/freesurfer/FreeSurferColorLUT.txt`), so once copied it does not
+need to be passed by hand either.
 
 ## Three or more subjects
 

@@ -19,13 +19,13 @@ Key differences with respect to the Tau/A4 comparison:
     the FreeSurfer version in use.
 
 Expected folder structure:
-  Ours:   <fastsurfer_base>/<subject>/output_fdg.csv
-          <fastsurfer_base>/<subject>/output_brainstem_fdg.csv
+  Ours:   <output_dir>/<subject>/output_fdg.csv
+          <output_dir>/<subject>/output_brainstem_fdg.csv
   LEADS:  <leads_base>/<subject>/FDG_*/<algo>_suvr-pons_roi-extractions.csv
 
 Usage:
     python3 compare_fdg_leads.py \
-        --fastsurfer-base /path/to/fastsurfer/output \
+        --output_dir /path/to/fastsurfer/output \
         --leads-base      /path/to/leads/data/processed \
         --fsroi-list      /path/to/leads_processing/config/fsroi_list_FDG.csv \
         --csv_regions cohort_fdg_per_region.csv \
@@ -289,7 +289,7 @@ def main():
     # ~/Downloads/pet_pipeline unless overridden. leads-base has no fixed convention of its own (it's
     # reference data you obtain from LEADS yourself), so it gets a staging folder under the same base.
     petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
-    default_fastsurfer_base = os.path.join(petpipeline_base, "output")
+    default_output_dir = os.path.join(petpipeline_base, "output")
     default_leads_base = os.path.join(petpipeline_base, "leads_data")
     default_fsroi_list = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -297,9 +297,9 @@ def main():
 
     p = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--fastsurfer-base", default=default_fastsurfer_base,
+    p.add_argument("--output_dir", default=default_output_dir,
                    help="folder with <subject>/output_fdg.csv and output_brainstem_fdg.csv (our FDG segstats); "
-                        f"default: {default_fastsurfer_base}")
+                        f"default: {default_output_dir}")
     p.add_argument("--leads-base", default=default_leads_base,
                    help="folder with the LEADS outputs: <subject>/FDG_*/*_suvr-pons_roi-extractions.csv; "
                         f"default: {default_leads_base}")
@@ -347,11 +347,11 @@ def main():
         print(f"{len(excluded_subjects)} subjects to exclude, read from {args.exclude_subjects}")
 
     subjects = sorted(
-        s for s in os.listdir(args.fastsurfer_base)
-        if os.path.isfile(os.path.join(args.fastsurfer_base, s, "output_fdg.csv"))
+        s for s in os.listdir(args.output_dir)
+        if os.path.isfile(os.path.join(args.output_dir, s, "output_fdg.csv"))
         and s not in excluded_subjects
     )
-    print(f"{len(subjects)} subjects with output_fdg.csv in {args.fastsurfer_base} "
+    print(f"{len(subjects)} subjects with output_fdg.csv in {args.output_dir} "
           f"(after excluding {len(excluded_subjects)})")
 
     all_pairs = []            # (subject, region, leads_val, our_val)
@@ -362,7 +362,7 @@ def main():
     composites_with_missing_labels = defaultdict(set)  # {comp_name: {missing label ids}}
 
     for subj in subjects:
-        subj_dir = os.path.join(args.fastsurfer_base, subj)
+        subj_dir = os.path.join(args.output_dir, subj)
         seg_path = os.path.join(subj_dir, "output_fdg.csv")
         brainstem_path = os.path.join(subj_dir, "output_brainstem_fdg.csv")
         if not os.path.isfile(brainstem_path):
