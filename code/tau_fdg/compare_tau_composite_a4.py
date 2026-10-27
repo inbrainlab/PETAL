@@ -144,13 +144,23 @@ def icc_2_1(pairs):
 
 
 def main():
+    # Same PETPIPELINE_BASE convention as run_public_pipeline.sh/evaluate_subject.py.
+    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
+    default_fastsurfer_base = os.path.join(petpipeline_base, "output")
+    default_fsroi_list = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "data", "fsroi_list_FTP.csv")
+    default_lut = os.path.expanduser("~/freesurfer/FreeSurferColorLUT.txt")
+
     p = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--fastsurfer-base", required=True,
-                   help="folder with <subject>/<seg-filename> (our Tau segstats)")
+    p.add_argument("--fastsurfer-base", default=default_fastsurfer_base,
+                   help=f"folder with <subject>/<seg-filename> (our Tau segstats); default: {default_fastsurfer_base}")
     p.add_argument("--tausuvr", required=True, help="A4 TAUSUVR_*.csv")
-    p.add_argument("--fsroi-list", required=True, help="fsroi_list_FTP.csv")
-    p.add_argument("--lut", required=True, help="FreeSurferColorLUT.txt")
+    p.add_argument("--fsroi-list", default=default_fsroi_list,
+                   help=f"fsroi_list_FTP.csv (default: {default_fsroi_list}; not shipped, place it there)")
+    p.add_argument("--lut", default=default_lut,
+                   help=f"FreeSurferColorLUT.txt (default: {default_lut})")
     p.add_argument("--seg-filename", default="output.csv",
                    help="filename of our segstats output inside each subject folder (default: output.csv)")
     p.add_argument("--csv_out", default="cohort_tau_composite.csv")

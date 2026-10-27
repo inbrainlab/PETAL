@@ -148,8 +148,12 @@ def compare(a):
 
 
 def main():
+    # Same convention as evaluate_subject.py / run_public_pipeline.sh: defaults to this repo's own
+    # root (where data/ ships), not the current working directory.
+    default_package = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--package", default=".", help="repository folder (contains data/)")
+    p.add_argument("--package", default=default_package, help="repository folder (contains data/); "
+                   "defaults to this repo's own root")
     p.add_argument("--type", choices=["centiloid", "tau", "fdg"])
     p.add_argument("--table", help="CSV with your values")
     p.add_argument("--value_col", default="value", help="tau/fdg: name of the value column in --table")

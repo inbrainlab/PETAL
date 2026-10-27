@@ -58,9 +58,15 @@ def sha256_file(path):
 
 
 def main():
+    # Defaults to this repo's own data/ (and resolved/data next to it), matching the usage example
+    # in this script's own docstring -- no need to type them out if you run this from the repo root.
+    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    default_data = os.path.join(repo_root, "data")
+    default_out = os.path.join(repo_root, "resolved", "data")
+
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--data", required=True, help="folder with the coded CSV tables")
-    p.add_argument("--out", required=True, help="output folder (must not exist)")
+    p.add_argument("--data", default=default_data, help=f"folder with the coded CSV tables (default: {default_data})")
+    p.add_argument("--out", default=default_out, help=f"output folder, must not exist (default: {default_out})")
     p.add_argument("--adni-index", help="ROSTER.csv from ADNI (column PTID)")
     p.add_argument("--a4-index", help="A4_PTDEMOG*.csv from A4 (column BID)")
     a = p.parse_args()

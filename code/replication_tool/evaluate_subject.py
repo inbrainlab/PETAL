@@ -378,20 +378,40 @@ BILATERAL_COLUMNS = ["subject", "region", "suvr", "nvoxels", "volume_mm3"]
 
 
 def main():
+    # Same PETPIPELINE_BASE convention as run_public_pipeline.sh (default ~/Downloads/pet_pipeline):
+    # SUBJECTS_DIR there is PETPIPELINE_BASE/output, PUBLIC_PACKAGE defaults to this repo's own root,
+    # FS_LUT to ~/freesurfer/FreeSurferColorLUT.txt -- mirrored here so none of these need typing out
+    # by hand on every call.
+    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
+    default_package = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    default_fastsurfer_base = os.path.join(petpipeline_base, "output")
+    default_lut = os.path.expanduser("~/freesurfer/FreeSurferColorLUT.txt")
+    default_output = os.path.join(petpipeline_base, "subject_evaluation")
+
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--type", required=True, choices=["tau", "fdg", "centiloid"])
-    p.add_argument("--package", default=".", help="repository folder (contains data/)")
+    p.add_argument("--package", default=default_package, help="repository folder (contains data/); "
+                   "defaults to this repo's own root")
     p.add_argument("--subject", action="append", default=[], help="subject ID; repeat for several")
     p.add_argument("--all", action="store_true", help="every subject that has output")
-    p.add_argument("--fastsurfer-base", help="tau/fdg: folder containing <subject>/output*.csv")
+    p.add_argument("--fastsurfer-base", default=default_fastsurfer_base,
+                   help="tau/fdg: folder containing <subject>/output*.csv "
+                        f"(default: {default_fastsurfer_base}, i.e. PETPIPELINE_BASE/output)")
     p.add_argument("--seg-filename", default="output.csv", help="tau: name of the segstats table")
-    p.add_argument("--fsroi-list", help="tau/fdg: ROI list (fsroi_list_FTP.csv for Tau; data/fsroi_list_FDG.csv for FDG)")
-    p.add_argument("--lut", help="FreeSurferColorLUT.txt")
+    p.add_argument("--fsroi-list", help="tau/fdg: ROI list (fsroi_list_FTP.csv for Tau, default "
+                   "<package>/fsroi_list_FTP.csv; data/fsroi_list_FDG.csv for FDG, default "
+                   "<package>/data/fsroi_list_FDG.csv)")
+    p.add_argument("--lut", default=default_lut,
+                   help=f"FreeSurferColorLUT.txt (default: {default_lut})")
     p.add_argument("--results", help="centiloid: CSV written by centiloid_pipeline_tracers.py")
-    p.add_argument("--output", default="subject_evaluation", help="output folder")
+    p.add_argument("--output", default=default_output,
+                   help=f"output folder (default: {default_output}, i.e. PETPIPELINE_BASE/subject_evaluation)")
     a = p.parse_args()
     if not a.subject and not a.all:
         p.error("give --subject ID (repeatable) or --all")
+    if not a.fsroi_list:
+        a.fsroi_list = (os.path.join(a.package, "data", "fsroi_list_FDG.csv") if a.type == "fdg"
+                        else os.path.join(a.package, "fsroi_list_FTP.csv"))
 
     pub = load_published(a.package, a.type)
     ctx = paper_context(a.package, a.type)

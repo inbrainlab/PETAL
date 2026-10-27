@@ -258,8 +258,13 @@ def bland_altman(pairs):
 
 
 def main():
+    # Same PETPIPELINE_BASE convention as run_public_pipeline.sh/evaluate_subject.py.
+    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
+    default_output_dir = os.path.join(petpipeline_base, "output")
+
     p = argparse.ArgumentParser()
-    p.add_argument("--output_dir", required=True, help="directory containing one sub-directory per subject")
+    p.add_argument("--output_dir", default=default_output_dir,
+                   help=f"directory containing one sub-directory per subject (default: {default_output_dir})")
     p.add_argument("--nopvc_a4",   required=True, help="TAUSUVR_26Jan2026.csv")
     p.add_argument("--pvc_a4",     required=True, help="TAUSUVR_PETSURFER_26Jan2026.csv")
     p.add_argument("--nopvc_name", default="output.csv")

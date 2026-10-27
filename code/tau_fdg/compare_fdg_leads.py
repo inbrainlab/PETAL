@@ -285,13 +285,26 @@ def icc_2_1(pairs):
 # ─────────────────────────────────── main ───────────────────────────────────
 
 def main():
+    # Same PETPIPELINE_BASE convention as run_public_pipeline.sh/evaluate_subject.py: defaults to
+    # ~/Downloads/pet_pipeline unless overridden. leads-base has no fixed convention of its own (it's
+    # reference data you obtain from LEADS yourself), so it gets a staging folder under the same base.
+    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
+    default_fastsurfer_base = os.path.join(petpipeline_base, "output")
+    default_leads_base = os.path.join(petpipeline_base, "leads_data")
+    default_fsroi_list = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "data", "fsroi_list_FDG.csv")
+
     p = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--fastsurfer-base", required=True,
-                   help="folder with <subject>/output_fdg.csv and output_brainstem_fdg.csv (our FDG segstats)")
-    p.add_argument("--leads-base", required=True,
-                   help="folder with the LEADS outputs: <subject>/FDG_*/*_suvr-pons_roi-extractions.csv")
-    p.add_argument("--fsroi-list", required=True, help="fsroi_list_FDG.csv")
+    p.add_argument("--fastsurfer-base", default=default_fastsurfer_base,
+                   help="folder with <subject>/output_fdg.csv and output_brainstem_fdg.csv (our FDG segstats); "
+                        f"default: {default_fastsurfer_base}")
+    p.add_argument("--leads-base", default=default_leads_base,
+                   help="folder with the LEADS outputs: <subject>/FDG_*/*_suvr-pons_roi-extractions.csv; "
+                        f"default: {default_leads_base}")
+    p.add_argument("--fsroi-list", default=default_fsroi_list,
+                   help=f"fsroi_list_FDG.csv (default: {default_fsroi_list})")
     p.add_argument("--csv_regions", default="cohort_fdg_per_region.csv")
     p.add_argument("--csv_raw", default=None,
                    help="if given, dump all raw pairs (subject,region,leads_ref,ours)")
