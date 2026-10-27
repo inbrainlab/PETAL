@@ -224,10 +224,11 @@ PIPELINE_SUFFIX = {"MRI-T1": "T1"}
 
 
 def rename_for_pipeline(outdir, mri_data, overwrite=False):
-    """Copy each subject's NIfTI files from outdir/ into mri_data/<subject>/<subject>_<suffix>.nii -- the
-    exact names run_public_pipeline.sh looks for, so no manual renaming is needed afterward. If a subject
+    """Move each subject's NIfTI files from outdir/ into mri_data/<subject>/<subject>_<suffix>.nii -- the
+    exact names run_public_pipeline.sh looks for, so no manual renaming is needed afterward. The
+    dcm2niix-named original is moved, not copied, so only the renamed file is left behind. If a subject
     has more than one file of the same scan type, the one with the earliest scan date (the first part of
-    the file name, see scan_date_of()) is used."""
+    the file name, see scan_date_of()) is used; the rest are left as-is under outdir/ for manual review."""
     by_subject_type = {}
     for root, _, files in os.walk(outdir):
         for f in files:
@@ -255,12 +256,12 @@ def rename_for_pipeline(outdir, mri_data, overwrite=False):
             skipped += 1
             continue
         os.makedirs(dst_dir, exist_ok=True)
-        shutil.copy2(src, dst)
+        shutil.move(src, dst)
         src_json = src[:-len(".nii")] + ".json"
         if os.path.isfile(src_json):
-            shutil.copy2(src_json, dst[:-len(".nii")] + ".json")
+            shutil.move(src_json, dst[:-len(".nii")] + ".json")
         copied += 1
-    print(f"rename: {copied} file(s) copied into {mri_data} ({skipped} already existed, skipped)")
+    print(f"rename: {copied} file(s) renamed into {mri_data} ({skipped} already existed, skipped)")
     unknown = sum(1 for root, _, files in os.walk(outdir) for f in files
                   if f.endswith(".nii") and classify(os.path.join(root, f), outdir) in (UNKNOWN, MULTIPLE))
     if unknown:

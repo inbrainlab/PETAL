@@ -211,11 +211,14 @@ organizes files under its own `--outdir` folder using dcm2niix's own output name
 naming convention by themselves. There are three ways to run it:
 
 - without `--rename`: the files stay organized under `--outdir` with dcm2niix's own names; nothing is renamed.
-- with `--rename` on its own (no folder after it): renamed copies (`<SUBJECT>_T1.nii`, `<SUBJECT>_FTP.nii`,
-  `<SUBJECT>_FDG.nii`, etc. -- exactly what `run_public_pipeline.sh` looks for) are added inside `--outdir`
-  itself, alongside the organized files.
-- with `--rename <folder>`: those renamed copies are written into `<folder>` instead -- typically the
-  `mri_data` folder `run_public_pipeline.sh` itself defaults to (`PETPIPELINE_BASE/mri_data`).
+- with `--rename` on its own (no folder after it): the organized files are renamed in place inside
+  `--outdir` itself, to `<SUBJECT>_T1.nii`, `<SUBJECT>_FTP.nii`, `<SUBJECT>_FDG.nii`, etc. -- exactly what
+  `run_public_pipeline.sh` looks for.
+- with `--rename <folder>`: the organized files are moved and renamed into `<folder>` instead -- typically
+  the `mri_data` folder `run_public_pipeline.sh` itself defaults to (`PETPIPELINE_BASE/mri_data`).
+
+Either way it is a move, not a copy: the original dcm2niix-named file does not stick around alongside the
+renamed one.
 
 If a subject has more than one file of the same scan type, the one with the earliest scan date is used, and
 the rest are printed so you can review them by hand:
