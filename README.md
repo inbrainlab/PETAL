@@ -128,8 +128,20 @@ Without `--auto_reorient`, a subject whose images are far from the MNI origin ca
 misaligned at the SPM Coregister step. `--auto_reorient` is recommended as the default; only skip it if you
 already know your data is well-centered.
 
-By default it looks for your subjects, the `Avid_Centiloid_standard_method.xlsx` reference and the VOI masks
-under the current folder (`--base_dir .`); pass `--base_dir <folder>` if your data is somewhere else.
+`--base_dir` (default `.`, the current folder) is where it looks for everything:
+
+```
+<base_dir>/
+  *MRI*/<SUBJECT_ID>*/...dcm              T1 DICOMs (any folder with "MRI" in its name)
+  florbetapir/
+    Elder_subject_florbetapir/<SUBJECT_ID>*/...dcm   PET DICOMs
+    Young_Control_florbetapir/<SUBJECT_ID>*/...dcm
+  Avid_Centiloid_standard_method.xlsx     GAAIN reference spreadsheet
+  VOIs_klunk/                              VOI masks (VOIs_2mm/ if --voi_method avid)
+```
+
+Pass `--base_dir <folder>` if your data lives somewhere else; `--all` discovers every `<SUBJECT_ID>` by
+scanning the `florbetapir/.../` folders above.
 
 ### Validate your Centiloid pipeline against GAAIN (optional)
 
