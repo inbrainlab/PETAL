@@ -107,10 +107,29 @@ python3 code/replication_tool/compare_bilateral.py --mine values_tau_bilateral.c
 For one subject it lists the regions with the largest differences; for several subjects it reports the MAPE per
 region. `--output` saves the per-row comparison.
 
+### Centiloid (florbetapir)
+
+`code/centiloid/centiloid_pipeline_tracers.py` goes straight from DICOM to SUVR/Centiloid (it does its own
+DICOM-to-NIfTI conversion, so you don't need `dicom_to_nifti.py` for this tracer). One subject:
+
+```bash
+python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID>
+```
+
+Every subject (writes one CSV with one row each, under `results/` by default):
+
+```bash
+python3 code/centiloid/centiloid_pipeline_tracers.py --all --auto_reorient
+```
+
+By default it looks for your subjects, the `Avid_Centiloid_standard_method.xlsx` reference and the VOI masks
+under the current folder (`--base_dir .`); pass `--base_dir <folder>` if your data is somewhere else.
+
 ### Validate your Centiloid pipeline against GAAIN (optional)
 
-Compares your own Centiloid results against the published GAAIN calibration values. See
-[docs/DATA_REFERENCE.md](docs/DATA_REFERENCE.md) for what the input CSV needs and our own reference result.
+Compares your own Centiloid results (the CSV from `--all` above) against the published GAAIN calibration
+values. See [docs/DATA_REFERENCE.md](docs/DATA_REFERENCE.md) for what the input CSV needs and our own
+reference result.
 
 ```bash
 python3 code/gaain_validation/klunk_gaain_validation_plot.py --centiloid_results <your CSV> \
