@@ -200,16 +200,16 @@ v1.0.20240202. `code/dicom_to_nifti/dicom_to_nifti.py` runs this conversion in p
 
 ```bash
 python3 code/dicom_to_nifti/dicom_to_nifti.py all --newdata <downloaded zips / DICOM folders> \
-    --raw <output folder> [--out <metadata csv, defaults to scans_index.csv>] \
-    [--rename <mri_data folder, see below>]
+    --raw <output folder>
 ```
 
-Output: converted NIfTI files organized under `raw/<subject>/...`, plus `scans_index.csv` (or the name given to
-`--out`) with the metadata of every converted scan (subject, scan type, date, image ID and PET resolution).
-
-Pass `--rename <folder>` to also copy each subject's files straight into `<folder>/<SUBJECT>/<SUBJECT>_T1.nii`,
-`<SUBJECT>_FTP.nii`, `<SUBJECT>_FDG.nii`, etc. -- the exact names `run_public_pipeline.sh` expects (see
-[Quick start](#quick-start-process-and-compare-one-subject)), instead of renaming them by hand. If a subject
+Output: converted NIfTI files organized under `raw/<subject>/...`; `scans_index.csv` (or the name given to
+`--out`) with the metadata of every converted scan (subject, scan type, date, image ID and PET resolution);
+and, copied straight into `<PETPIPELINE_BASE>/mri_data/<SUBJECT>/<SUBJECT>_T1.nii`, `<SUBJECT>_FTP.nii`,
+`<SUBJECT>_FDG.nii`, etc. -- the exact names `run_public_pipeline.sh` expects (see
+[Quick start](#quick-start-process-and-compare-one-subject)) -- no manual renaming needed. That last part
+uses the same `mri_data` folder `run_public_pipeline.sh` itself defaults to, so you don't need to pass
+anything extra for it; pass `--rename <folder>` only to put those renamed files somewhere else. If a subject
 has more than one file of the same scan type, the one with the earliest scan date is used.
 
 The script calls the `dcm2niix` command directly, so if it is already on your `PATH` no extra flag is needed.

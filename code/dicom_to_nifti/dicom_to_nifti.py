@@ -15,17 +15,20 @@ Steps (run one by one or all together):
     python3 dicom_to_nifti.py convert  --newdata DIR [--dcm2niix PATH] [--jobs N]
     python3 dicom_to_nifti.py organize --newdata DIR --raw DIR [--overwrite] [--wipe]
     python3 dicom_to_nifti.py index    --raw DIR --out scans_index.csv
-    python3 dicom_to_nifti.py rename   --raw DIR --rename DIR [--overwrite]
+    python3 dicom_to_nifti.py rename   --raw DIR [--rename DIR] [--overwrite]
     python3 dicom_to_nifti.py all      --newdata DIR --raw DIR --out scans_index.csv [--rename DIR]
 
 `index` writes one row per NIfTI in raw: subject, scan_type (tracer or MRI-T1), scan_date, image_id, pet_res_mm.
 Scan type comes from file and folder names (table SCAN_TYPES below; change it for your data).
 
-`rename` (optional step; also runs as part of `all` when --rename is given) copies each subject's NIfTI
-files from raw/ into --rename using exactly the file names run_public_pipeline.sh expects:
-<subject>/<subject>_T1.nii, <subject>/<subject>_FTP.nii, <subject>/<subject>_FDG.nii, etc. -- no manual
-renaming needed afterward. If a subject has more than one file of the same scan type, the one with the
-earliest scan date (the first part of the file name) is used, and the rest are reported for manual review.
+`rename` (always runs as part of `all`, also available on its own) copies each subject's NIfTI files from
+raw/ into --rename using exactly the file names run_public_pipeline.sh expects: <subject>/<subject>_T1.nii,
+<subject>/<subject>_FTP.nii, <subject>/<subject>_FDG.nii, etc. -- no manual renaming needed afterward.
+--rename defaults to the same mri_data folder run_public_pipeline.sh itself uses
+(PETPIPELINE_BASE/mri_data, i.e. ~/Downloads/pet_pipeline/mri_data unless you export PETPIPELINE_BASE), so
+you normally don't need to pass it; only override it to put the renamed files somewhere else. If a subject
+has more than one file of the same scan type, the one with the earliest scan date (the first part of the
+file name) is used, and the rest are reported for manual review.
 
 Requires dcm2niix (https://github.com/rordenlab/dcm2niix) and Python >= 3.8. No other packages.
 """
@@ -267,15 +270,22 @@ def rename_for_pipeline(raw, mri_data, overwrite=False):
 
 
 def main():
+    # same default as run_public_pipeline.sh/check_install.sh: PETPIPELINE_BASE/mri_data
+    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
+    default_rename = os.path.join(petpipeline_base, "mri_data")
+
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("step", choices=["unzip", "convert", "organize", "index", "rename", "all"])
     p.add_argument("--newdata")
     p.add_argument("--raw")
     p.add_argument("--out", default="scans_index.csv")
-    p.add_argument("--rename", help="optional: also copy converted NIfTI files into this folder using the "
-                                     "exact names run_public_pipeline.sh expects (<SUBJECT>_T1.nii, "
-                                     "<SUBJECT>_FTP.nii, <SUBJECT>_FDG.nii, ...); required for the 'rename' "
-                                     "step, optional for 'all'")
+    p.add_argument("--rename", default=default_rename,
+                   help="copy converted NIfTI files into this folder using the exact names "
+                        "run_public_pipeline.sh expects (<SUBJECT>_T1.nii, <SUBJECT>_FTP.nii, "
+                        "<SUBJECT>_FDG.nii, ...); defaults to the same mri_data folder "
+                        "run_public_pipeline.sh itself uses (PETPIPELINE_BASE/mri_data), so you "
+                        "normally don't need to pass this -- only override it if you want the "
+                        "renamed files somewhere else")
     p.add_argument("--dcm2niix", default="dcm2niix")
     p.add_argument("--jobs", type=int, default=1, help="folders converted in parallel (default 1)")
     p.add_argument("--dcm-ext", default=".dcm", help="DICOM extension(s), comma separated (default .dcm)")
@@ -284,17 +294,14 @@ def main():
     p.add_argument("--wipe", action="store_true", help="empty newdata after organizing (off by default)")
     a = p.parse_args()
     ext = tuple(e.strip().lower() for e in a.dcm_ext.split(","))
-    if a.step == "all":
-        steps = ["unzip", "convert", "organize", "index"] + (["rename"] if a.rename else [])
-    else:
-        steps = [a.step]
+    steps = ["unzip", "convert", "organize", "index", "rename"] if a.step == "all" else [a.step]
     for s in steps:
         if s in ("unzip", "convert", "organize") and not (a.newdata and os.path.isdir(a.newdata)):
             sys.exit("ERROR: --newdata must be an existing folder")
         if s in ("organize", "index") and not a.raw:
             sys.exit("ERROR: --raw is required")
-        if s == "rename" and not (a.raw and a.rename):
-            sys.exit("ERROR: --raw and --rename are both required for the 'rename' step")
+        if s == "rename" and not a.raw:
+            sys.exit("ERROR: --raw is required for the 'rename' step")
     for s in steps:
         if s == "unzip":
             unzip(a.newdata)
