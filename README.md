@@ -132,18 +132,11 @@ mean).
 `code/dicom_to_nifti/dicom_to_nifti.py` converts DICOM downloads to NIfTI, organizes them, and copies each file
 into `mri_data/` with the exact names `run_public_pipeline.sh` expects -- no manual renaming needed. See
 [docs/INSTALL.md](docs/INSTALL.md) section 7 for installing `dcm2niix` and the full details (duplicate-file
-handling, defaults, etc.).
+handling, the `--rename` folder override, etc.).
 
 ```bash
 python3 code/dicom_to_nifti/dicom_to_nifti.py --indir <downloaded zips / DICOM folders> --outdir <folder for the organized NIfTI files>
 ```
-
-```bash
-python3 code/dicom_to_nifti/dicom_to_nifti.py --indir <downloaded zips / DICOM folders> --outdir <folder for the organized NIfTI files> --rename
-```
-
-The first command converts, organizes and writes `scans_index.csv`. Add `--rename` to also copy each file
-into `mri_data/` with the exact names `run_public_pipeline.sh` expects -- no manual renaming needed.
 
 ## Data provenance (FDG cohort)
 
