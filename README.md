@@ -109,23 +109,13 @@ region. `--output` saves the per-row comparison.
 
 ### Validate your Centiloid pipeline against GAAIN (optional)
 
-`data/centiloid_gaain_validation.csv` holds **our** Centiloid values (Klunk VOIs, standard method, florbetapir) for the
-46 GAAIN calibration subjects (45 processed, 1 error: the PET did not overlap the VOI, so the cerebellar reference was
-0/NaN). The published GAAIN Centiloid values are not distributed here: download `Avid_Centiloid_standard_method.xlsx`
-from GAAIN. To compare your own run:
+Compares your own Centiloid results against the published GAAIN calibration values. See
+[docs/INSTALL.md](docs/INSTALL.md) section 8 for what the input CSV needs and our own reference result.
 
 ```bash
 python3 code/gaain_validation/klunk_gaain_validation_plot.py --centiloid_results <your CSV> \
     --gaain_xlsx Avid_Centiloid_standard_method.xlsx --out validation.png
 ```
-
-`<your CSV>` is the results file that `code/centiloid/centiloid_pipeline_tracers.py` itself writes. Run it
-with `--all` (not `--test <SUBJECT_ID>`, which only processes one subject) to get every subject in one CSV,
-one row each. This script only reads three of its columns: `subject_id` (to match against the GAAIN table),
-`status` (only rows marked `ok` are used; rows with an error are skipped), and `centiloid_pipeline` (the
-Centiloid value your pipeline calculated for that subject). Our result: slope
-1.0007, intercept −0.66 CL, R² 0.9925, n = 45/46. The script flags a slope outside 0.98–1.02, an intercept
-outside ±2 CL and R² ≤ 0.98 (the criteria set in this script).
 
 See [docs/DATA_REFERENCE.md](docs/DATA_REFERENCE.md) for the data dictionary of every file in `data/`
 and for how to interpret the comparison against the published values (what a given % difference does or does not
