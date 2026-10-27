@@ -208,18 +208,18 @@ dcm2niix -v
 
 **Getting the NIfTI files named the way `run_public_pipeline.sh` expects.** `dicom_to_nifti.py` converts and
 organizes files under its own `--outdir` folder using dcm2niix's own output names, which do not match section 6's
-naming convention by themselves. The `rename` step (always run as part of `all`, also available on its own)
+naming convention by themselves. The `rename` step (run on its own, or included in `all` with `--rename`)
 fixes this automatically: it copies each subject's files straight into
 `mri_data/<SUBJECT>/<SUBJECT>_T1.nii`, `<SUBJECT>_FTP.nii`, `<SUBJECT>_FDG.nii`, etc. -- exactly what
 `run_public_pipeline.sh` looks for, no manual renaming needed. It writes into the same `mri_data` folder
 `run_public_pipeline.sh` itself defaults to (`PETPIPELINE_BASE/mri_data`), so you don't need to pass
-anything extra for it -- only pass `--rename <folder>` if you want those renamed files somewhere else. If a
-subject has more than one file of the same scan type, the one with the earliest scan date is used, and the
-rest are printed so you can review them by hand:
+anything extra for the destination -- only add a folder after `--rename` (`--rename <folder>`) if you
+want those renamed files somewhere else. If a subject has more than one file of the same scan type, the
+one with the earliest scan date is used, and the rest are printed so you can review them by hand:
 
 ```bash
 python3 code/dicom_to_nifti/dicom_to_nifti.py all --indir ~/Downloads/adni_download \
-    --outdir ~/Downloads/pet_pipeline_raw
+    --outdir ~/Downloads/pet_pipeline_raw --rename
 ```
 
 ## Running the whole cohort

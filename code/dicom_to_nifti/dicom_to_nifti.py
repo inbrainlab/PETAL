@@ -15,20 +15,22 @@ Steps (run one by one or all together):
     python3 dicom_to_nifti.py convert  --indir DIR [--dcm2niix PATH] [--jobs N]
     python3 dicom_to_nifti.py organize --indir DIR --outdir DIR [--overwrite] [--wipe]
     python3 dicom_to_nifti.py index    --outdir DIR --out scans_index.csv
-    python3 dicom_to_nifti.py rename   --outdir DIR [--rename DIR] [--overwrite]
-    python3 dicom_to_nifti.py all      --indir DIR --outdir DIR --out scans_index.csv [--rename DIR]
+    python3 dicom_to_nifti.py rename   --outdir DIR [--rename [DIR]] [--overwrite]
+    python3 dicom_to_nifti.py all      --indir DIR --outdir DIR --out scans_index.csv [--rename [DIR]]
 
 `index` writes one row per NIfTI in outdir: subject, scan_type (tracer or MRI-T1), scan_date, image_id, pet_res_mm.
 Scan type comes from file and folder names (table SCAN_TYPES below; change it for your data).
 
-`rename` (always runs as part of `all`, also available on its own) copies each subject's NIfTI files from
-outdir/ into --rename using exactly the file names run_public_pipeline.sh expects: <subject>/<subject>_T1.nii,
-<subject>/<subject>_FTP.nii, <subject>/<subject>_FDG.nii, etc. -- no manual renaming needed afterward.
---rename defaults to the same mri_data folder run_public_pipeline.sh itself uses
-(PETPIPELINE_BASE/mri_data, i.e. ~/Downloads/pet_pipeline/mri_data unless you export PETPIPELINE_BASE), so
-you normally don't need to pass it; only override it to put the renamed files somewhere else. If a subject
-has more than one file of the same scan type, the one with the earliest scan date (the first part of the
-file name) is used, and the rest are reported for manual review.
+`rename` (run on its own, or add --rename to include it when running `all`) copies each subject's NIfTI
+files from outdir/ into the folder named by --rename, using exactly the file names
+run_public_pipeline.sh expects: <subject>/<subject>_T1.nii, <subject>/<subject>_FTP.nii,
+<subject>/<subject>_FDG.nii, etc. -- no manual renaming needed afterward. --rename on its own (no folder
+after it) uses the same mri_data folder run_public_pipeline.sh itself defaults to
+(PETPIPELINE_BASE/mri_data, i.e. ~/Downloads/pet_pipeline/mri_data unless you export
+PETPIPELINE_BASE), so you normally don't need to pass a folder; only add one if you want the renamed
+files somewhere else (--rename /some/other/folder). If a subject has more than one file of the same scan
+type, the one with the earliest scan date (the first part of the file name) is used, and the rest are
+reported for manual review.
 
 Requires dcm2niix (https://github.com/rordenlab/dcm2niix) and Python >= 3.8. No other packages.
 """
@@ -279,13 +281,14 @@ def main():
     p.add_argument("--indir")
     p.add_argument("--outdir")
     p.add_argument("--out", default="scans_index.csv")
-    p.add_argument("--rename", default=default_rename,
-                   help="copy converted NIfTI files into this folder using the exact names "
+    p.add_argument("--rename", nargs="?", const=default_rename, default=None, metavar="DIR",
+                   help="copy converted NIfTI files into DIR using the exact names "
                         "run_public_pipeline.sh expects (<SUBJECT>_T1.nii, <SUBJECT>_FTP.nii, "
-                        "<SUBJECT>_FDG.nii, ...); defaults to the same mri_data folder "
-                        "run_public_pipeline.sh itself uses (PETPIPELINE_BASE/mri_data), so you "
-                        "normally don't need to pass this -- only override it if you want the "
-                        "renamed files somewhere else")
+                        "<SUBJECT>_FDG.nii, ...). Used alone (no DIR) it defaults to the same "
+                        "mri_data folder run_public_pipeline.sh itself uses "
+                        "(PETPIPELINE_BASE/mri_data); pass a DIR only if you want the renamed "
+                        "files somewhere else. When step is 'all', including --rename at all "
+                        "(with or without DIR) also runs the rename step afterward")
     p.add_argument("--dcm2niix", default="dcm2niix")
     p.add_argument("--jobs", type=int, default=1, help="folders converted in parallel (default 1)")
     p.add_argument("--dcm-ext", default=".dcm", help="DICOM extension(s), comma separated (default .dcm)")
@@ -294,7 +297,7 @@ def main():
     p.add_argument("--wipe", action="store_true", help="empty indir after organizing (off by default)")
     a = p.parse_args()
     ext = tuple(e.strip().lower() for e in a.dcm_ext.split(","))
-    steps = ["unzip", "convert", "organize", "index", "rename"] if a.step == "all" else [a.step]
+    steps = ["unzip", "convert", "organize", "index"] + (["rename"] if a.rename is not None else []) if a.step == "all" else [a.step]
     for s in steps:
         if s in ("unzip", "convert", "organize") and not (a.indir and os.path.isdir(a.indir)):
             sys.exit("ERROR: --indir must be an existing folder")
@@ -314,8 +317,9 @@ def main():
         elif s == "index":
             build_index(a.outdir, a.out)
         elif s == "rename":
-            os.makedirs(a.rename, exist_ok=True)
-            rename_for_pipeline(a.outdir, a.rename, a.overwrite)
+            rename_dir = a.rename if a.rename is not None else default_rename
+            os.makedirs(rename_dir, exist_ok=True)
+            rename_for_pipeline(a.outdir, rename_dir, a.overwrite)
 
 
 if __name__ == "__main__":
