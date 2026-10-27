@@ -10,23 +10,24 @@ Layout (the folder names `indir` and `outdir` are only suggestions):
     <base>/indir/<ADNI|LEADS|...>/<subject>/<series>/<date>/<image id>/*.dcm   (or *.zip files)
     <base>/outdir/<subject>/<series>/<date>/<image id>/*.nii (+ .json)
 
-Usage (there is nothing else to choose -- it converts, organizes and indexes everything found in
---indir, then copies each subject's NIfTI files into the exact file names run_public_pipeline.sh expects;
-zip files are extracted automatically if there are any):
-    python3 dicom_to_nifti.py --indir DIR --outdir DIR
-    python3 dicom_to_nifti.py --indir DIR --outdir DIR --rename DIR
+Usage (it always converts, organizes and indexes everything found in --indir; zip files are
+extracted automatically if there are any). There are three ways to run it:
+    python3 dicom_to_nifti.py --indir DIR --outdir DIR                  (no renaming, dcm2niix's own names)
+    python3 dicom_to_nifti.py --indir DIR --outdir DIR --rename         (renamed copies added inside --outdir)
+    python3 dicom_to_nifti.py --indir DIR --outdir DIR --rename DIR     (renamed copies written into DIR)
 
 Writes outdir/scans_index.csv: one row per NIfTI, with subject, scan_type (tracer or MRI-T1), scan_date,
 image_id, pet_res_mm. Scan type comes from file and folder names (table SCAN_TYPES below; change it for
 your data).
 
-It always copies each subject's NIfTI files into the names run_public_pipeline.sh expects --
+Without --rename, the NIfTI files stay organized under --outdir with dcm2niix's own output names.
+Add --rename to also copy each subject's files into the exact names run_public_pipeline.sh expects --
 <subject>/<subject>_T1.nii, <subject>/<subject>_FTP.nii, <subject>/<subject>_FDG.nii, etc. -- no manual
-renaming needed. That copy goes into the same mri_data folder run_public_pipeline.sh itself defaults to
-(PETPIPELINE_BASE/mri_data, i.e. ~/Downloads/pet_pipeline/mri_data unless you export PETPIPELINE_BASE),
-so you normally don't need to pass --rename at all; only pass --rename DIR if you want the renamed files
-somewhere else. If a subject has more than one file of the same scan type, the one with the earliest scan
-date (the first part of the file name) is used, and the rest are reported for manual review.
+renaming needed. --rename on its own (no folder after it) writes those renamed copies inside --outdir
+itself; pass a folder after it (--rename DIR) to write them there instead (for example the mri_data
+folder run_public_pipeline.sh expects, PETPIPELINE_BASE/mri_data). If a subject has more than one file of
+the same scan type, the one with the earliest scan date (the first part of the file name) is used, and
+the rest are reported for manual review.
 
 Requires dcm2niix (https://github.com/rordenlab/dcm2niix) and Python >= 3.8. No other packages.
 """
@@ -267,27 +268,27 @@ def rename_for_pipeline(outdir, mri_data, overwrite=False):
               f"see the scans_index.csv UNKNOWN/MULTIPLE rows and rename those manually if needed")
 
 
-def main():
-    # same default as run_public_pipeline.sh/check_install.sh: PETPIPELINE_BASE/mri_data
-    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
-    default_rename = os.path.join(petpipeline_base, "mri_data")
+_NO_RENAME = object()       # --rename not passed at all: no renaming
+_RENAME_IN_OUTDIR = object()  # --rename passed with no folder: renamed copies go inside --outdir
 
+
+def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--indir", required=True, help="folder with the downloaded DICOM/zip files")
     p.add_argument("--outdir", required=True, help="folder for the converted, organized NIfTI files")
     p.add_argument("--out", default="scans_index.csv", help="index CSV name, written inside --outdir")
-    p.add_argument("--rename", default=default_rename, metavar="DIR",
-                   help="copy the NIfTI files into DIR using the exact names "
+    p.add_argument("--rename", nargs="?", const=_RENAME_IN_OUTDIR, default=_NO_RENAME, metavar="DIR",
+                   help="also copy each subject's NIfTI files into the exact names "
                         "run_public_pipeline.sh expects (<SUBJECT>_T1.nii, <SUBJECT>_FTP.nii, "
-                        "<SUBJECT>_FDG.nii, ...). This always runs; it defaults to the same "
-                        "mri_data folder run_public_pipeline.sh itself uses "
-                        "(PETPIPELINE_BASE/mri_data), so you normally don't need to pass this -- "
-                        "only pass it if you want the renamed files somewhere else")
+                        "<SUBJECT>_FDG.nii, ...). Without this flag, files keep dcm2niix's own "
+                        "names. Used alone (no DIR) the renamed copies are written inside "
+                        "--outdir itself; pass a DIR (for example PETPIPELINE_BASE/mri_data) to "
+                        "write them there instead")
     p.add_argument("--dcm2niix", default="dcm2niix")
     p.add_argument("--jobs", type=int, default=1, help="folders converted in parallel (default 1)")
     p.add_argument("--dcm-ext", default=".dcm", help="DICOM extension(s), comma separated (default .dcm)")
     p.add_argument("--overwrite", action="store_true", help="replace folders that already exist in outdir, or"
-                                                              " files that already exist in --rename")
+                                                              " files that already exist in the rename folder")
     p.add_argument("--wipe", action="store_true", help="empty indir after organizing (off by default)")
     a = p.parse_args()
     ext = tuple(e.strip().lower() for e in a.dcm_ext.split(","))
@@ -300,8 +301,10 @@ def main():
     os.makedirs(a.outdir, exist_ok=True)
     organize(a.indir, a.outdir, a.overwrite, a.wipe)
     build_index(a.outdir, a.out)
-    os.makedirs(a.rename, exist_ok=True)
-    rename_for_pipeline(a.outdir, a.rename, a.overwrite)
+    if a.rename is not _NO_RENAME:
+        rename_dir = a.outdir if a.rename is _RENAME_IN_OUTDIR else a.rename
+        os.makedirs(rename_dir, exist_ok=True)
+        rename_for_pipeline(a.outdir, rename_dir, a.overwrite)
 
 
 if __name__ == "__main__":
