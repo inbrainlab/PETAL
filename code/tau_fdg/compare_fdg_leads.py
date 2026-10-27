@@ -286,9 +286,11 @@ def icc_2_1(pairs):
 
 def main():
     # Same PETPIPELINE_BASE convention as run_public_pipeline.sh/evaluate_subject.py: defaults to
-    # ~/Downloads/pet_pipeline unless overridden. leads-base has no fixed convention of its own (it's
-    # reference data you obtain from LEADS yourself), so it gets a staging folder under the same base.
-    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
+    # this repo's own pet_pipeline/ folder unless overridden. leads-base has no fixed convention of
+    # its own (it's reference data you obtain from LEADS yourself), so it gets a staging folder under
+    # the same base.
+    _repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.join(_repo_root, "pet_pipeline")
     default_output_dir = os.path.join(petpipeline_base, "output")
     default_leads_base = os.path.join(petpipeline_base, "leads_data")
     default_fsroi_list = os.path.join(

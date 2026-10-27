@@ -378,12 +378,12 @@ BILATERAL_COLUMNS = ["subject", "region", "suvr", "nvoxels", "volume_mm3"]
 
 
 def main():
-    # Same PETPIPELINE_BASE convention as run_public_pipeline.sh (default ~/Downloads/pet_pipeline):
+    # Same PETPIPELINE_BASE convention as run_public_pipeline.sh (default: this repo's own pet_pipeline/ folder):
     # SUBJECTS_DIR there is PETPIPELINE_BASE/output, PUBLIC_PACKAGE defaults to this repo's own root,
     # FS_LUT to ~/freesurfer/FreeSurferColorLUT.txt -- mirrored here so none of these need typing out
     # by hand on every call.
-    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
     default_package = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.join(default_package, "pet_pipeline")
     default_output_dir = os.path.join(petpipeline_base, "output")
     default_lut = os.path.expanduser("~/freesurfer/FreeSurferColorLUT.txt")
     default_output = os.path.join(petpipeline_base, "subject_evaluation")

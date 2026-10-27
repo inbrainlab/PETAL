@@ -69,8 +69,9 @@ import matplotlib.pyplot as plt
 # edit the defaults below.
 
 # Same convention as run_public_pipeline.sh/check_install.sh/dicom_to_nifti.py: PETPIPELINE_BASE,
-# defaulting to ~/Downloads/pet_pipeline -- so all tracers share one working-directory root.
-_PETPIPELINE_BASE = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
+# defaulting to this repo's own pet_pipeline/ folder -- so all tracers share one working-directory root.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_PETPIPELINE_BASE = os.environ.get("PETPIPELINE_BASE") or os.path.join(_REPO_ROOT, "pet_pipeline")
 BASE_DIR   = os.environ.get("CENTILOID_BASE_DIR", os.path.join(_PETPIPELINE_BASE, "centiloid_input"))
 REF_XLSX   = os.path.join(BASE_DIR, "Avid_Centiloid_standard_method.xlsx")
 VOI_DIR    = os.path.join(BASE_DIR, "VOIs_2mm")        # Avid VOIs (default)

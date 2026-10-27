@@ -31,14 +31,11 @@ requirements.txt
 
 ## Working folder
 
-Every script above reads and writes under one folder, `PETPIPELINE_BASE` (default
-`~/Downloads/pet_pipeline`), so paths like `--output_dir` or `--base_dir` never need to be typed out by
-hand. This repository already ships that folder, empty, at [`pet_pipeline/`](pet_pipeline/) -- point
-`PETPIPELINE_BASE` there and put your data straight into its subfolders:
-
-```bash
-export PETPIPELINE_BASE="$(pwd)/pet_pipeline"
-```
+Every script above reads and writes under one folder, `PETPIPELINE_BASE`. You do not need to set
+anything: if the variable is not exported, it defaults to [`pet_pipeline/`](pet_pipeline/), the folder
+this repository already ships, empty, right next to this README. Download the repo, drop your data
+straight into its subfolders, and run the commands below -- no `--output_dir`, `--base_dir` or
+`export` needed:
 
 ```
 pet_pipeline/
@@ -52,8 +49,11 @@ pet_pipeline/
   MCRv97/                 MATLAB Runtime R2019b, for FDG processing
 ```
 
-If you leave `PETPIPELINE_BASE` unset, the same folders are expected at `~/Downloads/pet_pipeline`
-instead -- move or copy this `pet_pipeline/` folder there, or symlink it.
+Only export `PETPIPELINE_BASE` if you want your data somewhere else entirely:
+
+```bash
+export PETPIPELINE_BASE=/path/to/your/own/folder
+```
 
 ## Quick start: process and compare one subject
 
@@ -101,7 +101,7 @@ misaligned at the SPM Coregister step. `--auto_reorient` is recommended as the d
 already know your data is well-centered.
 
 It looks for everything under `--base_dir`, which defaults to `PETPIPELINE_BASE/centiloid_input` (i.e.
-`~/Downloads/pet_pipeline/centiloid_input` unless you export `PETPIPELINE_BASE`) -- put your data there and
+``pet_pipeline/centiloid_input` unless you export `PETPIPELINE_BASE`) -- put your data there and
 none of the commands above need `--base_dir` at all. Pass `--base_dir <folder>` only if you keep your data
 somewhere else:
 

@@ -31,7 +31,7 @@ set -uo pipefail
 # uses its own default (klunk). E.g.:
 #   VOI_METHOD=avid bash run_all_A4_florbetapir.sh
 PIPELINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PETPIPELINE_BASE="${PETPIPELINE_BASE:-$HOME/Downloads/pet_pipeline}"    # same convention as run_public_pipeline.sh
+PETPIPELINE_BASE="${PETPIPELINE_BASE:-$(cd "$PIPELINE_DIR/../.." && pwd)/pet_pipeline}"  # same convention as run_public_pipeline.sh (this repo's own pet_pipeline/ folder)
 A4_DATA_DIR="${A4_DATA_DIR:-$PETPIPELINE_BASE/A4_pipeline_input}"
 VOI_METHOD="${VOI_METHOD:-}"
 PYTHON_SCRIPT="$PIPELINE_DIR/centiloid_pipeline_tracers.py"

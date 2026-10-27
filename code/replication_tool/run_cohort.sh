@@ -23,7 +23,7 @@ set -o pipefail   # no "set -e": one subject failing should not take down the wh
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELINE_SCRIPT="$SCRIPT_DIR/run_public_pipeline.sh"        # per-subject pipeline, called once per subject below
 
-PETPIPELINE_BASE="${PETPIPELINE_BASE:-$HOME/Downloads/pet_pipeline}"    # same default as run_public_pipeline.sh
+PETPIPELINE_BASE="${PETPIPELINE_BASE:-$(cd "$SCRIPT_DIR/../.." && pwd)/pet_pipeline}"  # same default as run_public_pipeline.sh (this repo's own pet_pipeline/ folder)
 MRI_DATA_DIR="${MRI_DATA_DIR:-$PETPIPELINE_BASE/mri_data}"   # one subdirectory per subject
 LOGS_DIR="${LOGS_DIR:-$PETPIPELINE_BASE/logs}"               # per-subject cohort logs (created automatically)
 

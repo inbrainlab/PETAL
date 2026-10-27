@@ -29,7 +29,7 @@
 set -e
 
 # ── configuration ─────────────────────────────────────────────────────────────
-PETPIPELINE_BASE="${PETPIPELINE_BASE:-$HOME/Downloads/pet_pipeline}"    # working directory root -- override by exporting PETPIPELINE_BASE
+PETPIPELINE_BASE="${PETPIPELINE_BASE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/pet_pipeline}"  # working directory root -- defaults to this repo's own pet_pipeline/ folder; override by exporting PETPIPELINE_BASE
 MRI_DATA_DIR="${MRI_DATA_DIR:-$PETPIPELINE_BASE/mri_data}"   # raw T1/PET source files, one subdirectory per subject
 SUBJECTS_DIR="$PETPIPELINE_BASE/output"                      # FreeSurfer SUBJECTS_DIR -- recon-all output and this pipeline's own result CSVs land here
 FS_LICENSE_DIR="$PETPIPELINE_BASE/fs_license"                # directory holding the FreeSurfer license file (.license)

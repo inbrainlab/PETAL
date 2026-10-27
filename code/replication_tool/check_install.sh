@@ -11,7 +11,7 @@ TRACER="FTP"
 [ "$1" == "--tracer" ] && TRACER="${2:-FTP}"
 
 # ── same configuration as run_public_pipeline.sh ───────────────────────────────
-PETPIPELINE_BASE="${PETPIPELINE_BASE:-$HOME/Downloads/pet_pipeline}"
+PETPIPELINE_BASE="${PETPIPELINE_BASE:-$(cd "$SCRIPT_DIR/../.." && pwd)/pet_pipeline}"  # defaults to this repo's own pet_pipeline/ folder
 MRI_DATA_DIR="${MRI_DATA_DIR:-$PETPIPELINE_BASE/mri_data}"
 SUBJECTS_DIR="$PETPIPELINE_BASE/output"
 FS_LICENSE_DIR="$PETPIPELINE_BASE/fs_license"

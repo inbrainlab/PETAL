@@ -145,7 +145,8 @@ def icc_2_1(pairs):
 
 def main():
     # Same PETPIPELINE_BASE convention as run_public_pipeline.sh/evaluate_subject.py.
-    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
+    _repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.join(_repo_root, "pet_pipeline")
     default_fastsurfer_base = os.path.join(petpipeline_base, "output")
     default_fsroi_list = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),

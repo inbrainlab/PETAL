@@ -8,7 +8,7 @@ bash code/replication_tool/run_public_pipeline.sh <ID> [--tracer FTP|FDG]
 
 Requirements: Docker (`freesurfer/freesurfer:7.4.1`), a FreeSurfer license (not distributed) and
 `progress_helpers.sh` next to the script. Input: `<PETPIPELINE_BASE>/mri_data/<ID>/<ID>_T1.nii` and the PET
-(`PETPIPELINE_BASE` defaults to `~/Downloads/pet_pipeline` -- no edit needed if you download the repo and run it from `~/Downloads`). Output: `<PETPIPELINE_BASE>/output/<ID>/output.csv` (Tau; with PVC
+(`PETPIPELINE_BASE` defaults to the `pet_pipeline/` folder already shipped in this repo -- no export needed unless you want your data elsewhere). Output: `<PETPIPELINE_BASE>/output/<ID>/output.csv` (Tau; with PVC
 also `gtmpvc_T1space_mask.output/gtm.stats.dat`) or `output_fdg.csv` + `output_brainstem_fdg.csv` (FDG).
 
 Input file names: `<ID>_T1.nii[.gz]` and the PET as `<ID>_FTP.nii` or `<ID>_AV1451.nii` (Tau) or `<ID>_FDG.nii`

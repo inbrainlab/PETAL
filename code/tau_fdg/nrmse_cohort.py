@@ -259,7 +259,8 @@ def bland_altman(pairs):
 
 def main():
     # Same PETPIPELINE_BASE convention as run_public_pipeline.sh/evaluate_subject.py.
-    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
+    _repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.join(_repo_root, "pet_pipeline")
     default_output_dir = os.path.join(petpipeline_base, "output")
 
     p = argparse.ArgumentParser()
