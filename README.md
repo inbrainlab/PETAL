@@ -135,11 +135,11 @@ into `mri_data/` with the exact names `run_public_pipeline.sh` expects -- no man
 handling, defaults, etc.).
 
 ```bash
-python3 code/dicom_to_nifti/dicom_to_nifti.py all --indir <downloaded zips / DICOM folders>  --outdir <folder for the organized NIfTI files>
+python3 code/dicom_to_nifti/dicom_to_nifti.py --indir <downloaded zips / DICOM folders> --outdir <folder for the organized NIfTI files>
 ```
 
 ```bash
-python3 code/dicom_to_nifti/dicom_to_nifti.py all --indir <downloaded zips / DICOM folders> --outdir <folder for the organized NIfTI files> --rename
+python3 code/dicom_to_nifti/dicom_to_nifti.py --indir <downloaded zips / DICOM folders> --outdir <folder for the organized NIfTI files> --rename
 ```
 
 The first command converts, organizes and writes `scans_index.csv`. Add `--rename` to also copy each file
