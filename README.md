@@ -140,7 +140,10 @@ already know your data is well-centered.
   VOIs_klunk/                              VOI masks (VOIs_2mm/ if --voi_method avid)
 ```
 
-`--all` discovers every `<SUBJECT_ID>` by scanning the `florbetapir/.../` folders above.
+`--all` discovers every `<SUBJECT_ID>` by scanning the subfolder names directly under the two
+`florbetapir/.../` folders above -- not the MRI folder. It reads a 6-digit ID at the start of the name
+(`105858_...` or `231642` -> `105858`, `231642`), or, for PiB, a 6-digit ID after `PiB-` (`PiB-105858` ->
+`105858`). A folder name that matches neither pattern is skipped.
 
 ### Validate your Centiloid pipeline against GAAIN (optional)
 
