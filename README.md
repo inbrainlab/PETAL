@@ -114,14 +114,14 @@ DICOM-to-NIfTI conversion, so you don't need `dicom_to_nifti.py` for this tracer
 
 ```bash
 # one subject, to try it out or debug
-python3 code/centiloid/centiloid_pipeline_tracers.py --base_dir <folder from the layout below> --test <SUBJECT_ID>
+python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID> --base_dir <folder from the layout below>
 
 # every subject, writing one CSV with one row each (under results/ by default)
-python3 code/centiloid/centiloid_pipeline_tracers.py --base_dir <folder from the layout below> --all
+python3 code/centiloid/centiloid_pipeline_tracers.py --all --base_dir <folder from the layout below>
 
 # every subject, also auto-reorienting PET/MRI towards the MNI origin before SPM Coregister --
 # rescues subjects whose center of mass is far off, without affecting the ones that were already fine
-python3 code/centiloid/centiloid_pipeline_tracers.py --base_dir <folder from the layout below> --all --auto_reorient
+python3 code/centiloid/centiloid_pipeline_tracers.py --all --auto_reorient --base_dir <folder from the layout below>
 ```
 
 Without `--auto_reorient`, a subject whose images are far from the MNI origin can fail or come out
