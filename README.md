@@ -167,15 +167,19 @@ subject (so it goes through the same pipeline, just told about subjects a differ
 A4_DATA_DIR=<folder from the layout below> bash code/centiloid/run_all_A4_florbetapir.sh
 ```
 
-`A4_DATA_DIR` must look like this -- one subfolder per subject, named with that subject's ID, containing
-its raw PET NIfTI (already converted, since A4 does not ship DICOM):
+`run_all_A4_florbetapir.sh` passes `--skip_dcm2niix`, so `centiloid_pipeline_tracers.py` does not look for
+DICOM or `base_dir` at all for these subjects -- it reads the T1 and PET directly from each subject's own
+folder under `A4_DATA_DIR`, and both must already be NIfTI with these exact names (the PET already summed
+if it had multiple frames -- not split into separate frame files):
 
 ```
 <A4_DATA_DIR>/
   A4:56:571e/
-    <raw PET file>.nii[.gz]
+    A4:56:571e_t1.nii            T1 (already converted)
+    A4:56:571e_pet.nii           PET (already converted and summed)
   A4:35:7415/
-    <raw PET file>.nii[.gz]
+    A4:35:7415_t1.nii
+    A4:35:7415_pet.nii
   ...
 ```
 
