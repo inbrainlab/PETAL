@@ -145,14 +145,6 @@ already know your data is well-centered.
 (`105858_...` or `231642` -> `105858`, `231642`), or, for PiB, a 6-digit ID after `PiB-` (`PiB-105858` ->
 `105858`). A folder name that matches neither pattern is skipped.
 
-**A4 cohort (alphanumeric IDs like `A4:56:571e`, already NIfTI):** `--all` cannot discover these subjects --
-their IDs and folder layout do not match the pattern above. Use `code/centiloid/run_all_A4_florbetapir.sh`
-instead, which lists the subject subfolders itself and calls `--test` once per subject:
-
-```bash
-A4_DATA_DIR=<folder with one subfolder per subject> bash code/centiloid/run_all_A4_florbetapir.sh
-```
-
 ### Validate your Centiloid pipeline against GAAIN (optional)
 
 Compares your own Centiloid results (the CSV from `--all` above) against the published GAAIN calibration
@@ -162,6 +154,29 @@ reference result.
 ```bash
 python3 code/gaain_validation/klunk_gaain_validation_plot.py --centiloid_results <your CSV> \
     --gaain_xlsx Avid_Centiloid_standard_method.xlsx --out validation.png
+```
+
+### Centiloid for the A4 cohort (alphanumeric IDs, already NIfTI)
+
+A4 subjects (IDs like `A4:56:571e`) don't fit `--all` above: their IDs and folder layout don't match the
+pattern `centiloid_pipeline_tracers.py` expects. `code/centiloid/run_all_A4_florbetapir.sh` works around
+this without changing that script: it lists the subject subfolders itself and calls `--test` once per
+subject (so it goes through the same pipeline, just told about subjects a different way).
+
+```bash
+A4_DATA_DIR=<folder from the layout below> bash code/centiloid/run_all_A4_florbetapir.sh
+```
+
+`A4_DATA_DIR` must look like this -- one subfolder per subject, named with that subject's ID, containing
+its raw PET NIfTI (already converted, since A4 does not ship DICOM):
+
+```
+<A4_DATA_DIR>/
+  A4:56:571e/
+    <raw PET file>.nii[.gz]
+  A4:35:7415/
+    <raw PET file>.nii[.gz]
+  ...
 ```
 
 ## From DICOM to NIfTI
