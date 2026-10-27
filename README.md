@@ -110,20 +110,17 @@ region. `--output` saves the per-row comparison.
 ### Centiloid (florbetapir)
 
 `code/centiloid/centiloid_pipeline_tracers.py` goes straight from DICOM to SUVR/Centiloid (it does its own
-DICOM-to-NIfTI conversion, so you don't need `dicom_to_nifti.py` for this tracer). One subject:
+DICOM-to-NIfTI conversion, so you don't need `dicom_to_nifti.py` for this tracer). Three ways to run it:
 
 ```bash
+# one subject, to try it out or debug
 python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID>
-```
 
-Every subject (writes one CSV with one row each, under `results/` by default):
-
-```bash
-# without auto-reorientation: fine for subjects whose PET/MRI are already reasonably centered on MNI
+# every subject, writing one CSV with one row each (under results/ by default)
 python3 code/centiloid/centiloid_pipeline_tracers.py --all
 
-# with auto-reorientation: shifts PET and MRI towards the MNI origin before SPM Coregister,
-# rescuing subjects whose center of mass is far off, without affecting the ones that were already fine
+# every subject, also auto-reorienting PET/MRI towards the MNI origin before SPM Coregister --
+# rescues subjects whose center of mass is far off, without affecting the ones that were already fine
 python3 code/centiloid/centiloid_pipeline_tracers.py --all --auto_reorient
 ```
 
