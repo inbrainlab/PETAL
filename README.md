@@ -139,7 +139,7 @@ details (duplicate-file handling, etc.).
 python3 code/dicom_to_nifti/dicom_to_nifti.py --indir <downloaded zips / DICOM folders> --outdir <folder for the organized NIfTI files>
 
 # also rename, ready for run_public_pipeline.sh, into the folder it expects (e.g. mri_data)
-python3 code/dicom_to_nifti/dicom_to_nifti.py --indir <downloaded zips / DICOM folders> --outdir <folder for the organized NIfTI files> --rename <folder for the renamed NIfTI files>
+python3 code/dicom_to_nifti/dicom_to_nifti.py --indir <downloaded zips / DICOM folders> --outdir <folder for the organized NIfTI files> --rename <folder renamed NIfTI files>
 ```
 
 ## Data provenance (FDG cohort)
