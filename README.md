@@ -23,17 +23,10 @@ code/
   gaain_validation/   validation of a Centiloid pipeline against the GAAIN Centiloid Project
   dicom_to_nifti/     DICOM -> NIfTI conversion and organisation of downloaded ADNI scans (no MATLAB)
 docs/   detailed reference docs kept out of this README -- INSTALL.md, PIPELINE_STEPS.md, DATA_REFERENCE.md,
-        DATA_PROVENANCE.md, PARTICIPANT_CODES.md
+        DATA_PROVENANCE.md
 MANIFEST.csv, SHA256SUMS.txt   integrity:  sha256sum -c SHA256SUMS.txt
 requirements.txt
 ```
-
-## Participant codes (only if your data/ tables are coded)
-
-In this release the participant column of the tables in `data/` (`subject` or `subject_id`) holds the real ADNI
-or A4 identifier directly -- no decoding step is needed to use them as they are. If you are instead working from a
-release that ships these tables with a coded participant column, see
-[docs/PARTICIPANT_CODES.md](docs/PARTICIPANT_CODES.md) for how to restore the real IDs.
 
 ## Quick start: process and compare one subject
 
@@ -67,7 +60,7 @@ release that ships these tables with a coded participant column, see
    Re-running the same command later continues where it left off instead of redoing finished subjects.
 
 2. **Compare with the published values.** If `PUBLIC_PACKAGE` (this folder, or the `resolved` folder if your data
-   is a coded release -- see [Participant codes](#participant-codes-only-if-your-data-tables-are-coded)), `FS_LUT`
+   is a coded release), `FS_LUT`
    (`FreeSurferColorLUT.txt`) and
    `FSROI_LIST` (`fsroi_list_FTP.csv` for Tau; FDG uses `data/fsroi_list_FDG.csv`) are defined, the pipeline script
    does this at the end. You can also run it yourself:
@@ -108,7 +101,7 @@ python3 code/replication_tool/compare_bilateral.py --mine values_tau_bilateral.c
     --published data/tau_bilateral_published.csv
 # with PVC:  --mine values_tau_bilateral_pvc.csv --published data/tau_bilateral_pvc_published.csv --pvc
 # FDG:       --mine values_fdg_bilateral.csv --published data/fdg_bilateral_published.csv --type fdg
-# coded release: use resolved/data/... instead of data/... (see Participant codes)
+# coded release: use resolved/data/... instead of data/...
 ```
 
 For one subject it lists the regions with the largest differences; for several subjects it reports the MAPE per
