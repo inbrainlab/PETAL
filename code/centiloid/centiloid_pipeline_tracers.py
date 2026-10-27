@@ -59,16 +59,19 @@ import matplotlib.pyplot as plt
 # =============================================
 # CONFIGURATION
 # =============================================
-# BASE_DIR is read from the CENTILOID_BASE_DIR environment variable and
-# defaults to the current directory. The data layout (VOIs_2mm/,
-# VOIs_klunk/, the reference xlsx) is expected under BASE_DIR.
+# BASE_DIR is read from the CENTILOID_BASE_DIR environment variable and defaults to
+# PETPIPELINE_BASE/centiloid_input (PETPIPELINE_BASE defaults to ~/Downloads/pet_pipeline). The data
+# layout (VOIs_2mm/, VOIs_klunk/, the reference xlsx) is expected under BASE_DIR.
 #
 # MATLAB_BIN / SPM12_PATH / MNI_TEMPLATE are machine specific (they depend
 # on where MATLAB and SPM12 are installed). Set them by exporting
 # CENTILOID_MATLAB_BIN / CENTILOID_SPM12_PATH / CENTILOID_MNI_TEMPLATE, or
 # edit the defaults below.
 
-BASE_DIR   = os.environ.get("CENTILOID_BASE_DIR", ".")
+# Same convention as run_public_pipeline.sh/check_install.sh/dicom_to_nifti.py: PETPIPELINE_BASE,
+# defaulting to ~/Downloads/pet_pipeline -- so all tracers share one working-directory root.
+_PETPIPELINE_BASE = os.environ.get("PETPIPELINE_BASE") or os.path.expanduser("~/Downloads/pet_pipeline")
+BASE_DIR   = os.environ.get("CENTILOID_BASE_DIR", os.path.join(_PETPIPELINE_BASE, "centiloid_input"))
 REF_XLSX   = os.path.join(BASE_DIR, "Avid_Centiloid_standard_method.xlsx")
 VOI_DIR    = os.path.join(BASE_DIR, "VOIs_2mm")        # Avid VOIs (default)
 VOI_DIR_KLUNK = os.path.join(BASE_DIR, "VOIs_klunk")    # Standard Centiloid VOIs

@@ -57,21 +57,24 @@ DICOM-to-NIfTI conversion, so you don't need `dicom_to_nifti.py` for this tracer
 
 ```bash
 # one subject, to try it out or debug
-python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID> --base_dir <folder from the layout below>
+python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID>
 
 # every subject, writing one CSV with one row each (under results/ by default)
-python3 code/centiloid/centiloid_pipeline_tracers.py --all --base_dir <folder from the layout below>
+python3 code/centiloid/centiloid_pipeline_tracers.py --all
 
 # every subject, also auto-reorienting PET/MRI towards the MNI origin before SPM Coregister --
 # rescues subjects whose center of mass is far off, without affecting the ones that were already fine
-python3 code/centiloid/centiloid_pipeline_tracers.py --all --auto_reorient --base_dir <folder from the layout below>
+python3 code/centiloid/centiloid_pipeline_tracers.py --all --auto_reorient
 ```
 
 Without `--auto_reorient`, a subject whose images are far from the MNI origin can fail or come out
 misaligned at the SPM Coregister step. `--auto_reorient` is recommended as the default; only skip it if you
 already know your data is well-centered.
 
-`--base_dir` is where it looks for everything (defaults to `.`, the current folder, if you omit it):
+It looks for everything under `--base_dir`, which defaults to `PETPIPELINE_BASE/centiloid_input` (i.e.
+`~/Downloads/pet_pipeline/centiloid_input` unless you export `PETPIPELINE_BASE`) -- put your data there and
+none of the commands above need `--base_dir` at all. Pass `--base_dir <folder>` only if you keep your data
+somewhere else:
 
 ```
 <base_dir>/
