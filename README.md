@@ -70,7 +70,11 @@ bash code/replication_tool/run_public_pipeline.sh <ID> [--tracer FTP|FDG]
 ```
 
 Several subjects: `code/replication_tool/run_cohort.sh` runs the command above once per subject,
-auto-discovered under `MRI_DATA_DIR`.
+auto-discovered under `MRI_DATA_DIR`:
+
+```bash
+nohup bash code/replication_tool/run_cohort.sh [--tracer FTP|FDG] > logs/cohort.out 2>&1 &
+```
 
 Compare with the published values:
 
