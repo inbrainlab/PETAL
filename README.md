@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/PETAL_logo.jpeg" alt="PETAL logo" width="220">
+</p>
+
 # PET harmonization: published values and replication tools
 
 This repository contains the derived values and the code that accompany the paper (reference to be added on
