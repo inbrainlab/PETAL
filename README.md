@@ -4,7 +4,7 @@
   <em>PETAL -- PET Automated and Local</em>
 </p>
 
-# PET harmonization: published values and replication tools
+# PETAL: published values and replication tools
 
 This repository contains the derived values and the code that accompany the paper (reference to be added on
 publication). Its purpose is to let you **process your own PET images with the same pipeline and compare your
