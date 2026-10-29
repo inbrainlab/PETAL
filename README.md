@@ -1,5 +1,7 @@
 <p align="center">
   <img src="docs/assets/PETAL_logo.jpeg" alt="PETAL logo" width="220">
+  <br>
+  <em>PETAL -- PET Automated and Local</em>
 </p>
 
 # PET harmonization: published values and replication tools
