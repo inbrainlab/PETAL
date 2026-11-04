@@ -18,8 +18,15 @@ numbers with the values we obtained**.
 The reference data (A4/LEARN, LEADS) and the volume-of-interest masks are **not** distributed here; see
 [What is not included](#what-is-not-included).
 
-**New here?** Start with [Installation](#installation) before anything below -- the Quick start commands
-assume Docker, a FreeSurfer license and the Python requirements are already in place.
+## Installation (do this first)
+
+```bash
+pip install -r requirements.txt
+```
+
+The pipeline script additionally needs Docker and a FreeSurfer license; the Centiloid pipeline needs SPM12
+(standalone/MATLAB) and `dcm2niix`; see the header of each script. The Quick start commands below assume
+all of this is already in place.
 
 ## Repository layout
 
@@ -216,15 +223,6 @@ ADNI period, frame counts, and T1/PET image dimensions.
   already required above -- copy it out once with
   `docker run --rm -v ~/freesurfer:/out freesurfer/freesurfer:7.4.1 cp "$FREESURFER_HOME/FreeSurferColorLUT.txt" /out/FreeSurferColorLUT.txt`
   (matches the `--lut` default, `~/freesurfer/FreeSurferColorLUT.txt`).
-
-## Installation
-
-```bash
-pip install -r requirements.txt
-```
-
-The pipeline script additionally needs Docker and a FreeSurfer license; the Centiloid pipeline needs SPM12
-(standalone/MATLAB) and `dcm2niix`; see the header of each script.
 
 ## Integrity
 
