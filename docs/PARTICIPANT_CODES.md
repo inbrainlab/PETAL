@@ -36,9 +36,9 @@ These tools match your own subject's real ID against the participant column of `
 is one of the published subjects. Since that column is coded, your real ID never matches a code, even when
 the subject genuinely is in the published set -- you just get your own output back, with nothing compared:
 
-```
-With --package . (data/ as shipped, still coded):
+**Case 1 -- `--package .` (`data/` as shipped, still coded):**
 
+```
   your subject: B99999999 (real ID)
        |
        v
@@ -51,9 +51,11 @@ With --package . (data/ as shipped, still coded):
        v
   subject_evaluation/
     values_tau.csv            <- only YOUR values, no comparison
+```
 
-With --package resolved (data/ decoded first):
+**Case 2 -- `--package resolved` (`data/` decoded first):**
 
+```
   data/ (coded)
        |
        |  resolve_subjects.py --adni-index ROSTER.csv --a4-index A4_PTDEMOG.csv
