@@ -18,6 +18,8 @@ numbers with the values we obtained**.
 The reference data (A4/LEARN, LEADS) and the volume-of-interest masks are **not** distributed here; see
 [What is not included](#what-is-not-included).
 
+## Installation
+
 **New here?** Start with [docs/INSTALL.md](docs/INSTALL.md) before anything below -- the Quick start
 commands assume Docker, a FreeSurfer license, SPM12, `dcm2niix` and the Python requirements are already in
 place.
