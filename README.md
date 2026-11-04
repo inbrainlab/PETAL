@@ -32,11 +32,19 @@ code/
   gaain_validation/   validation of a Centiloid pipeline against the GAAIN Centiloid Project
   dicom_to_nifti/     DICOM -> NIfTI conversion and organisation of downloaded ADNI scans (no MATLAB)
 docs/   detailed reference docs kept out of this README -- INSTALL.md, REPLICATION.md, PIPELINE_STEPS.md,
-        DATA_REFERENCE.md, DATA_PROVENANCE.md
+        DATA_REFERENCE.md, DATA_PROVENANCE.md, PARTICIPANT_CODES.md
+INDEX_FILES.csv (inside data/)  name and sha256 of the index files used to code the participants
 pet_pipeline/   ready-made, empty PETPIPELINE_BASE -- see "Working folder" below
 MANIFEST.csv, SHA256SUMS.txt   integrity:  sha256sum -c SHA256SUMS.txt
 requirements.txt
 ```
+
+## Participant codes (read this first)
+
+The participant column of every table in `data/` (`subject` or `subject_id`) holds a **code**, not the ADNI
+or A4 identifier -- see [docs/PARTICIPANT_CODES.md](docs/PARTICIPANT_CODES.md) for the coding scheme and
+how to restore the real IDs with `code/replication_tool/resolve_subjects.py` if you have approved ADNI/A4
+access.
 
 ## Working folder
 
@@ -146,7 +154,7 @@ python3 code/gaain_validation/klunk_gaain_validation_plot.py --centiloid_results
 
 ### Centiloid for the A4 cohort (alphanumeric IDs, already NIfTI)
 
-A4 subjects (IDs like `A4:56:571e`) don't fit `--all` above: their IDs and folder layout don't match the
+A4 subjects (IDs like `B99999999`) don't fit `--all` above: their IDs and folder layout don't match the
 pattern `centiloid_pipeline_tracers.py` expects. `code/centiloid/run_all_A4_florbetapir.sh` works around
 this without changing that script: it lists the subject subfolders itself and calls `--test` once per
 subject (so it goes through the same pipeline, just told about subjects a different way).
@@ -162,12 +170,12 @@ if it had multiple frames -- not split into separate frame files):
 
 ```
 <A4_DATA_DIR>/
-  A4:56:571e/
-    A4:56:571e_t1.nii            T1 (already converted)
-    A4:56:571e_pet.nii           PET (already converted and summed)
-  A4:35:7415/
-    A4:35:7415_t1.nii
-    A4:35:7415_pet.nii
+  B99999999/
+    B99999999_t1.nii            T1 (already converted)
+    B99999999_pet.nii           PET (already converted and summed)
+  B88888888/
+    B88888888_t1.nii
+    B88888888_pet.nii
   ...
 ```
 

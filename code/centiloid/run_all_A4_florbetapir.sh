@@ -4,14 +4,14 @@
 #
 # Why not --all: get_all_subject_ids() auto-discovers subjects by looking for DICOM folders shaped
 # like florbetapir/Elder_subject_florbetapir/<6_digit_id>/, a layout A4 does not have (A4 is already
-# NIfTI, with alphanumeric IDs like A4:56:571e). This wrapper replaces that auto-discovery with a
+# NIfTI, with alphanumeric IDs like B99999999). This wrapper replaces that auto-discovery with a
 # plain listing of the subfolders already prepared under A4_DATA_DIR, without touching
 # centiloid_pipeline_tracers.py (which keeps being used as-is for the GAAIN validation cohort, via
 # its normal --all).
 #
 # Usage:
 #   bash run_all_A4_florbetapir.sh
-#   bash run_all_A4_florbetapir.sh A4:56:571e          # one subject only
+#   bash run_all_A4_florbetapir.sh B99999999          # one subject only
 #
 # The results CSV (centiloid_results.csv) is accumulated incrementally in A4_DATA_DIR just like with
 # --all -- each --test call writes to it internally (init_csv/update_csv_row). The one thing --all

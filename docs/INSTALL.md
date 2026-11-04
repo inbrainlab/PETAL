@@ -167,15 +167,15 @@ Two naming conventions are recognized, each with its own subject-ID
 scheme (don't mix them within the same subject folder):
 
 ```
-# A4 convention (subject IDs like A4:35:7415)
-~/Downloads/pet_pipeline/mri_data/A4:35:7415/A4:35:7415_T1.nii
-~/Downloads/pet_pipeline/mri_data/A4:35:7415/A4_A4:35:7415_MR_Flortaucipir_Br_*.nii   # FTP
-~/Downloads/pet_pipeline/mri_data/A4:35:7415/A4_A4:35:7415_MR_FDG_Br_*.nii            # FDG
+# A4 convention (subject IDs like B99999999)
+~/Downloads/pet_pipeline/mri_data/B99999999/B99999999_T1.nii
+~/Downloads/pet_pipeline/mri_data/B99999999/A4_B99999999_MR_Flortaucipir_Br_*.nii   # FTP
+~/Downloads/pet_pipeline/mri_data/B99999999/A4_B99999999_MR_FDG_Br_*.nii            # FDG
 
-# ADNI convention (subject IDs like ADNI:294:ec36, with the ADNI Image ID)
-~/Downloads/pet_pipeline/mri_data/ADNI:294:ec36/ADNI:294:ec36_I123456_T1.nii
-~/Downloads/pet_pipeline/mri_data/ADNI:294:ec36/ADNI:294:ec36_I123456_FTP.nii             # or _AV1451.nii
-~/Downloads/pet_pipeline/mri_data/ADNI:294:ec36/ADNI:294:ec36_I123456_FDG.nii
+# ADNI convention (subject IDs like 999_S_9999, with the ADNI Image ID)
+~/Downloads/pet_pipeline/mri_data/999_S_9999/999_S_9999_I123456_T1.nii
+~/Downloads/pet_pipeline/mri_data/999_S_9999/999_S_9999_I123456_FTP.nii             # or _AV1451.nii
+~/Downloads/pet_pipeline/mri_data/999_S_9999/999_S_9999_I123456_FDG.nii
 ```
 
 If your files use neither naming, set `PET_GLOB_FTP`/`PET_GLOB_FDG` to

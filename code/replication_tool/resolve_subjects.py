@@ -7,6 +7,8 @@ In this release the participant column holds a code instead of the ADNI / A4 ide
 <n> is the row where that participant FIRST appears in the roster file you download yourself from
 ADNI (ROSTER.csv, column PTID) or A4 (A4_PTDEMOG*.csv, column BID). <check> is a 4-character code that detects a
 different version of the file. Only people with access to those files can restore the identifiers.
+A code can also appear embedded in another column (for example a filename, like `wpet_file` in
+data/centiloid_avid.csv) -- this script restores those too, not just the subject/subject_id column.
 
 Usage:
   python3 resolve_subjects.py --data data --out resolved/data --adni-index ROSTER.csv --a4-index A4_PTDEMOG.csv
@@ -23,6 +25,7 @@ import sys
 
 ID_COLUMNS = ("subject", "subject_id")
 CODE = re.compile(r"^(ADNI|A4):(\d+):([0-9a-f]{4})$")
+CODE_EMBEDDED = re.compile(r"(ADNI|A4):(\d+):([0-9a-f]{4})")  # same, unanchored, for codes embedded in another column (e.g. a filename)
 ID_PATTERNS = {"A4": re.compile(r"^B\d{8}$"), "ADNI": re.compile(r"^\d{3}_S_\d{4,5}$")}
 INDEX_COLUMNS = {"ADNI": "PTID", "A4": "BID"}
 
@@ -108,6 +111,18 @@ def main():
                                 restored += 1
                         else:
                             kept_coded += 1
+                # The same code can also appear embedded in another column (e.g. a filename that
+                # includes the subject ID, like wpet_file in centiloid_avid.csv) -- restore those too.
+                for i, cell in enumerate(row):
+                    if i == col:
+                        continue
+                    m = CODE_EMBEDDED.search(cell)
+                    if m:
+                        s, n, ck = m.group(1), int(m.group(2)), m.group(3)
+                        if s in rev:
+                            cell_pid = rev[s].get(n)
+                            if cell_pid is not None and check_code(s, cell_pid) == ck:
+                                row[i] = cell.replace(m.group(0), cell_pid)
                 rows.append(row)
         with open(os.path.join(a.out, fn), "w", newline="") as fo:
             w = csv.writer(fo)
