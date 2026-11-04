@@ -18,15 +18,18 @@ numbers with the values we obtained**.
 The reference data (A4/LEARN, LEADS) and the volume-of-interest masks are **not** distributed here; see
 [What is not included](#what-is-not-included).
 
-## Installation (do this first)
+## Installation
+
+**Follow [docs/INSTALL.md](docs/INSTALL.md) first.** It walks through everything a blank machine needs,
+in order: Docker, the FreeSurfer license, SPM12, `dcm2niix`, and the Python requirements. The short version:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-The pipeline script additionally needs Docker and a FreeSurfer license; the Centiloid pipeline needs SPM12
-(standalone/MATLAB) and `dcm2niix`; see the header of each script. The Quick start commands below assume
-all of this is already in place.
+Docker and a FreeSurfer license are required by the pipeline script; the Centiloid pipeline additionally
+needs SPM12 (standalone/MATLAB) and `dcm2niix`. `code/replication_tool/check_install.sh` checks your setup
+once everything above is in place. The Quick start commands below assume all of this is already done.
 
 ## Repository layout
 
