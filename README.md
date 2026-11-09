@@ -83,12 +83,6 @@ Process your subject (Tau or FDG PET, from the images):
 bash code/replication_tool/run_public_pipeline.sh <ID> [--tracer FTP|FDG]
 ```
 
-**You can stop and resume at any step.** Every step writes its own output file, so re-running this exact
-same command does not start over -- it skips every step already finished and continues from the next one.
-For example, if `recon-all` already finished for this subject, running the command again skips it entirely
-and goes straight to PET processing. See [Resuming from any step](docs/REPLICATION.md#resuming-from-any-step)
-for the details and how to force a step to redo with `--rewrite`.
-
 Several subjects: `code/replication_tool/run_cohort.sh` runs the command above once per subject,
 auto-discovered under `MRI_DATA_DIR`:
 
@@ -108,6 +102,46 @@ python3 code/replication_tool/evaluate_subject.py --type tau --package . \
 
 See [docs/REPLICATION.md](docs/REPLICATION.md) for requirements, input file names, FDG/Centiloid,
 `run_cohort.sh` usage, comparing three or more subjects, and bilateral regions.
+
+## Resuming after an interruption
+
+**The pipeline is not all-or-nothing.** If a run dies partway through -- the container is killed, the
+machine reboots, you `Ctrl-C` it -- nothing already written is lost. Re-running the *exact same command*
+checks each step's own output file first and skips anything already there; it never redoes finished work.
+
+```
+ bash code/replication_tool/run_public_pipeline.sh <ID> --tracer FDG        <- run #1, interrupted
+
+ STEP  0  recon-all (~3-4h)  ................................  (killed mid-run)
+ STEP  1  Extract frames  ...................................  never reached
+ STEP  2  Initial mean  ......................................  never reached
+   ...
+
+ bash code/replication_tool/run_public_pipeline.sh <ID> --tracer FDG        <- run #2, same command
+
+ STEP  0  recon-all  .........................................  re-runs (no output yet from run #1)
+ STEP  1  Extract frames  ....................................  runs
+ STEP  2  Initial mean  ......................................  runs
+   ...
+```
+
+Concrete example that actually saves time: `recon-all` is the slow step (hours); everything after it is
+minutes. If run #1 is interrupted *after* `recon-all` already finished (`mri/aparc+aseg.mgz` exists under
+`<PETPIPELINE_BASE>/output/<ID>/`), run #2 looks like this instead:
+
+```
+ bash code/replication_tool/run_public_pipeline.sh <ID> --tracer FDG        <- run #2, same command
+
+ STEP  0  recon-all  .........................................  ⏭  skipped -- mri/aparc+aseg.mgz already exists
+ STEP  1  Extract frames  ....................................  ▶  runs  <- PET processing starts here
+ STEP  2  Initial mean  ......................................  ▶  runs
+   ...
+```
+
+No flag, no special "resume" command -- it is the *same* `run_public_pipeline.sh <ID> --tracer FDG` both
+times. To force a step (and everything after it) to redo anyway, use `--rewrite <N>` with the step number
+printed at the start of that step, `--rewrite 0b`, or `--rewrite all`; see
+[Resuming from any step](docs/REPLICATION.md#resuming-from-any-step) for the full list of steps and flags.
 
 ### Centiloid (florbetapir)
 
