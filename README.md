@@ -143,6 +143,37 @@ times. To force a step (and everything after it) to redo anyway, use `--rewrite 
 printed at the start of that step, `--rewrite 0b`, or `--rewrite all`; see
 [Resuming from any step](docs/REPLICATION.md#resuming-from-any-step) for the full list of steps and flags.
 
+### Already have your own recon-all? Skip straight to PET processing
+
+The same skip-if-output-exists check works even if `recon-all` never ran inside this pipeline at all. If
+you already reconstructed the subject yourself (your own `recon-all`, or FastSurfer, or a HPC cluster run),
+drop that FreeSurfer subject folder where this pipeline expects to find its own output --
+`<PETPIPELINE_BASE>/output/<ID>/` -- and the script will treat it exactly as if STEP 0 had already run here:
+
+```
+<PETPIPELINE_BASE>/output/<ID>/
+  mri/aparc+aseg.mgz                              <- required: makes STEP 0  (recon-all)   skip
+  mri/transforms/talairach.m3z                     <- required: makes STEP 0b (talairach.m3z) skip
+  mri/brainstemSsLabels.v13.FSvoxelSpace.mgz       <- required for --tracer FDG only: makes STEP 0c (segmentBS.sh) skip
+```
+
+If your own reconstruction doesn't have `brainstemSsLabels.v13.FSvoxelSpace.mgz` (classic `recon-all`
+doesn't generate it by default) and you need FDG, run `segmentBS.sh <ID>` once yourself, or just let
+STEP 0c run on its own the first time -- it only needs `talairach.m3z`, which you already have.
+
+```
+ bash code/replication_tool/run_public_pipeline.sh <ID> --tracer FDG        <- first run ever, own recon-all already placed
+
+ STEP  0  recon-all  .........................................  ⏭  skipped -- mri/aparc+aseg.mgz already exists (yours)
+ STEP  0b talairach.m3z  .....................................  ⏭  skipped -- already exists (yours)
+ STEP  0c segmentBS.sh  ......................................  ▶  runs (FDG only, needs talairach.m3z -- just produced/verified above)
+ STEP  1  Extract frames  ....................................  ▶  runs  <- PET processing starts here
+   ...
+```
+
+In other words: nothing about STEPs 1 onward cares whether `recon-all` was run by this pipeline or brought
+in from elsewhere -- only the output files matter.
+
 ### Centiloid (florbetapir)
 
 `code/centiloid/centiloid_pipeline_tracers.py` goes straight from DICOM to SUVR/Centiloid (it does its own

@@ -38,6 +38,22 @@ To force a given step -- and everything after it -- to run again, use `--rewrite
 printed at the start of that step (for example `--rewrite 1` redoes PET processing but not `recon-all`),
 `--rewrite 0b` (`talairach.m3z` / `segmentBS.sh`), or `--rewrite all` to start over from `recon-all`.
 
+#### Already have your own recon-all?
+
+This works even when `recon-all` never ran inside this pipeline. Place your own FreeSurfer subject folder
+(your own `recon-all`, FastSurfer, or an HPC run) at `<PETPIPELINE_BASE>/output/<ID>/`, with:
+
+* `mri/aparc+aseg.mgz` -- makes STEP 0 (`recon-all`) skip.
+* `mri/transforms/talairach.m3z` -- makes STEP 0b (`talairach.m3z`) skip.
+* `mri/brainstemSsLabels.v13.FSvoxelSpace.mgz` -- FDG only; makes STEP 0c (`segmentBS.sh`) skip. If you
+  don't have it, leave it out and let STEP 0c run on its own the first time -- it only needs
+  `talairach.m3z`, already there.
+
+The script only ever checks whether these files exist; it has no way to tell (and does not care) whether
+they came from its own `recon-all` run or were copied in from somewhere else. Running
+`run_public_pipeline.sh <ID> --tracer FDG` for the first time with this folder already in place goes
+straight to STEP 1 ("Extract frames"), skipping STEP 0/0b entirely.
+
 ### Several subjects
 
 `code/replication_tool/run_cohort.sh` runs `run_public_pipeline.sh` once per subject (auto-discovered under
