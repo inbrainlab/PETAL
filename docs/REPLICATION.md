@@ -18,6 +18,26 @@ LEADS files) must be renamed or copied with these names. FDG also needs the MATL
 pons mask. Centiloid: `code/centiloid/centiloid_pipeline_tracers.py` (DICOM to SUVR) -- see the main
 README's Centiloid section.
 
+### Resuming from any step
+
+Every step writes its own output file inside `<PETPIPELINE_BASE>/output/<ID>/`, and the script checks for
+that file before running the step again. Re-running the *exact same command* does not start over: it skips
+every step whose output already exists and continues from the first one that is still missing.
+
+For example, if `recon-all` (STEP 0) already finished for a subject -- `mri/aparc+aseg.mgz` exists -- running
+
+```bash
+bash code/replication_tool/run_public_pipeline.sh <ID> [--tracer FTP|FDG]
+```
+
+again skips `recon-all` entirely and goes straight to PET processing (STEP 1, "Extract frames"), instead of
+spending another 3-4 hours re-running FreeSurfer. The same applies to every later step (coregistration,
+frame summing, segstats, PVC, ...): whichever already has output is skipped.
+
+To force a given step -- and everything after it -- to run again, use `--rewrite <N>` with the step number
+printed at the start of that step (for example `--rewrite 1` redoes PET processing but not `recon-all`),
+`--rewrite 0b` (`talairach.m3z` / `segmentBS.sh`), or `--rewrite all` to start over from `recon-all`.
+
 ### Several subjects
 
 `code/replication_tool/run_cohort.sh` runs `run_public_pipeline.sh` once per subject (auto-discovered under

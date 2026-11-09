@@ -100,8 +100,11 @@ python3 code/replication_tool/evaluate_subject.py --type tau --package . \
 
 `--output_dir` defaults to `PETPIPELINE_BASE/output` and can be omitted if you used that default.
 
-See [docs/REPLICATION.md](docs/REPLICATION.md) for requirements, input file names, FDG/Centiloid,
-`run_cohort.sh` usage, comparing three or more subjects, and bilateral regions.
+Every step writes its own output file, so re-running the exact same command resumes where it left off
+instead of starting over -- for example, once `recon-all` has finished for a subject, running the command
+again skips it and goes straight to PET processing. See [docs/REPLICATION.md](docs/REPLICATION.md) for
+requirements, input file names, FDG/Centiloid, `run_cohort.sh` usage, comparing three or more subjects,
+resuming any step, and bilateral regions.
 
 ### Centiloid (florbetapir)
 
