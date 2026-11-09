@@ -83,6 +83,12 @@ Process your subject (Tau or FDG PET, from the images):
 bash code/replication_tool/run_public_pipeline.sh <ID> [--tracer FTP|FDG]
 ```
 
+**You can stop and resume at any step.** Every step writes its own output file, so re-running this exact
+same command does not start over -- it skips every step already finished and continues from the next one.
+For example, if `recon-all` already finished for this subject, running the command again skips it entirely
+and goes straight to PET processing. See [Resuming from any step](docs/REPLICATION.md#resuming-from-any-step)
+for the details and how to force a step to redo with `--rewrite`.
+
 Several subjects: `code/replication_tool/run_cohort.sh` runs the command above once per subject,
 auto-discovered under `MRI_DATA_DIR`:
 
@@ -100,11 +106,8 @@ python3 code/replication_tool/evaluate_subject.py --type tau --package . \
 
 `--output_dir` defaults to `PETPIPELINE_BASE/output` and can be omitted if you used that default.
 
-Every step writes its own output file, so re-running the exact same command resumes where it left off
-instead of starting over -- for example, once `recon-all` has finished for a subject, running the command
-again skips it and goes straight to PET processing. See [docs/REPLICATION.md](docs/REPLICATION.md) for
-requirements, input file names, FDG/Centiloid, `run_cohort.sh` usage, comparing three or more subjects,
-resuming any step, and bilateral regions.
+See [docs/REPLICATION.md](docs/REPLICATION.md) for requirements, input file names, FDG/Centiloid,
+`run_cohort.sh` usage, comparing three or more subjects, and bilateral regions.
 
 ### Centiloid (florbetapir)
 
