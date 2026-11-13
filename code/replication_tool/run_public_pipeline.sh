@@ -44,9 +44,39 @@ MCR_DIR="${MCR_DIR:-$PETPIPELINE_BASE/MCRv97}"                # Matlab Compiled 
 
 # ── arguments ──────────────────────────────────────────────────────────────────────
 # Non-positional parsing: --tracer and --rewrite may appear in any order after $1.
+print_usage() {
+    cat <<USAGE
+Usage: bash run_public_pipeline.sh <SUBJECT> [--tracer FTP|FDG] [--rewrite N|0b|all]
+
+  <SUBJECT>          Subject ID (matches the folder under MRI_DATA_DIR and the
+                      file prefix, e.g. <SUBJECT>_T1.nii -- see docs/REPLICATION.md).
+  --tracer FTP|FDG   Which PET tracer to process. Default: FTP (Flortaucipir).
+  --rewrite N        Force STEP N (and everything after it) to re-run, even if
+                      its output already exists. See "Resuming from any step"
+                      in docs/REPLICATION.md for the full list of step numbers.
+  --rewrite 0b       Force talairach.m3z / segmentBS.sh to re-run.
+  --rewrite all      Start over from recon-all (STEP 0).
+  -h, --help         Show this help and exit.
+
+Without --rewrite, the script resumes automatically: any step whose output
+already exists under <PETPIPELINE_BASE>/output/<SUBJECT>/ is skipped.
+
+Environment variables (all optional, see the configuration block at the top
+of this script for their defaults): PETPIPELINE_BASE, MRI_DATA_DIR, PYTHON,
+PUBLIC_PACKAGE, FS_LUT, FSROI_LIST, MCR_DIR, RECON_METHOD, OPENMP_THREADS.
+
+Example:
+  bash run_public_pipeline.sh 011_S_4912 --tracer FDG
+USAGE
+}
+
+case "${1:-}" in
+    -h|--help) print_usage; exit 0 ;;
+esac
+
 SUBJECT=${1:-}
 if [ -z "$SUBJECT" ] || [[ "$SUBJECT" == --* ]]; then
-    echo "Usage: bash run_public_pipeline.sh <SUBJECT> [--tracer FTP|FDG] [--rewrite N|0b|all]"; exit 1
+    print_usage; exit 1
 fi
 REWRITE_FROM=999
 REWRITE_0B=0
@@ -69,6 +99,9 @@ while [ $# -gt 0 ]; do
                 echo "ERROR: --tracer must be FTP or FDG (received: $2)"; exit 1
             fi
             shift 2
+            ;;
+        -h|--help)
+            print_usage; exit 0
             ;;
         *)
             echo "ERROR: unrecognized argument: $1"; exit 1

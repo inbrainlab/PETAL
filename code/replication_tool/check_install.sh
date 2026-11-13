@@ -6,6 +6,28 @@
 # Usage:  bash check_install.sh [--tracer FTP|FDG]
 # Exit code: 0 if every required check passed (optional checks only warn), 1 otherwise.
 
+case "${1:-}" in
+    -h|--help)
+        cat <<USAGE
+Usage: bash check_install.sh [--tracer FTP|FDG]
+
+Verifies that everything run_public_pipeline.sh needs is installed and in
+place: Docker, the FreeSurfer/FastSurfer images, the FreeSurfer license, the
+MCR runtime, the Python virtualenv and its packages, the helper scripts, and
+(for comparing against published values) FS_LUT/FSROI_LIST. Does not run any
+PET processing -- only checks presence. Reads the same variables and the
+same defaults as run_public_pipeline.sh, so it checks exactly what the
+pipeline will use on this machine.
+
+  --tracer FTP|FDG   Which tracer's FSROI_LIST default to check. Default: FTP.
+  -h, --help         Show this help and exit.
+
+Exit code: 0 if every required check passed (optional checks only warn), 1 otherwise.
+USAGE
+        exit 0
+        ;;
+esac
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TRACER="FTP"
 [ "$1" == "--tracer" ] && TRACER="${2:-FTP}"

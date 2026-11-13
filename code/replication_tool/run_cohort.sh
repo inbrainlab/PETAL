@@ -20,6 +20,35 @@
 
 set -o pipefail   # no "set -e": one subject failing should not take down the whole cohort
 
+print_usage() {
+    cat <<USAGE
+Usage: nohup bash run_cohort.sh [--tracer FTP|FDG] [--rewrite N|0b|all] > logs/cohort.out 2>&1 &
+       tail -f logs/cohort.out
+
+Runs run_public_pipeline.sh once per subject, IN SERIES, for every subject
+auto-discovered under MRI_DATA_DIR (every subdirectory there is treated as a
+subject ID). This is a thin wrapper: all actual processing flags are handled
+by run_public_pipeline.sh and simply forwarded as-is -- see its own
+"bash run_public_pipeline.sh --help" for what --tracer and --rewrite do.
+
+  -h, --help   Show this help and exit (does not run the cohort).
+
+One subject failing does not stop the rest; check its own log afterwards at
+LOGS_DIR/<SUBJECT>.log. Re-running the same command later continues where it
+left off instead of reprocessing subjects already finished -- see "Resuming
+from any step" in docs/REPLICATION.md.
+
+Environment variables (optional): PETPIPELINE_BASE, MRI_DATA_DIR, LOGS_DIR.
+
+Example:
+  nohup bash run_cohort.sh --tracer FDG > logs/cohort.out 2>&1 &
+USAGE
+}
+
+case "${1:-}" in
+    -h|--help) print_usage; exit 0 ;;
+esac
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELINE_SCRIPT="$SCRIPT_DIR/run_public_pipeline.sh"        # per-subject pipeline, called once per subject below
 
