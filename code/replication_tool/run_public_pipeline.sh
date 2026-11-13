@@ -858,7 +858,7 @@ echo ""
 echo "── Comparison with the published values ──────────────"
 if [ -f "$EVAL_PY" ]; then
     "$PYTHON" "$EVAL_PY" --type "$EVAL_TYPE" --package "$PUBLIC_PACKAGE" \
-        --fastsurfer-base "$SUBJECTS_DIR" --subject "$SUBJECT" \
+        --output_dir "$SUBJECTS_DIR" --subject "$SUBJECT" \
         --fsroi-list "$FSROI_LIST" --lut "$FS_LUT" \
         --output "$SUBJECT_DIR/evaluation_$EVAL_TYPE" \
         || echo "  ⚠️  evaluate_subject.py finished with an error (the processing itself is complete)"
