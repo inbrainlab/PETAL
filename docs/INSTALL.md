@@ -23,6 +23,9 @@ this is where to change it in the code:**
 | Matlab Compiled Runtime (MCR v97) | `$PETPIPELINE_BASE/MCRv97` | `MCR_DIR` in `code/replication_tool/run_public_pipeline.sh` (configuration block, next to `PETPIPELINE_BASE`/`FS_LICENSE_DIR`), defaults to `$PETPIPELINE_BASE/MCRv97` and can be overridden by exporting `MCR_DIR` |
 | Python virtualenv | `~/.venv_pet_pipeline` | `PYTHON` — `code/replication_tool/run_public_pipeline.sh` line 38 |
 | Subject data folder | `$PETPIPELINE_BASE/mri_data` | `MRI_DATA_DIR` — `code/replication_tool/run_public_pipeline.sh` line 33 (or export the `MRI_DATA_DIR` environment variable instead of editing the script) |
+| MATLAB (Centiloid only) | `/opt/MATLAB/R2022b/bin/matlab` | `MATLAB_BIN` in `code/centiloid/centiloid_pipeline_tracers.py` (configuration block), or export `CENTILOID_MATLAB_BIN` |
+| SPM12 (Centiloid only) | `/opt/MATLAB/R2022b/toolbox/spm12` | `SPM12_PATH` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_SPM12_PATH` |
+| MNI template (Centiloid only) | `/opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii` | `MNI_TEMPLATE` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_MNI_TEMPLATE` |
 
 Line numbers are for this version of the script; if they've drifted,
 search for the `# ── configuration ──` block near the top of the file
@@ -212,6 +215,38 @@ the rest are printed so you can review them by hand:
 python3 code/dicom_to_nifti/dicom_to_nifti.py --indir ~/Downloads/adni_download \
     --outdir ~/Downloads/pet_pipeline_raw --rename ~/Downloads/pet_pipeline/mri_data
 ```
+
+## 8. MATLAB + SPM12 (only needed for Centiloid/amyloid)
+
+Only `code/centiloid/centiloid_pipeline_tracers.py` needs this -- Tau and FDG (`run_public_pipeline.sh`)
+never call SPM, so skip this section entirely if you are not processing Centiloid/florbetapir.
+
+Centiloid needs a real MATLAB installation (not the MCR runtime from section 4 above, which is unrelated to
+this) with the SPM12 toolbox installed in it. Install both yourself (MATLAB license + SPM12, downloaded from
+https://www.fil.ion.ucl.ac.uk/spm/software/spm12/) following their own instructions -- there is nothing
+specific to this repo about that part.
+
+**Telling the script where you installed them.** `centiloid_pipeline_tracers.py` looks for MATLAB and SPM12
+at these default paths:
+
+```
+MATLAB:        /opt/MATLAB/R2022b/bin/matlab
+SPM12:         /opt/MATLAB/R2022b/toolbox/spm12
+MNI template:  /opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii
+```
+
+If your installation does not match this exactly (different MATLAB version, different install location, or
+SPM12 installed somewhere else), export these three environment variables before running the script:
+
+```bash
+export CENTILOID_MATLAB_BIN=/path/to/bin/matlab
+export CENTILOID_SPM12_PATH=/path/to/spm12
+export CENTILOID_MNI_TEMPLATE=/path/to/spm12/canonical/avg152T1.nii
+```
+
+`avg152T1.nii` ships inside SPM12 itself, under its own `canonical/` folder, so once you know where SPM12 is
+installed, the third path follows directly from it. No other setup, registration or configuration is
+needed -- these three paths are everything the script needs to find and drive SPM12 through MATLAB.
 
 ## Checking everything is installed
 
