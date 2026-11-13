@@ -1,5 +1,9 @@
 # Processing and comparing your subjects
 
+Every shell script in `code/replication_tool/` understands `--help` / `-h` and prints its own full usage
+(arguments, environment variables, an example) without running anything, for example
+`bash code/replication_tool/run_public_pipeline.sh --help`.
+
 ## Process your subject
 
 ```bash

@@ -228,6 +228,9 @@ compare against the published values), and whether `MRI_DATA_DIR` has subject fo
 is `OK`, `WARN` (optional, the pipeline still runs without it) or `FAIL` (the pipeline will stop on this), with the
 exact command to fix it. Exit code is 0 only if nothing failed.
 
+`bash check_install.sh --help` (and the same for `run_public_pipeline.sh` and `run_cohort.sh`) prints the full
+usage for that script without running anything.
+
 ## Running the whole cohort
 
 Once `mri_data/` has more than one subject, use `code/replication_tool/run_cohort.sh` instead of calling

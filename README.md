@@ -83,6 +83,10 @@ Process your subject (Tau or FDG PET, from the images):
 bash code/replication_tool/run_public_pipeline.sh <ID> [--tracer FTP|FDG]
 ```
 
+Every shell script in `code/replication_tool/` (`run_public_pipeline.sh`, `run_cohort.sh`,
+`check_install.sh`) understands `--help` / `-h` and prints its own full usage without running anything,
+for example `bash code/replication_tool/run_public_pipeline.sh --help`.
+
 Several subjects: `code/replication_tool/run_cohort.sh` runs the command above once per subject,
 auto-discovered under `MRI_DATA_DIR`:
 
