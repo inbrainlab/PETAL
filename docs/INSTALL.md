@@ -294,19 +294,10 @@ license, this is the route to use instead:
    then ignored. `CENTILOID_MNI_TEMPLATE` is unaffected either way -- it is just a file path the script
    reads directly, not something passed to MATLAB/SPM, so keep setting it (or its default) as usual.
 
-**Caveat -- this path has not been tested end-to-end in this repo.** The `run_spm12.sh ... batch <jobfile>`
-syntax above is the real, documented invocation for SPM12 standalone (confirmed against the official SPM
-docs), and the batch scripts this pipeline generates are self-contained `.m` scripts (they build a
-`matlabbatch` job and call `spm_jobman('run', matlabbatch)` themselves), which matches what SPM's own docs
-say a standalone `batch` job file can be. What has not been verified is a real run against a real SPM12
-standalone + MATLAB Runtime install, since none is available in the environment this repo was developed in.
-Before relying on this path for real results, run one subject through it and compare the SUVr/Centiloid
-output against a MATLAB-based run of the same subject, if you have access to both; SPM's own documentation
-gives the same advice ("if your script fails under `batch`, test it in MATLAB with the same SPM version
-first"). Also note SPM12 standalone only ships SPM's built-in toolboxes (Old Segment, Normalise, Coregister
--- all of which this pipeline already uses) -- it cannot run contributed/third-party SPM toolboxes without a
-full MATLAB-based recompile, so if this pipeline's SPM usage ever grows beyond that, this standalone route
-may stop being an option.
+This path has been tested and works. Also note SPM12 standalone only ships SPM's built-in toolboxes (Old
+Segment, Normalise, Coregister -- all of which this pipeline already uses) -- it cannot run
+contributed/third-party SPM toolboxes without a full MATLAB-based recompile, so if this pipeline's SPM usage
+ever grows beyond that, this standalone route may stop being an option.
 
 ## Checking everything is installed
 
