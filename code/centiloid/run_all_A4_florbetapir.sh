@@ -59,11 +59,26 @@ if [ $# -ge 1 ]; then
     SUBJECT_IDS=("$1")
 else
     SUBJECT_IDS=()
+    # nullglob matters here: without it, an A4_DATA_DIR with no subfolders leaves
+    # the pattern unexpanded, basename returns a literal "*", and the whole run
+    # proceeds with "*" as the subject ID -- producing paths like
+    # A4_pipeline_output/*/batch_*.m that are handed to SPM verbatim.
+    shopt -s nullglob
     for d in "$A4_DATA_DIR"/*/; do
         sid=$(basename "$d")
         [[ "$sid" == _* ]] && continue
         SUBJECT_IDS+=("$sid")
     done
+    shopt -u nullglob
+fi
+
+if [ ${#SUBJECT_IDS[@]} -eq 0 ]; then
+    echo "ERROR: no subject folders found in $A4_DATA_DIR"
+    echo "Each subject needs its own folder there, holding that subject's T1 and PET, e.g.:"
+    echo "  $A4_DATA_DIR/B10693248/B10693248_t1.nii"
+    echo "  $A4_DATA_DIR/B10693248/B10693248_pet.nii"
+    echo "Note this is the INPUT folder: results are written separately to $A4_OUT_DIR."
+    exit 1
 fi
 
 N_TOTAL=${#SUBJECT_IDS[@]}
