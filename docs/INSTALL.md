@@ -277,13 +277,13 @@ installer quirk as section 4 applies to the Runtime half: it always creates its 
 so install it into a temporary folder first, then move that subfolder into place:
 
 ```bash
-cd ~/Downloads
+cd ~/Downloads   # go to where you downloaded the SPM12 standalone zip
 unzip spm12_*_Standalone_Linux.zip -d ~/Downloads/pet_pipeline/spm12_standalone   # extracts run_spm12.sh and runtime_installer/ directly into place
-cd ~/Downloads/pet_pipeline/spm12_standalone/runtime_installer
-./install -mode silent -agreeToLicense yes -destinationFolder ~/mcr_install_tmp2   # never straight into the final MATLAB_Runtime path
-mkdir -p ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b
-mv ~/mcr_install_tmp2/v912 ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b/v912   # installer's own version subfolder (v912 for R2022b -- match whatever your download says), renamed into place
-rmdir ~/mcr_install_tmp2
+cd ~/Downloads/pet_pipeline/spm12_standalone/runtime_installer   # go to the bundled MATLAB Runtime installer
+./install -mode silent -agreeToLicense yes -destinationFolder ~/mcr_install_tmp2   # run it into a temporary folder, never straight into the final MATLAB_Runtime path
+mkdir -p ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b   # create the final, version-named destination folder
+mv ~/mcr_install_tmp2/v912 ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b/v912   # move the installer's own version subfolder (v912 for R2022b -- match whatever your download says) into place
+rmdir ~/mcr_install_tmp2   # remove the now-empty temporary folder
 ```
 
 Confirm `run_spm12.sh` landed directly at `~/Downloads/pet_pipeline/spm12_standalone/run_spm12.sh` (not one
