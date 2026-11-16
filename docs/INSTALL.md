@@ -23,6 +23,7 @@ this is where to change it in the code:**
 | Matlab Compiled Runtime (MCR v97) | `$PETPIPELINE_BASE/MCRv97` | `MCR_DIR` in `code/replication_tool/run_public_pipeline.sh` (configuration block, next to `PETPIPELINE_BASE`/`FS_LICENSE_DIR`), defaults to `$PETPIPELINE_BASE/MCRv97` and can be overridden by exporting `MCR_DIR` |
 | Python virtualenv | `~/.venv_pet_pipeline` | `PYTHON` — `code/replication_tool/run_public_pipeline.sh` line 38 |
 | Subject data folder | `$PETPIPELINE_BASE/mri_data` | `MRI_DATA_DIR` — `code/replication_tool/run_public_pipeline.sh` line 33 (or export the `MRI_DATA_DIR` environment variable instead of editing the script) |
+| SPM standalone (Centiloid only, alternative to MATLAB) | launcher `$PETPIPELINE_BASE/spm12_standalone/run_spm*.sh`, runtime `$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R*/` | export `CENTILOID_SPM_STANDALONE_RUN` and `CENTILOID_SPM_MCR_DIR` (section 8A) |
 | MATLAB (Centiloid only) | `/opt/MATLAB/R2022b/bin/matlab` | `MATLAB_BIN` in `code/centiloid/centiloid_pipeline_tracers.py` (configuration block), or export `CENTILOID_MATLAB_BIN` |
 | SPM12 (Centiloid only) | `/opt/MATLAB/R2022b/toolbox/spm12` | `SPM12_PATH` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_SPM12_PATH` |
 | MNI template (Centiloid only) | `/opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii` | `MNI_TEMPLATE` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_MNI_TEMPLATE` |
@@ -227,18 +228,84 @@ python3 code/dicom_to_nifti/dicom_to_nifti.py --indir ~/Downloads/adni_download 
     --outdir ~/Downloads/pet_pipeline_raw --rename ~/Downloads/pet_pipeline/mri_data
 ```
 
-## 8. MATLAB + SPM12 (only needed for Centiloid/amyloid)
+## 8. SPM (only needed for Centiloid/amyloid)
 
 Only `code/centiloid/centiloid_pipeline_tracers.py` needs this -- Tau and FDG (`run_public_pipeline.sh`)
 never call SPM, so skip this section entirely if you are not processing Centiloid/florbetapir.
 
-Centiloid needs a real MATLAB installation (not the MCR runtime from section 4 above, which is unrelated to
-this) with the SPM12 toolbox installed in it. Install both yourself (MATLAB license + SPM12, downloaded from
-https://www.fil.ion.ucl.ac.uk/spm/software/spm12/) following their own instructions -- there is nothing
-specific to this repo about that part.
+SPM can run in either of two ways. The script uses whichever it finds (standalone first), so you only
+need **one** of them:
 
-**Telling the script where you installed them.** `centiloid_pipeline_tracers.py` looks for MATLAB and SPM12
-at these default paths:
+- **A. SPM standalone (recommended, free, no MATLAB license).** Compiled SPM plus the free MATLAB Runtime.
+- **B. MATLAB + SPM12** (you already have a licensed MATLAB). See "B. Using a licensed MATLAB" below.
+
+### A. SPM standalone (Linux)
+
+The MATLAB Runtime **must match the release in the SPM zip's file name** (the zip below says `R2022b`, so the
+runtime must be R2022b). This is a different runtime from the MCR v97 of section 4. You need about 8 GB free
+while installing (about 4 GB once the zips are deleted), and no root access.
+
+```bash
+mkdir -p ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime && cd ~/Downloads/pet_pipeline/spm12_standalone
+
+# 1. MATLAB Runtime R2022b (3.9 GB download) -> installed into MATLAB_Runtime/R2022b
+wget -c https://ssd.mathworks.com/supportfiles/downloads/R2022b/Release/10/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_R2022b_Update_10_glnxa64.zip
+unzip -q MATLAB_Runtime_R2022b_Update_10_glnxa64.zip -d mcr_installer
+(cd mcr_installer && ./install -mode silent -agreeToLicense yes -destinationFolder ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime)
+
+# 2. SPM12 standalone r7771 for R2022b -> launcher lands directly in spm12_standalone/
+wget -c https://www.fil.ion.ucl.ac.uk/spm/download/restricted/utopia/spm12/spm12_r7771_Linux_R2022b.zip
+unzip -q spm12_r7771_Linux_R2022b.zip -d spm_tmp && mv spm_tmp/spm12/* . && rmdir spm_tmp/spm12 spm_tmp
+chmod +x run_spm12.sh spm12
+
+# 3. Clean up the downloads (optional)
+rm -rf mcr_installer *.zip
+```
+
+The silent installer prints nothing for 5-10 minutes; that is normal. Check it worked (the **first** run unpacks
+SPM's archive and takes 1-2 minutes; later runs start in seconds):
+
+```bash
+cd ~/Downloads/pet_pipeline/spm12_standalone
+./run_spm12.sh MATLAB_Runtime/R2022b eval "disp(spm('Ver'))"     # prints: SPM12
+```
+
+If it stops with an error about a missing `libXt`, `libXext`, `libXmu`, `libXrender`, `libnsl` or `libasound`,
+install them and run it again (Debian/Ubuntu; on Ubuntu 24.04 the last one is `libasound2t64`):
+
+```bash
+sudo apt-get install -y libxt6 libxext6 libxmu6 libxrender1 libnsl2 libasound2t64
+```
+
+If it complains about a lock on the runtime's cache folder, run it once with `MCR_INHIBIT_CTF_LOCK=1` in front.
+
+SPM's own templates (`canonical/avg152T1.nii` and the Old Segment tissue priors in `toolbox/OldSeg/`) live
+inside the archive that the first run just unpacked, so point the script at them (add the line to `~/.bashrc`
+to keep it for new terminals):
+
+```bash
+export CENTILOID_MNI_TEMPLATE=$(find ~/Downloads/pet_pipeline/spm12_standalone -path "*/canonical/avg152T1.nii" | head -1)
+ls $(dirname $CENTILOID_MNI_TEMPLATE)/../toolbox/OldSeg/grey.nii    # must print a path, not an error
+```
+
+`centiloid_pipeline_tracers.py` finds the launcher (`run_spm*.sh` in `$PETPIPELINE_BASE/spm12_standalone/`) and
+the runtime (`$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R*/`) by itself, which is exactly where the
+commands above put them. `check_install.sh` reports `SPM standalone found` when both are in place.
+
+**Different location, SPM version or OS.** Any SPM version works (SPM12, SPM25, ...), as long as you install the
+Runtime release named in *that* zip's file name (see
+https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/ for the macOS and Windows builds). If either half
+is somewhere else, export its path and it wins over the automatic search:
+
+```bash
+export CENTILOID_SPM_STANDALONE_RUN=/path/to/run_spmXX.sh
+export CENTILOID_SPM_MCR_DIR=/path/to/MATLAB_Runtime/<release>
+```
+
+### B. Using a licensed MATLAB
+
+Install MATLAB and the SPM12 toolbox yourself (https://www.fil.ion.ucl.ac.uk/spm/software/spm12/). The script
+looks for them at these default paths:
 
 ```
 MATLAB:        /opt/MATLAB/R2022b/bin/matlab
@@ -246,8 +313,7 @@ SPM12:         /opt/MATLAB/R2022b/toolbox/spm12
 MNI template:  /opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii
 ```
 
-If your installation does not match this exactly (different MATLAB version, different install location, or
-SPM12 installed somewhere else), export these three environment variables before running the script:
+If yours differ (other MATLAB version or install location), export these before running the script:
 
 ```bash
 export CENTILOID_MATLAB_BIN=/path/to/bin/matlab
@@ -255,36 +321,10 @@ export CENTILOID_SPM12_PATH=/path/to/spm12
 export CENTILOID_MNI_TEMPLATE=/path/to/spm12/canonical/avg152T1.nii
 ```
 
-`avg152T1.nii` ships inside SPM12 itself, under its own `canonical/` folder, so once you know where SPM12 is
-installed, the third path follows directly from it. No other setup, registration or configuration is
-needed -- these three paths are everything the script needs to find and drive SPM12 through MATLAB.
-
-**You do not strictly need a MATLAB license.** SPM is also distributed as a free *standalone* build
-(compiled SPM plus MATLAB Runtime), and any version works (SPM12, SPM25, SPM26, ...). Install it following
-SPM's own instructions:
-
-```
-https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/
-```
-
-The standalone install has two halves -- the launcher script and the MATLAB Runtime -- and
-`centiloid_pipeline_tracers.py` finds them on its own as long as each one lands in a place it scans:
-
-- **Launcher:** `$PETPIPELINE_BASE/spm12_standalone/run_spm*.sh`
-- **MATLAB Runtime:** `/usr/local/MATLAB/MATLAB_Runtime/<release>/`, where SPM's own installer puts
-  it, or `$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/<release>/`
-
-If either half is somewhere else, export its path and that one wins over the search above:
-
-```bash
-export CENTILOID_SPM_STANDALONE_RUN=/path/to/run_spmXX.sh
-export CENTILOID_SPM_MCR_DIR=/path/to/MATLAB_Runtime/<release>
-```
-
 
 ## Checking everything is installed
 
-Once you have gone through every step above (1-7), run:
+Once you have gone through every step above (1-7, plus 8 if you process Centiloid), run:
 
 ```bash
 bash code/replication_tool/check_install.sh [--tracer FTP|FDG]
