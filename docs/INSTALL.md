@@ -145,27 +145,18 @@ python3 -m venv ~/.venv_pet_pipeline
 ~/.venv_pet_pipeline/bin/pip install nibabel numpy pandas scipy matplotlib openpyxl
 ```
 
-Installing everything here in one go, even if you only plan to run Tau/FDG today, avoids a
-`ModuleNotFoundError` later if you end up running Centiloid too. `nibabel`/`numpy` are all that
-`run_public_pipeline.sh` (Tau/FDG) itself needs -- they back a couple of small inline Python steps (reading
-NIfTI headers/frame counts); the region-level CSVs themselves are produced by `mri_segstats`, which ships
-inside the FreeSurfer Docker image. `pandas`/`scipy`/`matplotlib` are for `code/centiloid/centiloid_pipeline_tracers.py`
-and `pandas`-using comparison scripts; `openpyxl` is only for `code/gaain_validation/klunk_gaain_validation_plot.py`.
+The pipeline utilizes a dedicated virtual environment located at `~/.venv_pet_pipeline`. Installing all
+dependencies (`nibabel`, `numpy`, `pandas`, `scipy`, `matplotlib`, and `openpyxl`) in one go ensures full
+support across Tau, FDG, and Centiloid modules.
 
-**You never need to activate this virtualenv or think about which `python3` you're calling.**
-`run_public_pipeline.sh`/`check_install.sh` already call this venv's own `python3` internally (via the
-`$PYTHON` variable), and the scripts meant to be run directly with plain `python3` (`centiloid_pipeline_tracers.py`,
-`klunk_gaain_validation_plot.py`, `compare_bilateral.py`, `compare_with_published.py`) detect it themselves:
-if `~/.venv_pet_pipeline/bin/python3` exists and you did not happen to already run them with it, they
-silently re-launch themselves under it before importing anything. So a plain
+**Automatic Environment Routing.** You never need to manually activate the virtual environment. Pipeline
+wrappers (`run_public_pipeline.sh`, `check_install.sh`) and standalone Python scripts
+(`centiloid_pipeline_tracers.py`, `klunk_gaain_validation_plot.py`, `compare_bilateral.py`,
+`compare_with_published.py`) automatically detect `~/.venv_pet_pipeline/bin/python3` and self-launch under it
+if invoked with plain `python3`.
 
-```bash
-python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID>
-```
-
-picks up this virtualenv's packages automatically, as long as you created it at the default path above. If
-you used a different virtualenv path, export `PYTHON` to point at its `python3` and the same auto-detection
-uses that instead:
+If you used a different virtualenv path, export `PYTHON` to point at its `python3` and the same routing uses
+that instead:
 
 ```bash
 export PYTHON=/path/to/your/venv/bin/python3
