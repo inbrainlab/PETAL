@@ -251,7 +251,19 @@ subject (so it goes through the same pipeline, just told about subjects a differ
 
 **Two separate folders, input and output** -- `A4_DATA_DIR` only ever holds your original data (never
 written to by this pipeline), and `A4_OUT_DIR` only ever holds what the pipeline generates (per-subject
-work files, `centiloid_results.csv`). Set either if the defaults below aren't where you want them:
+work files, `centiloid_results.csv`). Both default to folders already inside `pet_pipeline/` (see the
+layout at the top of this README), so if you put your data at the default `A4_DATA_DIR` path below, running
+it is just:
+
+```bash
+# every subject found under A4_DATA_DIR
+bash code/centiloid/run_all_A4_florbetapir.sh
+
+# one subject only, to try it out or debug
+bash code/centiloid/run_all_A4_florbetapir.sh B10693248
+```
+
+Only set `A4_DATA_DIR`/`A4_OUT_DIR` yourself if you want your data somewhere other than the defaults:
 
 ```bash
 A4_DATA_DIR=<folder from the layout below> A4_OUT_DIR=<where results should go> bash code/centiloid/run_all_A4_florbetapir.sh
