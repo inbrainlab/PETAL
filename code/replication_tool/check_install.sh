@@ -13,7 +13,7 @@ Usage: bash check_install.sh [--tracer FTP|FDG]
 
 Verifies that everything run_public_pipeline.sh needs is installed and in
 place: Docker, the FreeSurfer/FastSurfer images, the FreeSurfer license, the
-MCR runtime, the Python virtualenv and its packages, MATLAB+SPM12/SPM12 standalone, the helper scripts, and
+MCR runtime, the Python virtualenv and its packages, MATLAB+SPM12/SPM standalone, the helper scripts, and
 (for comparing against published values) FS_LUT/FSROI_LIST. Does not run any
 PET processing -- only checks presence. Reads the same variables and the
 same defaults as run_public_pipeline.sh, so it checks exactly what the
@@ -148,8 +148,8 @@ else
     warn "skipped (python3 not found at $PYTHON -- see the Python virtualenv check above)"
 fi
 
-# 5c. Centiloid: MATLAB+SPM12 or SPM12 standalone (optional, only for code/centiloid)
-echo ""; echo "-- Centiloid: MATLAB+SPM12 or SPM12 standalone (optional, only for code/centiloid)"
+# 5c. Centiloid: MATLAB+SPM12 or SPM standalone (optional, only for code/centiloid)
+echo ""; echo "-- Centiloid: MATLAB+SPM12 or SPM standalone (optional, only for code/centiloid)"
 # Same version-scan as centiloid_pipeline_tracers.py: don't assume one exact
 # MATLAB/MATLAB Runtime version, pick the newest one actually installed
 # (ls -d sorts release names like R2022b/R2023a correctly; 2>/dev/null
@@ -159,16 +159,15 @@ if [ -z "${CENTILOID_MATLAB_BIN:-}" ]; then
 fi
 CENTILOID_MATLAB_BIN="${CENTILOID_MATLAB_BIN:-/opt/MATLAB/R2022b/bin/matlab}"
 CENTILOID_SPM12_PATH="${CENTILOID_SPM12_PATH:-$(dirname "$(dirname "$CENTILOID_MATLAB_BIN")")/toolbox/spm12}"
-# SPM standalone + MATLAB Runtime: same convention as MCR_DIR above --
-# self-contained inside $PETPIPELINE_BASE, not under /opt or another
-# system-wide, sudo-only location. Any SPM version works (SPM12, SPM25,
+# SPM standalone + MATLAB Runtime: looked for inside $PETPIPELINE_BASE (same
+# convention as MCR_DIR above) and, for the Runtime, also in
+# /usr/local/MATLAB/MATLAB_Runtime. Any SPM version works (SPM12, SPM25,
 # SPM26, ...); the launcher script is named after its own version
 # (run_spm12.sh, run_spm25.sh, run_spm26.sh, ...), so this globs for
 # run_spm*.sh instead of hardcoding one literal filename.
 if [ -z "${CENTILOID_SPM_STANDALONE_RUN:-}" ]; then
     CENTILOID_SPM_STANDALONE_RUN="$(ls "$PETPIPELINE_BASE"/spm12_standalone/run_spm*.sh 2>/dev/null | sort | tail -n1)"
 fi
-CENTILOID_SPM_STANDALONE_RUN="${CENTILOID_SPM_STANDALONE_RUN:-$PETPIPELINE_BASE/spm12_standalone/run_spm12.sh}"
 # Older MATLAB Runtime installers nest a version-code subfolder (R2022b/v913);
 # newer ones (seen on R2026a) install directly into the release folder
 # (R2026a/bin, no v9XX level) -- try the v* pattern first (more specific),
@@ -179,13 +178,12 @@ fi
 if [ -z "${CENTILOID_SPM_MCR_DIR:-}" ]; then
     CENTILOID_SPM_MCR_DIR="$(ls -d "$PETPIPELINE_BASE"/spm12_standalone/MATLAB_Runtime/R*/bin /usr/local/MATLAB/MATLAB_Runtime/R*/bin 2>/dev/null | sed 's:/bin$::' | sort | tail -n1)"
 fi
-CENTILOID_SPM_MCR_DIR="${CENTILOID_SPM_MCR_DIR:-$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R2022b/v913}"
 if [ -f "$CENTILOID_SPM_STANDALONE_RUN" ] && [ -d "$CENTILOID_SPM_MCR_DIR" ]; then
-    ok "SPM12 standalone found ($CENTILOID_SPM_STANDALONE_RUN + $CENTILOID_SPM_MCR_DIR) -- no MATLAB license needed, centiloid_pipeline_tracers.py will use this"
+    ok "SPM standalone found ($CENTILOID_SPM_STANDALONE_RUN + $CENTILOID_SPM_MCR_DIR) -- no MATLAB license needed, centiloid_pipeline_tracers.py will use this"
 elif [ -f "$CENTILOID_MATLAB_BIN" ] && [ -d "$CENTILOID_SPM12_PATH" ]; then
     ok "MATLAB + SPM12 found ($CENTILOID_MATLAB_BIN + $CENTILOID_SPM12_PATH)"
 else
-    warn "neither SPM12 standalone ($CENTILOID_SPM_STANDALONE_RUN) nor MATLAB+SPM12 ($CENTILOID_MATLAB_BIN) found -- only needed for Centiloid; see docs/INSTALL.md section 8"
+    warn "neither SPM standalone (searched $PETPIPELINE_BASE/spm12_standalone and /usr/local/MATLAB/MATLAB_Runtime) nor MATLAB+SPM12 ($CENTILOID_MATLAB_BIN) found -- only needed for Centiloid; see docs/INSTALL.md section 8"
 fi
 
 # 6. progress_helpers.sh / evaluate_subject.py next to this script

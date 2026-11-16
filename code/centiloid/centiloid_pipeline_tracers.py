@@ -91,7 +91,7 @@ VOI_DIR_KLUNK = os.path.join(BASE_DIR, "VOIs_klunk")    # Standard Centiloid VOI
 OUT_DIR    = os.path.join(BASE_DIR, "results")
 
 # SPM is run through either a regular MATLAB installation (MATLAB + SPM12) or
-# SPM12 standalone + MATLAB Runtime -- see run_spm() below, which auto-detects
+# SPM standalone + MATLAB Runtime -- see run_spm() below, which auto-detects
 # whichever is actually present, no manual choice needed (docs/INSTALL.md
 # section 8). Both auto-detections below scan every MATLAB/MATLAB Runtime
 # *version* folder they can find (R2022b, R2023a, ...), since a given
@@ -125,12 +125,12 @@ SPM12_PATH = os.environ.get(
 MNI_TEMPLATE = os.environ.get(
     "CENTILOID_MNI_TEMPLATE", os.path.join(SPM12_PATH, "canonical", "avg152T1.nii"))
 
-# SPM12 standalone + MATLAB Runtime (free, no MATLAB license needed). Same
-# convention as MCR_DIR in run_public_pipeline.sh (section 4): installed
-# self-contained inside this repo's own working directory
-# ($PETPIPELINE_BASE), not under /opt or another system-wide, sudo-only
-# location -- easier to set up, and consistent with the MCR used for
-# FreeSurfer's segmentBS.sh.
+# SPM standalone + MATLAB Runtime (free, no MATLAB license needed). Both are
+# looked for in this repo's own working directory ($PETPIPELINE_BASE, the
+# same convention as MCR_DIR in run_public_pipeline.sh) and, for the Runtime,
+# in /usr/local/MATLAB/MATLAB_Runtime, which is where SPM's own bundled
+# installer tends to put it. Nothing is assumed when neither is found: both
+# stay None and run_spm() falls back to MATLAB (or errors out naming both).
 #   CENTILOID_SPM_STANDALONE_RUN -> path to the run_spmXX.sh script that ships
 #                                   inside the SPM standalone download. Any
 #                                   SPM version works (SPM12, SPM25, SPM26,
@@ -157,7 +157,7 @@ MNI_TEMPLATE = os.environ.get(
 SPM_STANDALONE_RUN = os.environ.get(
     "CENTILOID_SPM_STANDALONE_RUN") or _newest_glob_match(
     os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "run_spm*.sh"),
-) or os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "run_spm12.sh")
+)
 SPM_MCR_DIR = os.environ.get("CENTILOID_SPM_MCR_DIR") or _newest_glob_match(
     os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "MATLAB_Runtime", "R*", "v*"),
     "/usr/local/MATLAB/MATLAB_Runtime/R*/v*",
@@ -168,7 +168,7 @@ SPM_MCR_DIR = os.environ.get("CENTILOID_SPM_MCR_DIR") or _newest_glob_match(
     *[os.path.dirname(p) for p in glob.glob(
         os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "MATLAB_Runtime", "R*", "bin")) +
         glob.glob("/usr/local/MATLAB/MATLAB_Runtime/R*/bin")]
-) or os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "MATLAB_Runtime", "R2022b", "v913")
+)
 
 # ---------------------------------------------------------------
 # PER-TRACER AND PER-VOI-METHOD CONFIGURATION (--tracer + --voi_method)
@@ -921,7 +921,7 @@ def run_spm(batch_m):
     SPM12 install -- whichever is actually present on this machine, no manual
     choice needed (see docs/INSTALL.md section 8). batch_m already ends with
     its own exit/spm_jobman('run', ...) call, which matches both invocation
-    styles: MATLAB's -r runs it as a script, and SPM12 standalone's "batch"
+    styles: MATLAB's -r runs it as a script, and SPM standalone's "batch"
     subcommand accepts a self-contained .m script the same way."""
     standalone_ready = bool(
         SPM_STANDALONE_RUN and SPM_MCR_DIR
@@ -931,13 +931,13 @@ def run_spm(batch_m):
     if standalone_ready:
         run(
             [SPM_STANDALONE_RUN, SPM_MCR_DIR, "batch", batch_m],
-            "SPM12 standalone (no MATLAB license)"
+            "SPM standalone (no MATLAB license)"
         )
         return
 
     if not os.path.exists(MATLAB_BIN):
         sys.exit(
-            "ERROR: neither SPM12 standalone nor MATLAB were found.\n"
+            "ERROR: neither SPM standalone nor MATLAB were found.\n"
             f"  Standalone: CENTILOID_SPM_STANDALONE_RUN={SPM_STANDALONE_RUN!r}, "
             f"CENTILOID_SPM_MCR_DIR={SPM_MCR_DIR!r}\n"
             f"  MATLAB:     CENTILOID_MATLAB_BIN={MATLAB_BIN!r} (does not exist)\n"
