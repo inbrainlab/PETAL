@@ -261,36 +261,11 @@ export CENTILOID_MNI_TEMPLATE=/path/to/spm12/canonical/avg152T1.nii
 installed, the third path follows directly from it. No other setup, registration or configuration is
 needed -- these three paths are everything the script needs to find and drive SPM12 through MATLAB.
 
-**You do not strictly need a MATLAB license.** SPM12 is also distributed as a *standalone*, free
-alternative: a version of SPM12 already compiled into a self-contained executable, paired with the free
-MATLAB Runtime (a redistributable, license-free runtime -- the same kind of thing as the MCR used for
-FreeSurfer's `segmentBS.sh` in section 4, just a different, SPM-specific build). If you cannot get a MATLAB
-license, this is the route to use instead:
-
-1. Download the SPM12 standalone build for your OS from
-   https://www.fil.ion.ucl.ac.uk/spm/software/spm12/ (look for the "Standalone" / "Linux/macOS/Windows
-   SPM12 Standalone" download, as opposed to the plain "SPM12" toolbox download used above). It comes with
-   a `run_spm12.sh` script (or `.bat` on Windows).
-2. Download and install the specific version of the MATLAB Runtime that the standalone build says it needs
-   (the version has to match exactly -- the standalone page links directly to the right Runtime installer).
-3. Point the pipeline at both:
-
-   ```bash
-   export CENTILOID_SPM_STANDALONE_RUN=/path/to/spm12_standalone/run_spm12.sh
-   export CENTILOID_SPM_MCR_DIR=/path/to/MATLAB_Runtime/R2022b/v912
-   ```
-
-   You don't need to choose between this and MATLAB -- `centiloid_pipeline_tracers.py` auto-detects
-   whichever one is actually installed. If these two paths exist, it calls `run_spm12.sh <MCR_dir> batch
-   <jobfile>` through them; otherwise it falls back to `CENTILOID_MATLAB_BIN`/`CENTILOID_SPM12_PATH`. So
-   having both set up at once (e.g. during a transition) is fine -- standalone simply takes priority.
-   `CENTILOID_MNI_TEMPLATE` is unaffected either way -- it is just a file path the script reads directly,
-   not something passed to MATLAB/SPM, so keep setting it (or its default) as usual.
-
-Note SPM12 standalone only ships SPM's built-in toolboxes (Old Segment, Normalise, Coregister -- all of
-which this pipeline already uses) -- it cannot run contributed/third-party SPM toolboxes without a full
-MATLAB-based recompile, so if this pipeline's SPM usage ever grows beyond that, this standalone route may
-stop being an option.
+**You do not strictly need a MATLAB license.** SPM12 is also distributed as a free *standalone* build
+(compiled SPM12 + MATLAB Runtime) from https://www.fil.ion.ucl.ac.uk/spm/software/spm12/. Install it, then
+set `CENTILOID_SPM_STANDALONE_RUN` (its `run_spm12.sh`) and `CENTILOID_SPM_MCR_DIR` (the matching MATLAB
+Runtime folder). `centiloid_pipeline_tracers.py` auto-detects whichever of this or MATLAB is actually
+installed, so there's nothing else to configure.
 
 ## Checking everything is installed
 
