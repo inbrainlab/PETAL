@@ -267,10 +267,30 @@ needed -- these three paths are everything the script needs to find and drive SP
 regular MATLAB install, it scans every version folder under the usual system locations (e.g. several MATLAB
 versions side by side) and picks the newest one, so you don't need to match an exact version. SPM12
 standalone is expected self-contained inside `$PETPIPELINE_BASE/spm12_standalone` instead -- same convention
-as `MCRv97` in section 4 -- so just extract the standalone download and its matching MATLAB Runtime there
-and it is picked up automatically, no `sudo`/`/opt` install needed. If your install lives somewhere else, set
+as `MCRv97` in section 4, no `sudo`/`/opt` install needed. If your install lives somewhere else, set
 `CENTILOID_SPM_STANDALONE_RUN`/`CENTILOID_SPM_MCR_DIR` (standalone) or
 `CENTILOID_MATLAB_BIN`/`CENTILOID_SPM12_PATH` (regular MATLAB) to override.
+
+Download the SPM12 standalone zip for Linux from the page above (it bundles a `runtime_installer/` folder
+with the matching MATLAB Runtime, so you don't need a separate MathWorks download for this path). Same
+installer quirk as section 4 applies to the Runtime half: it always creates its own version-named subfolder,
+so install it into a temporary folder first, then move that subfolder into place:
+
+```bash
+cd ~/Downloads
+unzip spm12_*_Standalone_Linux.zip -d ~/Downloads/pet_pipeline/spm12_standalone   # extracts run_spm12.sh and runtime_installer/ directly into place
+cd ~/Downloads/pet_pipeline/spm12_standalone/runtime_installer
+./install -mode silent -agreeToLicense yes -destinationFolder ~/mcr_install_tmp2   # never straight into the final MATLAB_Runtime path
+mkdir -p ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b
+mv ~/mcr_install_tmp2/v912 ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b/v912   # installer's own version subfolder (v912 for R2022b -- match whatever your download says), renamed into place
+rmdir ~/mcr_install_tmp2
+```
+
+Confirm `run_spm12.sh` landed directly at `~/Downloads/pet_pipeline/spm12_standalone/run_spm12.sh` (not one
+folder deeper) and that the Runtime landed at
+`~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b/v912/bin/glnxa64/` before relying on this
+path -- the exact folder/version names depend on the file you downloaded, so adjust the commands above to
+match.
 
 ## Checking everything is installed
 
