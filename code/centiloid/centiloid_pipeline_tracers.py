@@ -1151,7 +1151,7 @@ def process_subject(subject_id, base_dir, voi_dir, out_dir, ref_xlsx,
                     skip_dcm2niix=False, skip_coreg=False, skip_spm=False,
                     use_reor=False, auto_reorient=False,
                     tracer="fbp", reuse_t1_from=None, voi_method="avid",
-                    reorient_method="a"):
+                    reorient_method="a", input_dir=None):
     """
     Run the full pipeline for one subject:
     DICOM -> NIfTI -> PET sum -> [auto-reorient] -> SPM -> SUVr
@@ -1176,6 +1176,16 @@ def process_subject(subject_id, base_dir, voi_dir, out_dir, ref_xlsx,
         from a previous FBP run). If provided and the T1 exists there,
         it is copied to the current work_dir instead of re-converting
         the DICOM. Useful to process PiB reusing the T1 images of an FBP run.
+
+    input_dir: path to a folder with the subject's already-NIfTI raw T1/PET
+        (requires skip_dcm2niix=True), kept separate from out_dir so a
+        cohort's original data is never mixed with this pipeline's own
+        generated files. If given, {subject_id}_t1*.nii/{subject_id}_pet.nii
+        are copied from input_dir/subject_id/ into work_dir before step 1,
+        instead of being expected already inside work_dir. If not given,
+        behavior is unchanged from before: skip_dcm2niix looks for those
+        files directly in work_dir (the resume case for an already
+        dcm2niix-converted GAAIN subject, where that is correct).
     """
     print(f"\n{'='*55}")
     print(f"  Subject: {subject_id}  (tracer: {tracer}, VOIs: {voi_method})")
@@ -1187,6 +1197,28 @@ def process_subject(subject_id, base_dir, voi_dir, out_dir, ref_xlsx,
     # -- Step 1: Convert DICOMs ----------------------------
     if skip_dcm2niix:
         print("\n[1/4] Skipping DICOM conversion (--skip_dcm2niix)...")
+
+        if input_dir:
+            # Copy the subject's original NIfTI files from input_dir into
+            # work_dir (never the other way around) so input_dir stays
+            # exactly as the user left it -- nothing this pipeline generates
+            # is ever written there.
+            import shutil
+            src_dir = os.path.join(input_dir, subject_id)
+            if not os.path.isdir(src_dir):
+                raise FileNotFoundError(f"input_dir subject folder not found: {src_dir}")
+            src_files = [f for f in
+                glob.glob(os.path.join(src_dir, f"{subject_id}_t1*.nii")) +
+                glob.glob(os.path.join(src_dir, f"{subject_id}_pet*.nii"))
+                if "_reor" not in os.path.basename(f)]
+            if not src_files:
+                raise FileNotFoundError(
+                    f"no {subject_id}_t1*.nii / {subject_id}_pet*.nii found in {src_dir}")
+            for src in src_files:
+                dst = os.path.join(work_dir, os.path.basename(src))
+                if not os.path.exists(dst):
+                    shutil.copy2(src, dst)
+                    print(f"    copied {os.path.basename(src)} from {input_dir}")
 
         if use_reor:
             # Prefer reoriented files if they exist
@@ -1521,6 +1553,13 @@ def parse_args():
         help="Path to a results folder of another run (e.g. 'results').\n"
              "If it has the subject's converted T1, it is copied instead of\n"
              "re-converting the DICOM. Useful for PiB after an FBP run on the same cohort.")
+    parser.add_argument("--input_dir", default=None,
+        help="Path to a folder with the subject's already-NIfTI raw T1/PET\n"
+             "(<input_dir>/<SUBJECT_ID>/<SUBJECT_ID>_t1*.nii + _pet*.nii),\n"
+             "requires --skip_dcm2niix. Keeps the cohort's original data\n"
+             "separate from --out, which only ever receives this pipeline's\n"
+             "own generated files. Without it, --skip_dcm2niix looks for\n"
+             "those files directly inside --out instead (the resume case).")
 
     parser.add_argument("--base_dir", default=BASE_DIR,
         help=f"Root directory of the data (default: {BASE_DIR})")
@@ -1586,6 +1625,8 @@ def main():
     print(f"  Calibration:   CL = {CL_SLOPE} * SUVr + ({CL_INTERCEPT})")
     print(f"  Threshold:     {CL_THRESHOLD_POSITIVE} CL = SUVr {SUVR_THRESHOLD_POSITIVE}")
     print(f"  VOI dir:       {args.voi}")
+    if args.input_dir:
+        print(f"  Input dir:     {args.input_dir}")
     print(f"  Out dir:       {args.out}")
     if cal_cfg['ref_col_id'] is None:
         print(f"  Excel ref:     N/A (the spreadsheet columns only apply to voi_method=klunk)")
@@ -1649,7 +1690,8 @@ def main():
                 tracer=args.tracer,
                 reuse_t1_from=args.reuse_t1_from,
                 voi_method=args.voi_method,
-                reorient_method=args.reorient_method)
+                reorient_method=args.reorient_method,
+                input_dir=args.input_dir)
             # Save the result in the CSV immediately
             update_csv_row(csv_path, sid, result)
             n_ok += 1

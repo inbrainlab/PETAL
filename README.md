@@ -62,7 +62,8 @@ pet_pipeline/
   mri_data/             <ID>/<ID>_T1.nii + the PET, for run_public_pipeline.sh / run_cohort.sh
   output/                written by run_public_pipeline.sh; read by evaluate_subject.py / compare_fdg_leads.py
   centiloid_input/       for centiloid_pipeline_tracers.py (--base_dir)
-  A4_pipeline_input/     for run_all_A4_florbetapir.sh
+  A4_pipeline_input/     for run_all_A4_florbetapir.sh (input: your original data, never written to)
+  A4_pipeline_output/    for run_all_A4_florbetapir.sh (output: everything the pipeline generates)
   subject_evaluation/    written by evaluate_subject.py
   leads_data/             LEADS reference data, for compare_fdg_leads.py (--leads-base)
   fs_license/             FreeSurfer license file, for run_public_pipeline.sh
@@ -248,14 +249,19 @@ pattern `centiloid_pipeline_tracers.py` expects. `code/centiloid/run_all_A4_flor
 this without changing that script: it lists the subject subfolders itself and calls `--test` once per
 subject (so it goes through the same pipeline, just told about subjects a different way).
 
+**Two separate folders, input and output** -- `A4_DATA_DIR` only ever holds your original data (never
+written to by this pipeline), and `A4_OUT_DIR` only ever holds what the pipeline generates (per-subject
+work files, `centiloid_results.csv`). Set either if the defaults below aren't where you want them:
+
 ```bash
-A4_DATA_DIR=<folder from the layout below> bash code/centiloid/run_all_A4_florbetapir.sh
+A4_DATA_DIR=<folder from the layout below> A4_OUT_DIR=<where results should go> bash code/centiloid/run_all_A4_florbetapir.sh
 ```
 
-`run_all_A4_florbetapir.sh` passes `--skip_dcm2niix`, so `centiloid_pipeline_tracers.py` does not look for
-DICOM or `base_dir` at all for these subjects -- it reads the T1 and PET directly from each subject's own
-folder under `A4_DATA_DIR`, and both must already be NIfTI with these exact names (the PET already summed
-if it had multiple frames -- not split into separate frame files):
+`run_all_A4_florbetapir.sh` passes `--skip_dcm2niix --input_dir "$A4_DATA_DIR"`, so
+`centiloid_pipeline_tracers.py` does not look for DICOM or `base_dir` at all for these subjects -- it reads
+the T1 and PET directly from each subject's own folder under `A4_DATA_DIR`, and both must already be NIfTI
+with these exact names (the PET already summed if it had multiple frames -- not split into separate frame
+files):
 
 ```
 <A4_DATA_DIR>/

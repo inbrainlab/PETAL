@@ -9,11 +9,15 @@
 # centiloid_pipeline_tracers.py (which keeps being used as-is for the GAAIN validation cohort, via
 # its normal --all).
 #
+# A4_DATA_DIR (input, read-only) and A4_OUT_DIR (output) are two separate folders: this pipeline
+# only ever writes into A4_OUT_DIR, never into A4_DATA_DIR, so the cohort's original data stays
+# exactly as you dropped it in. (--input_dir below is what makes that split possible.)
+#
 # Usage:
 #   bash run_all_A4_florbetapir.sh
 #   bash run_all_A4_florbetapir.sh B99999999          # one subject only
 #
-# The results CSV (centiloid_results.csv) is accumulated incrementally in A4_DATA_DIR just like with
+# The results CSV (centiloid_results.csv) is accumulated incrementally in A4_OUT_DIR just like with
 # --all -- each --test call writes to it internally (init_csv/update_csv_row). The one thing --all
 # does that this wrapper does not reproduce is the global QC plot (generar_qc): it would not apply
 # here anyway, because the GAAIN reference spreadsheet (Avid_Centiloid_standard_method.xlsx) has no
@@ -23,16 +27,17 @@
 set -uo pipefail
 
 # PIPELINE_DIR is auto-detected (the folder this script lives in) so the package stays portable.
-# A4_DATA_DIR DOES depend on where you copied the A4 data on this machine -- export A4_DATA_DIR
-# before running if it is not the default below, e.g.:
-#   A4_DATA_DIR=/data/A4_pipeline_input bash run_all_A4_florbetapir.sh
+# A4_DATA_DIR/A4_OUT_DIR DO depend on where you copied the A4 data on this machine -- export them
+# before running if they are not the defaults below, e.g.:
+#   A4_DATA_DIR=/data/A4_raw A4_OUT_DIR=/data/A4_results bash run_all_A4_florbetapir.sh
 #
 # VOI_METHOD (optional): 'avid' or 'klunk'. If not set, the flag is omitted and the Python script
 # uses its own default (klunk). E.g.:
 #   VOI_METHOD=avid bash run_all_A4_florbetapir.sh
 PIPELINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PETPIPELINE_BASE="${PETPIPELINE_BASE:-$(cd "$PIPELINE_DIR/../.." && pwd)/pet_pipeline}"  # same convention as run_public_pipeline.sh (this repo's own pet_pipeline/ folder)
-A4_DATA_DIR="${A4_DATA_DIR:-$PETPIPELINE_BASE/A4_pipeline_input}"
+A4_DATA_DIR="${A4_DATA_DIR:-$PETPIPELINE_BASE/A4_pipeline_input}"   # input: your original T1/PET NIfTI files, never written to
+A4_OUT_DIR="${A4_OUT_DIR:-$PETPIPELINE_BASE/A4_pipeline_output}"    # output: everything this pipeline generates (per-subject work files, results CSV)
 VOI_METHOD="${VOI_METHOD:-}"
 PYTHON_SCRIPT="$PIPELINE_DIR/centiloid_pipeline_tracers.py"
 
@@ -42,6 +47,7 @@ if [ ! -d "$A4_DATA_DIR" ]; then
     echo "ERROR: cannot find $A4_DATA_DIR"
     exit 1
 fi
+mkdir -p "$A4_OUT_DIR"
 
 VOI_METHOD_FLAG=()
 if [ -n "$VOI_METHOD" ]; then
@@ -67,7 +73,8 @@ FAILED_IDS=()
 
 echo "════════════════════════════════════════════════════════"
 echo "  A4 Florbetapir — $N_TOTAL subject(s)"
-echo "  out_dir: $A4_DATA_DIR"
+echo "  input_dir: $A4_DATA_DIR"
+echo "  out_dir:   $A4_OUT_DIR"
 echo "════════════════════════════════════════════════════════"
 
 i=0
@@ -75,7 +82,7 @@ for sid in "${SUBJECT_IDS[@]}"; do
     i=$((i+1))
     echo ""
     echo "──[$i/$N_TOTAL] $sid ──────────────────────────────────"
-    python "$PYTHON_SCRIPT" --test "$sid" --skip_dcm2niix --out "$A4_DATA_DIR" "${VOI_METHOD_FLAG[@]}"
+    python "$PYTHON_SCRIPT" --test "$sid" --skip_dcm2niix --input_dir "$A4_DATA_DIR" --out "$A4_OUT_DIR" "${VOI_METHOD_FLAG[@]}"
     if [ $? -eq 0 ]; then
         N_OK=$((N_OK+1))
     else
@@ -98,4 +105,4 @@ if [ ${#FAILED_IDS[@]} -gt 0 ]; then
     printf '    - %s\n' "${FAILED_IDS[@]}"
 fi
 echo ""
-echo "  Results: $A4_DATA_DIR/centiloid_results.csv"
+echo "  Results: $A4_OUT_DIR/centiloid_results.csv"
