@@ -13,7 +13,7 @@ Usage: bash check_install.sh [--tracer FTP|FDG]
 
 Verifies that everything run_public_pipeline.sh needs is installed and in
 place: Docker, the FreeSurfer/FastSurfer images, the FreeSurfer license, the
-MCR runtime, the Python virtualenv and its packages, the helper scripts, and
+MCR runtime, the Python virtualenv and its packages, MATLAB+SPM12/SPM12 standalone, the helper scripts, and
 (for comparing against published values) FS_LUT/FSROI_LIST. Does not run any
 PET processing -- only checks presence. Reads the same variables and the
 same defaults as run_public_pipeline.sh, so it checks exactly what the
@@ -146,6 +146,20 @@ if [ -f "$PYTHON" ]; then
     fi
 else
     warn "skipped (python3 not found at $PYTHON -- see the Python virtualenv check above)"
+fi
+
+# 5c. Centiloid: MATLAB+SPM12 or SPM12 standalone (optional, only for code/centiloid)
+echo ""; echo "-- Centiloid: MATLAB+SPM12 or SPM12 standalone (optional, only for code/centiloid)"
+CENTILOID_MATLAB_BIN="${CENTILOID_MATLAB_BIN:-/opt/MATLAB/R2022b/bin/matlab}"
+CENTILOID_SPM12_PATH="${CENTILOID_SPM12_PATH:-/opt/MATLAB/R2022b/toolbox/spm12}"
+CENTILOID_SPM_STANDALONE_RUN="${CENTILOID_SPM_STANDALONE_RUN:-/opt/spm12_standalone/run_spm12.sh}"
+CENTILOID_SPM_MCR_DIR="${CENTILOID_SPM_MCR_DIR:-/usr/local/MATLAB/MATLAB_Runtime/R2022b/v912}"
+if [ -f "$CENTILOID_SPM_STANDALONE_RUN" ] && [ -d "$CENTILOID_SPM_MCR_DIR" ]; then
+    ok "SPM12 standalone found ($CENTILOID_SPM_STANDALONE_RUN + $CENTILOID_SPM_MCR_DIR) -- no MATLAB license needed, centiloid_pipeline_tracers.py will use this"
+elif [ -f "$CENTILOID_MATLAB_BIN" ] && [ -d "$CENTILOID_SPM12_PATH" ]; then
+    ok "MATLAB + SPM12 found ($CENTILOID_MATLAB_BIN + $CENTILOID_SPM12_PATH)"
+else
+    warn "neither SPM12 standalone ($CENTILOID_SPM_STANDALONE_RUN) nor MATLAB+SPM12 ($CENTILOID_MATLAB_BIN) found -- only needed for Centiloid; see docs/INSTALL.md section 8"
 fi
 
 # 6. progress_helpers.sh / evaluate_subject.py next to this script
