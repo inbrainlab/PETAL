@@ -159,11 +159,14 @@ if [ -z "${CENTILOID_MATLAB_BIN:-}" ]; then
 fi
 CENTILOID_MATLAB_BIN="${CENTILOID_MATLAB_BIN:-/opt/MATLAB/R2022b/bin/matlab}"
 CENTILOID_SPM12_PATH="${CENTILOID_SPM12_PATH:-$(dirname "$(dirname "$CENTILOID_MATLAB_BIN")")/toolbox/spm12}"
-CENTILOID_SPM_STANDALONE_RUN="${CENTILOID_SPM_STANDALONE_RUN:-/opt/spm12_standalone/run_spm12.sh}"
+# SPM12 standalone + MATLAB Runtime: same convention as MCR_DIR above --
+# self-contained inside $PETPIPELINE_BASE, not under /opt or another
+# system-wide, sudo-only location.
+CENTILOID_SPM_STANDALONE_RUN="${CENTILOID_SPM_STANDALONE_RUN:-$PETPIPELINE_BASE/spm12_standalone/run_spm12.sh}"
 if [ -z "${CENTILOID_SPM_MCR_DIR:-}" ]; then
-    CENTILOID_SPM_MCR_DIR="$(ls -d /usr/local/MATLAB/MATLAB_Runtime/R*/v* 2>/dev/null | sort | tail -n1)"
+    CENTILOID_SPM_MCR_DIR="$(ls -d "$PETPIPELINE_BASE"/spm12_standalone/MATLAB_Runtime/R*/v* /usr/local/MATLAB/MATLAB_Runtime/R*/v* 2>/dev/null | sort | tail -n1)"
 fi
-CENTILOID_SPM_MCR_DIR="${CENTILOID_SPM_MCR_DIR:-/usr/local/MATLAB/MATLAB_Runtime/R2022b/v912}"
+CENTILOID_SPM_MCR_DIR="${CENTILOID_SPM_MCR_DIR:-$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R2022b/v912}"
 if [ -f "$CENTILOID_SPM_STANDALONE_RUN" ] && [ -d "$CENTILOID_SPM_MCR_DIR" ]; then
     ok "SPM12 standalone found ($CENTILOID_SPM_STANDALONE_RUN + $CENTILOID_SPM_MCR_DIR) -- no MATLAB license needed, centiloid_pipeline_tracers.py will use this"
 elif [ -f "$CENTILOID_MATLAB_BIN" ] && [ -d "$CENTILOID_SPM12_PATH" ]; then

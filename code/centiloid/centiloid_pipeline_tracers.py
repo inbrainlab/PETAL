@@ -125,21 +125,30 @@ SPM12_PATH = os.environ.get(
 MNI_TEMPLATE = os.environ.get(
     "CENTILOID_MNI_TEMPLATE", os.path.join(SPM12_PATH, "canonical", "avg152T1.nii"))
 
-# SPM12 standalone + MATLAB Runtime (free, no MATLAB license needed).
+# SPM12 standalone + MATLAB Runtime (free, no MATLAB license needed). Same
+# convention as MCR_DIR in run_public_pipeline.sh (section 4): installed
+# self-contained inside this repo's own working directory
+# ($PETPIPELINE_BASE), not under /opt or another system-wide, sudo-only
+# location -- easier to set up, and consistent with the MCR used for
+# FreeSurfer's segmentBS.sh.
 #   CENTILOID_SPM_STANDALONE_RUN -> path to the run_spm12.sh script that ships
 #                                   inside the SPM12 standalone download (no
-#                                   fixed install location, so no version-scan
-#                                   is possible here -- set it explicitly if
-#                                   you installed this).
+#                                   version folder in its name, so no
+#                                   version-scan is possible here -- set it
+#                                   explicitly if you installed it elsewhere).
 #   CENTILOID_SPM_MCR_DIR        -> path to the MATLAB Runtime folder whose
 #                                   version matches that standalone build.
-#                                   Scans every version under the MATLAB
-#                                   Runtime installer's own default Linux path.
+#                                   Scans every version under both
+#                                   $PETPIPELINE_BASE/spm12_standalone and the
+#                                   MATLAB Runtime installer's own default
+#                                   Linux path.
 SPM_STANDALONE_RUN = os.environ.get(
-    "CENTILOID_SPM_STANDALONE_RUN", "/opt/spm12_standalone/run_spm12.sh")
+    "CENTILOID_SPM_STANDALONE_RUN",
+    os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "run_spm12.sh"))
 SPM_MCR_DIR = os.environ.get("CENTILOID_SPM_MCR_DIR") or _newest_glob_match(
+    os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "MATLAB_Runtime", "R*", "v*"),
     "/usr/local/MATLAB/MATLAB_Runtime/R*/v*",
-) or "/usr/local/MATLAB/MATLAB_Runtime/R2022b/v912"
+) or os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "MATLAB_Runtime", "R2022b", "v912")
 
 # ---------------------------------------------------------------
 # PER-TRACER AND PER-VOI-METHOD CONFIGURATION (--tracer + --voi_method)
