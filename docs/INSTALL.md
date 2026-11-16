@@ -143,11 +143,35 @@ python3 -m venv ~/.venv_pet_pipeline
 ~/.venv_pet_pipeline/bin/pip install nibabel numpy
 ```
 
-`nibabel`/`numpy` are the only third-party packages needed — they back a
-couple of small inline Python steps inside `run_public_pipeline.sh`
-(reading NIfTI headers/frame counts). Nothing else is required: the
-region-level CSVs are produced by `mri_segstats`, which ships inside
-the FreeSurfer Docker image itself.
+`nibabel`/`numpy` are all that `run_public_pipeline.sh` (Tau/FDG) needs — they back a couple of small inline
+Python steps (reading NIfTI headers/frame counts). The region-level CSVs themselves are produced by
+`mri_segstats`, which ships inside the FreeSurfer Docker image, not by these packages.
+
+**Centiloid and the GAAIN validation plot need more.** `code/centiloid/centiloid_pipeline_tracers.py` also
+imports `pandas`, `scipy` and `matplotlib`; `code/gaain_validation/klunk_gaain_validation_plot.py` also
+needs `openpyxl`. If you are going to run Centiloid at all, install everything in the same virtualenv up
+front instead of hitting `ModuleNotFoundError` partway through:
+
+```bash
+~/.venv_pet_pipeline/bin/pip install nibabel numpy pandas scipy matplotlib openpyxl
+```
+
+**Using this virtualenv for Centiloid.** `run_public_pipeline.sh` and `check_install.sh` always call this
+venv's own `python3` internally (via the `$PYTHON` variable), so you never have to think about it for
+Tau/FDG. The Centiloid and GAAIN validation commands shown later in this guide and in the README, though,
+are written as plain `python3 ...` — that resolves to whatever `python3` is first on your `PATH`, which may
+not be this virtualenv. Either activate it first:
+
+```bash
+source ~/.venv_pet_pipeline/bin/activate
+python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID>
+```
+
+or call its `python3` directly, without activating anything:
+
+```bash
+~/.venv_pet_pipeline/bin/python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID>
+```
 
 ## 6. Place your subject data
 

@@ -131,6 +131,26 @@ else
     bad "python3 NOT found at $PYTHON -- run: python3 -m venv $(dirname "$(dirname "$PYTHON")") && $PYTHON -m pip install nibabel numpy"
 fi
 
+# 5b. Centiloid/GAAIN-only Python packages (optional: not needed for Tau/FDG at all)
+echo ""; echo "── Centiloid + GAAIN validation packages (optional, only for code/centiloid and code/gaain_validation)"
+if [ -f "$PYTHON" ]; then
+    if "$PYTHON" -c "import pandas, scipy, matplotlib" >/dev/null 2>&1; then
+        ok "pandas, scipy and matplotlib importable (centiloid_pipeline_tracers.py)"
+    else
+        warn "pandas/scipy/matplotlib NOT importable with this python3 -- only needed for Centiloid; run: $PYTHON -m pip install pandas scipy matplotlib"
+    fi
+    if "$PYTHON" -c "import openpyxl" >/dev/null 2>&1; then
+        ok "openpyxl importable (klunk_gaain_validation_plot.py)"
+    else
+        warn "openpyxl NOT importable with this python3 -- only needed for the GAAIN validation plot; run: $PYTHON -m pip install openpyxl"
+    fi
+    echo "  i  Remember: the Centiloid/GAAIN commands in the README use plain 'python3', which may not be"
+    echo "     this virtualenv -- activate it (source \$(dirname \$(dirname "$PYTHON"))/bin/activate) or call"
+    echo "     "$PYTHON" directly. See docs/INSTALL.md section 5."
+else
+    warn "skipped (python3 not found at $PYTHON -- see the Python virtualenv check above)"
+fi
+
 # 6. progress_helpers.sh / evaluate_subject.py next to this script
 echo ""; echo "── Helper scripts next to run_public_pipeline.sh"
 [ -f "$SCRIPT_DIR/progress_helpers.sh" ] && ok "progress_helpers.sh present" || bad "progress_helpers.sh missing from $SCRIPT_DIR"
