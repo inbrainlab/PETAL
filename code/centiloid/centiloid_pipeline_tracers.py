@@ -100,6 +100,19 @@ MNI_TEMPLATE = os.environ.get(
     "CENTILOID_MNI_TEMPLATE",
     "/opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii")
 
+# Optional: run SPM12 *standalone* (the free, compiled SPM12 + MATLAB Runtime
+# bundle) instead of a real, licensed MATLAB install. Set BOTH variables to
+# switch run_spm() over to this path; leave them unset to keep using MATLAB_BIN
+# above. See docs/INSTALL.md section 8 for how to install this and an
+# important caveat: this path has not been tested end-to-end in this repo.
+#   CENTILOID_SPM_STANDALONE_RUN -> path to the run_spm12.sh script that ships
+#                                   inside the SPM12 standalone download.
+#   CENTILOID_SPM_MCR_DIR        -> path to the MATLAB Runtime folder whose
+#                                   version matches that standalone build
+#                                   (e.g. .../MATLAB_Runtime/R2022b/v912).
+SPM_STANDALONE_RUN = os.environ.get("CENTILOID_SPM_STANDALONE_RUN")
+SPM_MCR_DIR = os.environ.get("CENTILOID_SPM_MCR_DIR")
+
 # ---------------------------------------------------------------
 # PER-TRACER AND PER-VOI-METHOD CONFIGURATION (--tracer + --voi_method)
 # ---------------------------------------------------------------
@@ -846,10 +859,20 @@ exit;
 
 
 def run_spm(batch_m):
-    """Run the SPM batch via MATLAB + SPM12. batch_m already ends with its
-    own exit, so -r is used (not -batch) to match that design. The call is
-    wrapped in try/catch so that a MATLAB error does not leave the process
-    hanging at a prompt -- it exits cleanly with the error visible."""
+    """Run the SPM batch, either via a real MATLAB + SPM12 install (default)
+    or via SPM12 standalone + MATLAB Runtime when CENTILOID_SPM_STANDALONE_RUN
+    and CENTILOID_SPM_MCR_DIR are both set (no MATLAB license needed for that
+    path -- see docs/INSTALL.md section 8). batch_m already ends with its own
+    exit/spm_jobman('run', ...) call, which matches both invocation styles:
+    MATLAB's -r runs it as a script, and SPM12 standalone's "batch" subcommand
+    accepts a self-contained .m script the same way."""
+    if SPM_STANDALONE_RUN and SPM_MCR_DIR:
+        run(
+            [SPM_STANDALONE_RUN, SPM_MCR_DIR, "batch", batch_m],
+            "SPM12 standalone (no MATLAB license)"
+        )
+        return
+
     matlab_cmd = (
         f"addpath('{SPM12_PATH}'); "
         f"try, run('{batch_m}'); catch e, disp(getReport(e)); exit(1); end; "
