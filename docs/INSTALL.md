@@ -267,10 +267,14 @@ SPM's own instructions:
 https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/
 ```
 
-`centiloid_pipeline_tracers.py` finds it automatically if the launcher ends up at
-`$PETPIPELINE_BASE/spm12_standalone/run_spm*.sh`, and the MATLAB Runtime at either
-`/usr/local/MATLAB/MATLAB_Runtime/<release>/` (where SPM's own installer puts it) or
-`$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/<release>/`. Anywhere else, export the two paths:
+The standalone install has two halves -- the launcher script and the MATLAB Runtime -- and
+`centiloid_pipeline_tracers.py` finds them on its own as long as each one lands in a place it scans:
+
+- **Launcher:** `$PETPIPELINE_BASE/spm12_standalone/run_spm*.sh`
+- **MATLAB Runtime:** `/usr/local/MATLAB/MATLAB_Runtime/<release>/`, where SPM's own installer puts
+  it, or `$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/<release>/`
+
+If either half is somewhere else, export its path and that one wins over the search above:
 
 ```bash
 export CENTILOID_SPM_STANDALONE_RUN=/path/to/run_spmXX.sh
