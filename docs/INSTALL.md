@@ -259,6 +259,23 @@ export CENTILOID_MNI_TEMPLATE=/path/to/spm12/canonical/avg152T1.nii
 installed, the third path follows directly from it. No other setup, registration or configuration is
 needed -- these three paths are everything the script needs to find and drive SPM12 through MATLAB.
 
+**You do not strictly need a MATLAB license.** SPM is also distributed as a free *standalone* build
+(compiled SPM plus MATLAB Runtime), and any version works (SPM12, SPM25, SPM26, ...). Install it following
+SPM's own instructions:
+
+```
+https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/
+```
+
+Put it in `$PETPIPELINE_BASE/spm12_standalone` and `centiloid_pipeline_tracers.py` finds it automatically.
+If you installed it somewhere else, export these two paths instead:
+
+```bash
+export CENTILOID_SPM_STANDALONE_RUN=/path/to/run_spmXX.sh
+export CENTILOID_SPM_MCR_DIR=/path/to/MATLAB_Runtime/<release>
+```
+
+
 ## Checking everything is installed
 
 Once you have gone through every step above (1-7), run:
