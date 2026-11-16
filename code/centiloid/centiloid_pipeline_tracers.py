@@ -109,10 +109,13 @@ MNI_TEMPLATE = os.environ.get(
 #   CENTILOID_SPM_STANDALONE_RUN -> path to the run_spm12.sh script that ships
 #                                   inside the SPM12 standalone download.
 #   CENTILOID_SPM_MCR_DIR        -> path to the MATLAB Runtime folder whose
-#                                   version matches that standalone build
-#                                   (e.g. .../MATLAB_Runtime/R2022b/v912).
-SPM_STANDALONE_RUN = os.environ.get("CENTILOID_SPM_STANDALONE_RUN")
-SPM_MCR_DIR = os.environ.get("CENTILOID_SPM_MCR_DIR")
+#                                   version matches that standalone build.
+#                                   The default below is the MATLAB Runtime
+#                                   installer's own default path on Linux.
+SPM_STANDALONE_RUN = os.environ.get(
+    "CENTILOID_SPM_STANDALONE_RUN", "/opt/spm12_standalone/run_spm12.sh")
+SPM_MCR_DIR = os.environ.get(
+    "CENTILOID_SPM_MCR_DIR", "/usr/local/MATLAB/MATLAB_Runtime/R2022b/v912")
 
 # ---------------------------------------------------------------
 # PER-TRACER AND PER-VOI-METHOD CONFIGURATION (--tracer + --voi_method)

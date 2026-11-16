@@ -26,8 +26,8 @@ this is where to change it in the code:**
 | MATLAB (Centiloid only) | `/opt/MATLAB/R2022b/bin/matlab` | `MATLAB_BIN` in `code/centiloid/centiloid_pipeline_tracers.py` (configuration block), or export `CENTILOID_MATLAB_BIN` |
 | SPM12 (Centiloid only) | `/opt/MATLAB/R2022b/toolbox/spm12` | `SPM12_PATH` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_SPM12_PATH` |
 | MNI template (Centiloid only) | `/opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii` | `MNI_TEMPLATE` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_MNI_TEMPLATE` |
-| SPM12 standalone run script (optional, Centiloid only, no MATLAB needed) | unset | export `CENTILOID_SPM_STANDALONE_RUN` |
-| MATLAB Runtime dir for standalone (optional, Centiloid only) | unset | export `CENTILOID_SPM_MCR_DIR` |
+| SPM12 standalone run script (optional, Centiloid only, no MATLAB needed) | `/opt/spm12_standalone/run_spm12.sh` | export `CENTILOID_SPM_STANDALONE_RUN` |
+| MATLAB Runtime dir for standalone (optional, Centiloid only) | `/usr/local/MATLAB/MATLAB_Runtime/R2022b/v912` | export `CENTILOID_SPM_MCR_DIR` |
 
 Line numbers are for this version of the script; if they've drifted,
 search for the `# ── configuration ──` block near the top of the file
@@ -262,10 +262,11 @@ installed, the third path follows directly from it. No other setup, registration
 needed -- these three paths are everything the script needs to find and drive SPM12 through MATLAB.
 
 **You do not strictly need a MATLAB license.** SPM12 is also distributed as a free *standalone* build
-(compiled SPM12 + MATLAB Runtime) from https://www.fil.ion.ucl.ac.uk/spm/software/spm12/. Install it, then
-set `CENTILOID_SPM_STANDALONE_RUN` (its `run_spm12.sh`) and `CENTILOID_SPM_MCR_DIR` (the matching MATLAB
-Runtime folder). `centiloid_pipeline_tracers.py` auto-detects whichever of this or MATLAB is actually
-installed, so there's nothing else to configure.
+(compiled SPM12 + MATLAB Runtime) from https://www.fil.ion.ucl.ac.uk/spm/software/spm12/.
+`centiloid_pipeline_tracers.py` auto-detects whichever of this or MATLAB is actually installed, using the
+MATLAB Runtime installer's own default Linux path (`/usr/local/MATLAB/MATLAB_Runtime/<version>`). If your
+install lands anywhere else, set `CENTILOID_SPM_STANDALONE_RUN` (its `run_spm12.sh`) and
+`CENTILOID_SPM_MCR_DIR` (the matching MATLAB Runtime folder).
 
 ## Checking everything is installed
 
