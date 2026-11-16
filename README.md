@@ -186,11 +186,10 @@ your subject IDs are alphanumeric (A4-style, e.g. `B10693248`), skip straight to
 [Centiloid for the A4 cohort](#centiloid-for-the-a4-cohort-alphanumeric-ids-already-nifti) below instead --
 `--all` will not find them (it only recognizes 6-digit numeric IDs) and will report "0 subjects".
 
-**Uses the same virtualenv as Tau/FDG, plus a few extra packages.** Unlike `run_public_pipeline.sh`, the
-commands below are plain `python3`, not `$PYTHON` -- make sure you've activated the virtualenv first
-(`source ~/.venv_pet_pipeline/bin/activate`) or call its `python3` directly
-(`~/.venv_pet_pipeline/bin/python3 code/centiloid/...`), and that `pandas`/`scipy`/`matplotlib` are
-installed in it; see [docs/INSTALL.md](docs/INSTALL.md) section 5.
+**Uses the same virtualenv as Tau/FDG, plus a few extra packages** (`pandas`/`scipy`/`matplotlib`) -- see
+[docs/INSTALL.md](docs/INSTALL.md) section 5. You don't need to activate anything: the plain `python3`
+commands below detect that virtualenv themselves and use it automatically, as long as you created it at
+the default path (or exported `PYTHON` to point at a different one).
 
 `code/centiloid/centiloid_pipeline_tracers.py` goes straight from DICOM to SUVR/Centiloid (it does its own
 DICOM-to-NIfTI conversion, so you don't need `dicom_to_nifti.py` for this tracer). Three ways to run it:

@@ -140,37 +140,33 @@ shows up once the full runtime, not just a partial install, is in place).
 ```bash
 python3 -m venv ~/.venv_pet_pipeline
 ~/.venv_pet_pipeline/bin/pip install --upgrade pip
-~/.venv_pet_pipeline/bin/pip install nibabel numpy
-```
-
-`nibabel`/`numpy` are all that `run_public_pipeline.sh` (Tau/FDG) needs — they back a couple of small inline
-Python steps (reading NIfTI headers/frame counts). The region-level CSVs themselves are produced by
-`mri_segstats`, which ships inside the FreeSurfer Docker image, not by these packages.
-
-**Centiloid and the GAAIN validation plot need more.** `code/centiloid/centiloid_pipeline_tracers.py` also
-imports `pandas`, `scipy` and `matplotlib`; `code/gaain_validation/klunk_gaain_validation_plot.py` also
-needs `openpyxl`. If you are going to run Centiloid at all, install everything in the same virtualenv up
-front instead of hitting `ModuleNotFoundError` partway through:
-
-```bash
 ~/.venv_pet_pipeline/bin/pip install nibabel numpy pandas scipy matplotlib openpyxl
 ```
 
-**Using this virtualenv for Centiloid.** `run_public_pipeline.sh` and `check_install.sh` always call this
-venv's own `python3` internally (via the `$PYTHON` variable), so you never have to think about it for
-Tau/FDG. The Centiloid and GAAIN validation commands shown later in this guide and in the README, though,
-are written as plain `python3 ...` — that resolves to whatever `python3` is first on your `PATH`, which may
-not be this virtualenv. Either activate it first:
+Installing everything here in one go, even if you only plan to run Tau/FDG today, avoids a
+`ModuleNotFoundError` later if you end up running Centiloid too. `nibabel`/`numpy` are all that
+`run_public_pipeline.sh` (Tau/FDG) itself needs -- they back a couple of small inline Python steps (reading
+NIfTI headers/frame counts); the region-level CSVs themselves are produced by `mri_segstats`, which ships
+inside the FreeSurfer Docker image. `pandas`/`scipy`/`matplotlib` are for `code/centiloid/centiloid_pipeline_tracers.py`
+and `pandas`-using comparison scripts; `openpyxl` is only for `code/gaain_validation/klunk_gaain_validation_plot.py`.
+
+**You never need to activate this virtualenv or think about which `python3` you're calling.**
+`run_public_pipeline.sh`/`check_install.sh` already call this venv's own `python3` internally (via the
+`$PYTHON` variable), and the scripts meant to be run directly with plain `python3` (`centiloid_pipeline_tracers.py`,
+`klunk_gaain_validation_plot.py`, `compare_bilateral.py`, `compare_with_published.py`) detect it themselves:
+if `~/.venv_pet_pipeline/bin/python3` exists and you did not happen to already run them with it, they
+silently re-launch themselves under it before importing anything. So a plain
 
 ```bash
-source ~/.venv_pet_pipeline/bin/activate
 python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID>
 ```
 
-or call its `python3` directly, without activating anything:
+picks up this virtualenv's packages automatically, as long as you created it at the default path above. If
+you used a different virtualenv path, export `PYTHON` to point at its `python3` and the same auto-detection
+uses that instead:
 
 ```bash
-~/.venv_pet_pipeline/bin/python3 code/centiloid/centiloid_pipeline_tracers.py --test <SUBJECT_ID>
+export PYTHON=/path/to/your/venv/bin/python3
 ```
 
 ## 6. Place your subject data

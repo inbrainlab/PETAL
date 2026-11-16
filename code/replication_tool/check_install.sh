@@ -144,9 +144,6 @@ if [ -f "$PYTHON" ]; then
     else
         warn "openpyxl NOT importable with this python3 -- only needed for the GAAIN validation plot; run: $PYTHON -m pip install openpyxl"
     fi
-    echo "  i  Remember: the Centiloid/GAAIN commands in the README use plain 'python3', which may not be"
-    echo "     this virtualenv -- activate it (source \$(dirname \$(dirname "$PYTHON"))/bin/activate) or call"
-    echo "     "$PYTHON" directly. See docs/INSTALL.md section 5."
 else
     warn "skipped (python3 not found at $PYTHON -- see the Python virtualenv check above)"
 fi

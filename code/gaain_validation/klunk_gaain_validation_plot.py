@@ -19,6 +19,18 @@ Usage:
         --out klunk_gaain_validation.png
 """
 
+# ── auto-use this pipeline's own virtualenv, if present ──────────────────────
+# Lets you run this script with plain "python3" (as shown in the README/docs)
+# and still pick up the packages installed in the pipeline's own virtualenv
+# (~/.venv_pet_pipeline by default, or $PYTHON) without having to activate it
+# yourself. Re-executes once under that interpreter if it exists and we are
+# not already running under it; otherwise falls through unchanged.
+import os as _os
+import sys as _sys
+_venv_python = _os.environ.get("PYTHON") or _os.path.expanduser("~/.venv_pet_pipeline/bin/python3")
+if _os.path.exists(_venv_python) and _os.path.realpath(_sys.executable) != _os.path.realpath(_venv_python):
+    _os.execv(_venv_python, [_venv_python] + _sys.argv)
+
 import argparse
 import csv
 import math
