@@ -169,7 +169,7 @@ if [ -z "${CENTILOID_SPM_STANDALONE_RUN:-}" ]; then
     CENTILOID_SPM_STANDALONE_RUN="$(ls "$PETPIPELINE_BASE"/spm12_standalone/run_spm*.sh 2>/dev/null | sort | tail -n1)"
 fi
 CENTILOID_SPM_STANDALONE_RUN="${CENTILOID_SPM_STANDALONE_RUN:-$PETPIPELINE_BASE/spm12_standalone/run_spm12.sh}"
-# Older MATLAB Runtime installers nest a version-code subfolder (R2022b/v912);
+# Older MATLAB Runtime installers nest a version-code subfolder (R2022b/v913);
 # newer ones (seen on R2026a) install directly into the release folder
 # (R2026a/bin, no v9XX level) -- try the v* pattern first (more specific),
 # then fall back to any release folder that has a bin/ directly inside it.
@@ -179,7 +179,7 @@ fi
 if [ -z "${CENTILOID_SPM_MCR_DIR:-}" ]; then
     CENTILOID_SPM_MCR_DIR="$(ls -d "$PETPIPELINE_BASE"/spm12_standalone/MATLAB_Runtime/R*/bin /usr/local/MATLAB/MATLAB_Runtime/R*/bin 2>/dev/null | sed 's:/bin$::' | sort | tail -n1)"
 fi
-CENTILOID_SPM_MCR_DIR="${CENTILOID_SPM_MCR_DIR:-$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R2022b/v912}"
+CENTILOID_SPM_MCR_DIR="${CENTILOID_SPM_MCR_DIR:-$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R2022b/v913}"
 if [ -f "$CENTILOID_SPM_STANDALONE_RUN" ] && [ -d "$CENTILOID_SPM_MCR_DIR" ]; then
     ok "SPM12 standalone found ($CENTILOID_SPM_STANDALONE_RUN + $CENTILOID_SPM_MCR_DIR) -- no MATLAB license needed, centiloid_pipeline_tracers.py will use this"
 elif [ -f "$CENTILOID_MATLAB_BIN" ] && [ -d "$CENTILOID_SPM12_PATH" ]; then

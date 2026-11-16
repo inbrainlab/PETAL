@@ -27,7 +27,7 @@ this is where to change it in the code:**
 | SPM12 (Centiloid only) | `/opt/MATLAB/R2022b/toolbox/spm12` | `SPM12_PATH` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_SPM12_PATH` |
 | MNI template (Centiloid only) | `/opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii` | `MNI_TEMPLATE` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_MNI_TEMPLATE` |
 | SPM standalone run script (any SPM version, optional, Centiloid only, no MATLAB needed) | `$PETPIPELINE_BASE/spm12_standalone/run_spm*.sh` (auto-detected) | export `CENTILOID_SPM_STANDALONE_RUN` |
-| MATLAB Runtime dir for standalone (optional, Centiloid only) | `$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R2022b/v912` | export `CENTILOID_SPM_MCR_DIR` |
+| MATLAB Runtime dir for standalone (optional, Centiloid only) | `$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R2022b/v913` | export `CENTILOID_SPM_MCR_DIR` |
 
 Line numbers are for this version of the script; if they've drifted,
 search for the `# ── configuration ──` block near the top of the file
@@ -277,7 +277,7 @@ else, set `CENTILOID_SPM_STANDALONE_RUN`/`CENTILOID_SPM_MCR_DIR` (standalone) or
 `CENTILOID_MATLAB_BIN`/`CENTILOID_SPM12_PATH` (regular MATLAB) to override.
 
 The MATLAB Runtime scan handles both installer layouts seen in the wild: older versions nest an extra
-version-code folder (`R2022b/v912`), newer ones (seen on `R2026a`) install directly into the release folder
+version-code folder (`R2022b/v913`), newer ones (seen on `R2026a`) install directly into the release folder
 (`R2026a/bin`, no `v9XX` level) -- either way, point `CENTILOID_SPM_MCR_DIR` at the release folder itself
 (the one containing `bin/`, `toolbox/`, etc.), never at `bin/` or any file inside it.
 
@@ -297,10 +297,10 @@ ls ~/mcr_install_tmp2   # see what the installer actually produced before moving
 
 What you do next depends on what that `ls` showed:
 
-- **If it shows a `v9XX` folder** (older installer, e.g. `v912` for R2022b):
+- **If it shows a `v9XX` folder** (older installer, e.g. `v913` for R2022b):
   ```bash
   mkdir -p ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b   # create the final, release-named destination folder (match your actual release, not necessarily R2022b)
-  mv ~/mcr_install_tmp2/v912 ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b/v912   # move the installer's own version subfolder into place (match whatever your download actually produced)
+  mv ~/mcr_install_tmp2/v913 ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b/v913   # move the installer's own version subfolder into place (match whatever your download actually produced)
   rmdir ~/mcr_install_tmp2
   ```
 - **If it shows `bin/`, `toolbox/`, etc. directly** (newer installer, e.g. R2026a):
