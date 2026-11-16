@@ -131,11 +131,16 @@ MNI_TEMPLATE = os.environ.get(
 # ($PETPIPELINE_BASE), not under /opt or another system-wide, sudo-only
 # location -- easier to set up, and consistent with the MCR used for
 # FreeSurfer's segmentBS.sh.
-#   CENTILOID_SPM_STANDALONE_RUN -> path to the run_spm12.sh script that ships
-#                                   inside the SPM12 standalone download (no
-#                                   version folder in its name, so no
-#                                   version-scan is possible here -- set it
-#                                   explicitly if you installed it elsewhere).
+#   CENTILOID_SPM_STANDALONE_RUN -> path to the run_spmXX.sh script that ships
+#                                   inside the SPM standalone download. Any
+#                                   SPM version works (SPM12, SPM25, SPM26,
+#                                   ...) -- the launcher script is named
+#                                   after its own version (run_spm12.sh,
+#                                   run_spm25.sh, run_spm26.sh, ...), never
+#                                   just "run_spm12.sh" regardless of which
+#                                   SPM you actually downloaded, so this
+#                                   glob-matches run_spm*.sh instead of
+#                                   hardcoding one literal filename.
 #   CENTILOID_SPM_MCR_DIR        -> path to the MATLAB Runtime folder whose
 #                                   version matches that standalone build.
 #                                   Scans every version under both
@@ -150,8 +155,9 @@ MNI_TEMPLATE = os.environ.get(
 #                                   v* level is tried first since it is the
 #                                   more specific match.
 SPM_STANDALONE_RUN = os.environ.get(
-    "CENTILOID_SPM_STANDALONE_RUN",
-    os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "run_spm12.sh"))
+    "CENTILOID_SPM_STANDALONE_RUN") or _newest_glob_match(
+    os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "run_spm*.sh"),
+) or os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "run_spm12.sh")
 SPM_MCR_DIR = os.environ.get("CENTILOID_SPM_MCR_DIR") or _newest_glob_match(
     os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "MATLAB_Runtime", "R*", "v*"),
     "/usr/local/MATLAB/MATLAB_Runtime/R*/v*",

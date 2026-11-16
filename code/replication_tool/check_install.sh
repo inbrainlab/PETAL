@@ -159,9 +159,15 @@ if [ -z "${CENTILOID_MATLAB_BIN:-}" ]; then
 fi
 CENTILOID_MATLAB_BIN="${CENTILOID_MATLAB_BIN:-/opt/MATLAB/R2022b/bin/matlab}"
 CENTILOID_SPM12_PATH="${CENTILOID_SPM12_PATH:-$(dirname "$(dirname "$CENTILOID_MATLAB_BIN")")/toolbox/spm12}"
-# SPM12 standalone + MATLAB Runtime: same convention as MCR_DIR above --
+# SPM standalone + MATLAB Runtime: same convention as MCR_DIR above --
 # self-contained inside $PETPIPELINE_BASE, not under /opt or another
-# system-wide, sudo-only location.
+# system-wide, sudo-only location. Any SPM version works (SPM12, SPM25,
+# SPM26, ...); the launcher script is named after its own version
+# (run_spm12.sh, run_spm25.sh, run_spm26.sh, ...), so this globs for
+# run_spm*.sh instead of hardcoding one literal filename.
+if [ -z "${CENTILOID_SPM_STANDALONE_RUN:-}" ]; then
+    CENTILOID_SPM_STANDALONE_RUN="$(ls "$PETPIPELINE_BASE"/spm12_standalone/run_spm*.sh 2>/dev/null | sort | tail -n1)"
+fi
 CENTILOID_SPM_STANDALONE_RUN="${CENTILOID_SPM_STANDALONE_RUN:-$PETPIPELINE_BASE/spm12_standalone/run_spm12.sh}"
 # Older MATLAB Runtime installers nest a version-code subfolder (R2022b/v912);
 # newer ones (seen on R2026a) install directly into the release folder
