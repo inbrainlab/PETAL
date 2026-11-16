@@ -259,9 +259,18 @@ A4_DATA_DIR=<folder from the layout below> A4_OUT_DIR=<where results should go> 
 
 `run_all_A4_florbetapir.sh` passes `--skip_dcm2niix --input_dir "$A4_DATA_DIR"`, so
 `centiloid_pipeline_tracers.py` does not look for DICOM or `base_dir` at all for these subjects -- it reads
-the T1 and PET directly from each subject's own folder under `A4_DATA_DIR`, and both must already be NIfTI
-with these exact names (the PET already summed if it had multiple frames -- not split into separate frame
-files):
+the T1 and PET directly from each subject's own folder under `A4_DATA_DIR` (the PET already summed if it
+had multiple frames -- not split into separate frame files).
+
+**The files must be renamed to exactly `<SUBJECT_ID>_t1.nii` and `<SUBJECT_ID>_pet.nii` -- the original
+filenames from an A4/ADNI download (e.g. `A4_B10693248_MR_T1__GradWarp_DeFaced_Br_..._I1363261.nii`) will
+not be found and the run will fail with "T1 not found".** Rename them yourself before running:
+
+```bash
+cd <A4_DATA_DIR>/<SUBJECT_ID>
+mv *MR_T1*.nii <SUBJECT_ID>_t1.nii
+mv *Florbetapir*.nii <SUBJECT_ID>_pet.nii
+```
 
 ```
 <A4_DATA_DIR>/
