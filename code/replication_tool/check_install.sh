@@ -163,8 +163,15 @@ CENTILOID_SPM12_PATH="${CENTILOID_SPM12_PATH:-$(dirname "$(dirname "$CENTILOID_M
 # self-contained inside $PETPIPELINE_BASE, not under /opt or another
 # system-wide, sudo-only location.
 CENTILOID_SPM_STANDALONE_RUN="${CENTILOID_SPM_STANDALONE_RUN:-$PETPIPELINE_BASE/spm12_standalone/run_spm12.sh}"
+# Older MATLAB Runtime installers nest a version-code subfolder (R2022b/v912);
+# newer ones (seen on R2026a) install directly into the release folder
+# (R2026a/bin, no v9XX level) -- try the v* pattern first (more specific),
+# then fall back to any release folder that has a bin/ directly inside it.
 if [ -z "${CENTILOID_SPM_MCR_DIR:-}" ]; then
     CENTILOID_SPM_MCR_DIR="$(ls -d "$PETPIPELINE_BASE"/spm12_standalone/MATLAB_Runtime/R*/v* /usr/local/MATLAB/MATLAB_Runtime/R*/v* 2>/dev/null | sort | tail -n1)"
+fi
+if [ -z "${CENTILOID_SPM_MCR_DIR:-}" ]; then
+    CENTILOID_SPM_MCR_DIR="$(ls -d "$PETPIPELINE_BASE"/spm12_standalone/MATLAB_Runtime/R*/bin /usr/local/MATLAB/MATLAB_Runtime/R*/bin 2>/dev/null | sed 's:/bin$::' | sort | tail -n1)"
 fi
 CENTILOID_SPM_MCR_DIR="${CENTILOID_SPM_MCR_DIR:-$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R2022b/v912}"
 if [ -f "$CENTILOID_SPM_STANDALONE_RUN" ] && [ -d "$CENTILOID_SPM_MCR_DIR" ]; then

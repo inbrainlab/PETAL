@@ -271,6 +271,11 @@ as `MCRv97` in section 4, no `sudo`/`/opt` install needed. If your install lives
 `CENTILOID_SPM_STANDALONE_RUN`/`CENTILOID_SPM_MCR_DIR` (standalone) or
 `CENTILOID_MATLAB_BIN`/`CENTILOID_SPM12_PATH` (regular MATLAB) to override.
 
+The MATLAB Runtime scan handles both installer layouts seen in the wild: older versions nest an extra
+version-code folder (`R2022b/v912`), newer ones (seen on `R2026a`) install directly into the release folder
+(`R2026a/bin`, no `v9XX` level) -- either way, point `CENTILOID_SPM_MCR_DIR` at the release folder itself
+(the one containing `bin/`, `toolbox/`, etc.), never at `bin/` or any file inside it.
+
 Download the SPM12 standalone zip for Linux from the page above (it bundles a `runtime_installer/` folder
 with the matching MATLAB Runtime, so you don't need a separate MathWorks download for this path). Same
 installer quirk as section 4 applies to the Runtime half: it always creates its own version-named subfolder,

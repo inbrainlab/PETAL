@@ -141,13 +141,27 @@ MNI_TEMPLATE = os.environ.get(
 #                                   Scans every version under both
 #                                   $PETPIPELINE_BASE/spm12_standalone and the
 #                                   MATLAB Runtime installer's own default
-#                                   Linux path.
+#                                   Linux path. Older MATLAB Runtime
+#                                   installers nest an extra version-code
+#                                   folder (R2022b/v912); newer ones (seen on
+#                                   R2026a) install directly into the release
+#                                   folder (R2026a/bin, no v9XX level) -- both
+#                                   patterns are scanned, and the one WITH the
+#                                   v* level is tried first since it is the
+#                                   more specific match.
 SPM_STANDALONE_RUN = os.environ.get(
     "CENTILOID_SPM_STANDALONE_RUN",
     os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "run_spm12.sh"))
 SPM_MCR_DIR = os.environ.get("CENTILOID_SPM_MCR_DIR") or _newest_glob_match(
     os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "MATLAB_Runtime", "R*", "v*"),
     "/usr/local/MATLAB/MATLAB_Runtime/R*/v*",
+) or _newest_glob_match(
+    # newer MATLAB Runtime installers skip the v9XX subfolder -- only match a
+    # release folder that actually has a bin/ inside it, but return the
+    # release folder itself (not .../bin) since that is what run_spm12.sh needs
+    *[os.path.dirname(p) for p in glob.glob(
+        os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "MATLAB_Runtime", "R*", "bin")) +
+        glob.glob("/usr/local/MATLAB/MATLAB_Runtime/R*/bin")]
 ) or os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "MATLAB_Runtime", "R2022b", "v912")
 
 # ---------------------------------------------------------------
