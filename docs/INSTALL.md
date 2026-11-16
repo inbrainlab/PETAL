@@ -261,20 +261,29 @@ export CENTILOID_MNI_TEMPLATE=/path/to/spm12/canonical/avg152T1.nii
 installed, the third path follows directly from it. No other setup, registration or configuration is
 needed -- these three paths are everything the script needs to find and drive SPM12 through MATLAB.
 
-**You do not strictly need a MATLAB license.** SPM is also distributed as a free *standalone* build
-(compiled SPM + MATLAB Runtime) from https://www.fil.ion.ucl.ac.uk/spm/. Any SPM version works for this
-pipeline (SPM12, SPM25, SPM26, ...) -- tested and confirmed working with more than one. The standalone
-download's launcher script is named after its own version (`run_spm12.sh`, `run_spm25.sh`, `run_spm26.sh`,
-...), never just `run_spm12.sh` regardless of what you downloaded, so don't go looking for that exact
-filename -- `centiloid_pipeline_tracers.py`/`check_install.sh` glob for whatever `run_spm*.sh` is actually
-there. `centiloid_pipeline_tracers.py` auto-detects whichever of standalone or MATLAB is actually installed.
-For a regular MATLAB install, it scans every version folder under the usual system locations (e.g. several
-MATLAB versions side by side) and picks the newest one, so you don't need to match an exact version.
-Standalone is expected self-contained inside `$PETPIPELINE_BASE/spm12_standalone` instead -- same convention
-as `MCRv97` in section 4, no `sudo`/`/opt` install needed (the folder is still called `spm12_standalone` for
-historical reasons; any SPM version's standalone download goes there). If your install lives somewhere
-else, set `CENTILOID_SPM_STANDALONE_RUN`/`CENTILOID_SPM_MCR_DIR` (standalone) or
+**You do not strictly need a MATLAB license.** SPM12 is also distributed as a free *standalone* build
+(compiled SPM12 + MATLAB Runtime). Download it from:
+
+```
+https://www.fil.ion.ucl.ac.uk/spm/download/restricted/utopia/spm12/
+```
+
+`centiloid_pipeline_tracers.py` auto-detects whichever of standalone or MATLAB is actually installed. For a
+regular MATLAB install, it scans every version folder under the usual system locations (e.g. several MATLAB
+versions side by side) and picks the newest one, so you don't need to match an exact version. Standalone is
+expected self-contained inside `$PETPIPELINE_BASE/spm12_standalone` instead -- same convention as `MCRv97`
+in section 4, no `sudo`/`/opt` install needed. If your install lives somewhere else, set
+`CENTILOID_SPM_STANDALONE_RUN`/`CENTILOID_SPM_MCR_DIR` (standalone) or
 `CENTILOID_MATLAB_BIN`/`CENTILOID_SPM12_PATH` (regular MATLAB) to override.
+
+**Using a different SPM version (SPM25, SPM26, ...).** This pipeline has also been tested and confirmed
+working with newer SPM releases, not just SPM12 -- use the standalone download from
+https://www.fil.ion.ucl.ac.uk/spm/ for whichever version you prefer instead of the SPM12 link above, and
+everything below still applies as-is: the standalone launcher script is named after its own version
+(`run_spm12.sh`, `run_spm25.sh`, `run_spm26.sh`, ...), never just `run_spm12.sh` regardless of what you
+downloaded, so don't go looking for that exact filename -- `centiloid_pipeline_tracers.py`/`check_install.sh`
+glob for whatever `run_spm*.sh` is actually there and pick it up automatically. The folder is still called
+`spm12_standalone` for historical reasons; any SPM version's standalone download goes there.
 
 The MATLAB Runtime scan handles both installer layouts seen in the wild: older versions nest an extra
 version-code folder (`R2022b/v913`), newer ones (seen on `R2026a`) install directly into the release folder
