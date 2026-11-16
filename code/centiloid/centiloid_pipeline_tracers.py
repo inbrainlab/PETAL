@@ -101,10 +101,11 @@ MNI_TEMPLATE = os.environ.get(
     "/opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii")
 
 # Optional: run SPM12 *standalone* (the free, compiled SPM12 + MATLAB Runtime
-# bundle) instead of a real, licensed MATLAB install. Set BOTH variables to
-# switch run_spm() over to this path; leave them unset to keep using MATLAB_BIN
-# above. See docs/INSTALL.md section 8 for how to install this and an
-# important caveat: this path has not been tested end-to-end in this repo.
+# bundle) instead of a real, licensed MATLAB install -- no need to choose one
+# or the other by hand: run_spm() below auto-detects which is actually
+# installed. If CENTILOID_SPM_STANDALONE_RUN/CENTILOID_SPM_MCR_DIR point at
+# real, existing paths, that one is used; otherwise it falls back to
+# MATLAB_BIN above. See docs/INSTALL.md section 8.
 #   CENTILOID_SPM_STANDALONE_RUN -> path to the run_spm12.sh script that ships
 #                                   inside the SPM12 standalone download.
 #   CENTILOID_SPM_MCR_DIR        -> path to the MATLAB Runtime folder whose
@@ -859,19 +860,33 @@ exit;
 
 
 def run_spm(batch_m):
-    """Run the SPM batch, either via a real MATLAB + SPM12 install (default)
-    or via SPM12 standalone + MATLAB Runtime when CENTILOID_SPM_STANDALONE_RUN
-    and CENTILOID_SPM_MCR_DIR are both set (no MATLAB license needed for that
-    path -- see docs/INSTALL.md section 8). batch_m already ends with its own
-    exit/spm_jobman('run', ...) call, which matches both invocation styles:
-    MATLAB's -r runs it as a script, and SPM12 standalone's "batch" subcommand
-    accepts a self-contained .m script the same way."""
-    if SPM_STANDALONE_RUN and SPM_MCR_DIR:
+    """Run the SPM batch, auto-detecting whether to go through SPM12
+    standalone + MATLAB Runtime (no MATLAB license needed) or a real MATLAB +
+    SPM12 install -- whichever is actually present on this machine, no manual
+    choice needed (see docs/INSTALL.md section 8). batch_m already ends with
+    its own exit/spm_jobman('run', ...) call, which matches both invocation
+    styles: MATLAB's -r runs it as a script, and SPM12 standalone's "batch"
+    subcommand accepts a self-contained .m script the same way."""
+    standalone_ready = bool(
+        SPM_STANDALONE_RUN and SPM_MCR_DIR
+        and os.path.exists(SPM_STANDALONE_RUN)
+        and os.path.isdir(SPM_MCR_DIR)
+    )
+    if standalone_ready:
         run(
             [SPM_STANDALONE_RUN, SPM_MCR_DIR, "batch", batch_m],
             "SPM12 standalone (no MATLAB license)"
         )
         return
+
+    if not os.path.exists(MATLAB_BIN):
+        sys.exit(
+            "ERROR: neither SPM12 standalone nor MATLAB were found.\n"
+            f"  Standalone: CENTILOID_SPM_STANDALONE_RUN={SPM_STANDALONE_RUN!r}, "
+            f"CENTILOID_SPM_MCR_DIR={SPM_MCR_DIR!r}\n"
+            f"  MATLAB:     CENTILOID_MATLAB_BIN={MATLAB_BIN!r} (does not exist)\n"
+            "Install one of the two and set its path(s) -- see docs/INSTALL.md section 8."
+        )
 
     matlab_cmd = (
         f"addpath('{SPM12_PATH}'); "

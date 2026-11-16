@@ -273,17 +273,19 @@ license, this is the route to use instead:
    a `run_spm12.sh` script (or `.bat` on Windows).
 2. Download and install the specific version of the MATLAB Runtime that the standalone build says it needs
    (the version has to match exactly -- the standalone page links directly to the right Runtime installer).
-3. Point the pipeline at both, instead of at `CENTILOID_MATLAB_BIN`/`CENTILOID_SPM12_PATH`:
+3. Point the pipeline at both:
 
    ```bash
    export CENTILOID_SPM_STANDALONE_RUN=/path/to/spm12_standalone/run_spm12.sh
    export CENTILOID_SPM_MCR_DIR=/path/to/MATLAB_Runtime/R2022b/v912
    ```
 
-   When both of these are set, `centiloid_pipeline_tracers.py` calls `run_spm12.sh <MCR_dir> batch
-   <jobfile>` instead of a licensed `matlab` binary, and `CENTILOID_MATLAB_BIN`/`CENTILOID_SPM12_PATH` are
-   then ignored. `CENTILOID_MNI_TEMPLATE` is unaffected either way -- it is just a file path the script
-   reads directly, not something passed to MATLAB/SPM, so keep setting it (or its default) as usual.
+   You don't need to choose between this and MATLAB -- `centiloid_pipeline_tracers.py` auto-detects
+   whichever one is actually installed. If these two paths exist, it calls `run_spm12.sh <MCR_dir> batch
+   <jobfile>` through them; otherwise it falls back to `CENTILOID_MATLAB_BIN`/`CENTILOID_SPM12_PATH`. So
+   having both set up at once (e.g. during a transition) is fine -- standalone simply takes priority.
+   `CENTILOID_MNI_TEMPLATE` is unaffected either way -- it is just a file path the script reads directly,
+   not something passed to MATLAB/SPM, so keep setting it (or its default) as usual.
 
 Note SPM12 standalone only ships SPM's built-in toolboxes (Old Segment, Normalise, Coregister -- all of
 which this pipeline already uses) -- it cannot run contributed/third-party SPM toolboxes without a full
