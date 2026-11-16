@@ -294,10 +294,10 @@ license, this is the route to use instead:
    then ignored. `CENTILOID_MNI_TEMPLATE` is unaffected either way -- it is just a file path the script
    reads directly, not something passed to MATLAB/SPM, so keep setting it (or its default) as usual.
 
-This path has been tested and works. Also note SPM12 standalone only ships SPM's built-in toolboxes (Old
-Segment, Normalise, Coregister -- all of which this pipeline already uses) -- it cannot run
-contributed/third-party SPM toolboxes without a full MATLAB-based recompile, so if this pipeline's SPM usage
-ever grows beyond that, this standalone route may stop being an option.
+Note SPM12 standalone only ships SPM's built-in toolboxes (Old Segment, Normalise, Coregister -- all of
+which this pipeline already uses) -- it cannot run contributed/third-party SPM toolboxes without a full
+MATLAB-based recompile, so if this pipeline's SPM usage ever grows beyond that, this standalone route may
+stop being an option.
 
 ## Checking everything is installed
 
