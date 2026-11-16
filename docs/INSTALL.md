@@ -288,20 +288,31 @@ creates its own version-named subfolder, so install it into a temporary folder f
 subfolder into place:
 
 ```bash
-cd ~/Downloads   # go to where you downloaded the SPM12 standalone zip
+cd ~/Downloads   # go to where you downloaded the standalone zip (any SPM version)
 unzip spm*_Standalone_Linux.zip -d ~/Downloads/pet_pipeline/spm12_standalone   # extracts run_spm*.sh and runtime_installer/ directly into place (exact zip name depends on your SPM version)
 cd ~/Downloads/pet_pipeline/spm12_standalone/runtime_installer   # go to the bundled MATLAB Runtime installer
 ./install -mode silent -agreeToLicense yes -destinationFolder ~/mcr_install_tmp2   # run it into a temporary folder, never straight into the final MATLAB_Runtime path
-mkdir -p ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b   # create the final, version-named destination folder
-mv ~/mcr_install_tmp2/v912 ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b/v912   # move the installer's own version subfolder (v912 for R2022b -- match whatever your download says) into place
-rmdir ~/mcr_install_tmp2   # remove the now-empty temporary folder
+ls ~/mcr_install_tmp2   # see what the installer actually produced before moving anything -- older installers create a nested v9XX folder (e.g. v912), newer ones (seen with R2026a) install the release files directly with no such subfolder
 ```
 
+What you do next depends on what that `ls` showed:
+
+- **If it shows a `v9XX` folder** (older installer, e.g. `v912` for R2022b):
+  ```bash
+  mkdir -p ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b   # create the final, release-named destination folder (match your actual release, not necessarily R2022b)
+  mv ~/mcr_install_tmp2/v912 ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b/v912   # move the installer's own version subfolder into place (match whatever your download actually produced)
+  rmdir ~/mcr_install_tmp2
+  ```
+- **If it shows `bin/`, `toolbox/`, etc. directly** (newer installer, e.g. R2026a):
+  ```bash
+  mkdir -p ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime   # create the parent folder only
+  mv ~/mcr_install_tmp2 ~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2026a   # move+rename the whole thing directly to the release name (match your actual release)
+  ```
+
 Confirm `run_spm*.sh` landed directly at `~/Downloads/pet_pipeline/spm12_standalone/run_spm*.sh` (not one
-folder deeper -- whatever `run_spm*.sh` is actually called for your version) and that the Runtime landed at
-`~/Downloads/pet_pipeline/spm12_standalone/MATLAB_Runtime/R2022b/v912/bin/glnxa64/` before relying on this
-path -- the exact folder/version names depend on the file you downloaded, so adjust the commands above to
-match.
+folder deeper -- whatever `run_spm*.sh` is actually called for your version) and that the Runtime's `bin/`
+folder landed either at `.../MATLAB_Runtime/<release>/v9XX/bin/` or `.../MATLAB_Runtime/<release>/bin/`
+(whichever case applied above) before relying on this path.
 
 ## Checking everything is installed
 
