@@ -90,32 +90,56 @@ VOI_DIR    = os.path.join(BASE_DIR, "VOIs_2mm")        # Avid VOIs (default)
 VOI_DIR_KLUNK = os.path.join(BASE_DIR, "VOIs_klunk")    # Standard Centiloid VOIs
 OUT_DIR    = os.path.join(BASE_DIR, "results")
 
-# SPM is run through a regular MATLAB installation (MATLAB + SPM12),
-# invoked with -r by run_spm() below.
-MATLAB_BIN = os.environ.get(
-    "CENTILOID_MATLAB_BIN", "/opt/MATLAB/R2022b/bin/matlab")
-SPM12_PATH = os.environ.get(
-    "CENTILOID_SPM12_PATH", "/opt/MATLAB/R2022b/toolbox/spm12")
-MNI_TEMPLATE = os.environ.get(
-    "CENTILOID_MNI_TEMPLATE",
-    "/opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii")
+# SPM is run through either a regular MATLAB installation (MATLAB + SPM12) or
+# SPM12 standalone + MATLAB Runtime -- see run_spm() below, which auto-detects
+# whichever is actually present, no manual choice needed (docs/INSTALL.md
+# section 8). Both auto-detections below scan every MATLAB/MATLAB Runtime
+# *version* folder they can find (R2022b, R2023a, ...), since a given
+# machine's installed version is not something this repo can assume --
+# an explicit env var always wins over whatever auto-detection finds.
 
-# Optional: run SPM12 *standalone* (the free, compiled SPM12 + MATLAB Runtime
-# bundle) instead of a real, licensed MATLAB install -- no need to choose one
-# or the other by hand: run_spm() below auto-detects which is actually
-# installed. If CENTILOID_SPM_STANDALONE_RUN/CENTILOID_SPM_MCR_DIR point at
-# real, existing paths, that one is used; otherwise it falls back to
-# MATLAB_BIN above. See docs/INSTALL.md section 8.
+def _newest_glob_match(*patterns):
+    """Return the lexicographically-last path matching any of these glob
+    patterns (release names like R2022b/R2023a sort correctly this way), or
+    None if nothing matches. Used so a machine with several MATLAB/MATLAB
+    Runtime versions installed picks the newest one automatically."""
+    matches = []
+    for pattern in patterns:
+        matches.extend(glob.glob(pattern))
+    return sorted(matches)[-1] if matches else None
+
+
+# MATLAB + SPM12 (regular, licensed install). Scans every version under the
+# two common Linux/macOS install roots instead of assuming one exact version.
+MATLAB_BIN = os.environ.get("CENTILOID_MATLAB_BIN") or _newest_glob_match(
+    "/opt/MATLAB/R*/bin/matlab",
+    "/usr/local/MATLAB/R*/bin/matlab",
+) or "/opt/MATLAB/R2022b/bin/matlab"
+
+# SPM12_PATH/MNI_TEMPLATE live under that same MATLAB installation's own
+# toolbox/ folder, so they are derived from MATLAB_BIN's own version by
+# default rather than hardcoding a version a second time.
+_matlab_root = os.path.dirname(os.path.dirname(MATLAB_BIN))  # strip "/bin/matlab"
+SPM12_PATH = os.environ.get(
+    "CENTILOID_SPM12_PATH", os.path.join(_matlab_root, "toolbox", "spm12"))
+MNI_TEMPLATE = os.environ.get(
+    "CENTILOID_MNI_TEMPLATE", os.path.join(SPM12_PATH, "canonical", "avg152T1.nii"))
+
+# SPM12 standalone + MATLAB Runtime (free, no MATLAB license needed).
 #   CENTILOID_SPM_STANDALONE_RUN -> path to the run_spm12.sh script that ships
-#                                   inside the SPM12 standalone download.
+#                                   inside the SPM12 standalone download (no
+#                                   fixed install location, so no version-scan
+#                                   is possible here -- set it explicitly if
+#                                   you installed this).
 #   CENTILOID_SPM_MCR_DIR        -> path to the MATLAB Runtime folder whose
 #                                   version matches that standalone build.
-#                                   The default below is the MATLAB Runtime
-#                                   installer's own default path on Linux.
+#                                   Scans every version under the MATLAB
+#                                   Runtime installer's own default Linux path.
 SPM_STANDALONE_RUN = os.environ.get(
     "CENTILOID_SPM_STANDALONE_RUN", "/opt/spm12_standalone/run_spm12.sh")
-SPM_MCR_DIR = os.environ.get(
-    "CENTILOID_SPM_MCR_DIR", "/usr/local/MATLAB/MATLAB_Runtime/R2022b/v912")
+SPM_MCR_DIR = os.environ.get("CENTILOID_SPM_MCR_DIR") or _newest_glob_match(
+    "/usr/local/MATLAB/MATLAB_Runtime/R*/v*",
+) or "/usr/local/MATLAB/MATLAB_Runtime/R2022b/v912"
 
 # ---------------------------------------------------------------
 # PER-TRACER AND PER-VOI-METHOD CONFIGURATION (--tracer + --voi_method)

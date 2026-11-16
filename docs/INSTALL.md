@@ -263,10 +263,12 @@ needed -- these three paths are everything the script needs to find and drive SP
 
 **You do not strictly need a MATLAB license.** SPM12 is also distributed as a free *standalone* build
 (compiled SPM12 + MATLAB Runtime) from https://www.fil.ion.ucl.ac.uk/spm/software/spm12/.
-`centiloid_pipeline_tracers.py` auto-detects whichever of this or MATLAB is actually installed, using the
-MATLAB Runtime installer's own default Linux path (`/usr/local/MATLAB/MATLAB_Runtime/<version>`). If your
-install lands anywhere else, set `CENTILOID_SPM_STANDALONE_RUN` (its `run_spm12.sh`) and
-`CENTILOID_SPM_MCR_DIR` (the matching MATLAB Runtime folder).
+`centiloid_pipeline_tracers.py` auto-detects whichever of this or MATLAB is actually installed -- for both,
+it scans every version folder under the usual install locations (e.g. several MATLAB or MATLAB Runtime
+versions side by side) and picks the newest one, so you don't need to match an exact version. If your
+install lands somewhere non-standard, set `CENTILOID_SPM_STANDALONE_RUN` (its `run_spm12.sh`) and
+`CENTILOID_SPM_MCR_DIR` (the matching MATLAB Runtime folder) -- or `CENTILOID_MATLAB_BIN`/`CENTILOID_SPM12_PATH`
+for a regular MATLAB install -- to skip the scan entirely.
 
 ## Checking everything is installed
 

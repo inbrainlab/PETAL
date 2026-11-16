@@ -150,9 +150,19 @@ fi
 
 # 5c. Centiloid: MATLAB+SPM12 or SPM12 standalone (optional, only for code/centiloid)
 echo ""; echo "-- Centiloid: MATLAB+SPM12 or SPM12 standalone (optional, only for code/centiloid)"
+# Same version-scan as centiloid_pipeline_tracers.py: don't assume one exact
+# MATLAB/MATLAB Runtime version, pick the newest one actually installed
+# (ls -d sorts release names like R2022b/R2023a correctly; 2>/dev/null
+# silences "no match" when nothing is installed yet).
+if [ -z "${CENTILOID_MATLAB_BIN:-}" ]; then
+    CENTILOID_MATLAB_BIN="$(ls -d /opt/MATLAB/R*/bin/matlab /usr/local/MATLAB/R*/bin/matlab 2>/dev/null | sort | tail -n1)"
+fi
 CENTILOID_MATLAB_BIN="${CENTILOID_MATLAB_BIN:-/opt/MATLAB/R2022b/bin/matlab}"
-CENTILOID_SPM12_PATH="${CENTILOID_SPM12_PATH:-/opt/MATLAB/R2022b/toolbox/spm12}"
+CENTILOID_SPM12_PATH="${CENTILOID_SPM12_PATH:-$(dirname "$(dirname "$CENTILOID_MATLAB_BIN")")/toolbox/spm12}"
 CENTILOID_SPM_STANDALONE_RUN="${CENTILOID_SPM_STANDALONE_RUN:-/opt/spm12_standalone/run_spm12.sh}"
+if [ -z "${CENTILOID_SPM_MCR_DIR:-}" ]; then
+    CENTILOID_SPM_MCR_DIR="$(ls -d /usr/local/MATLAB/MATLAB_Runtime/R*/v* 2>/dev/null | sort | tail -n1)"
+fi
 CENTILOID_SPM_MCR_DIR="${CENTILOID_SPM_MCR_DIR:-/usr/local/MATLAB/MATLAB_Runtime/R2022b/v912}"
 if [ -f "$CENTILOID_SPM_STANDALONE_RUN" ] && [ -d "$CENTILOID_SPM_MCR_DIR" ]; then
     ok "SPM12 standalone found ($CENTILOID_SPM_STANDALONE_RUN + $CENTILOID_SPM_MCR_DIR) -- no MATLAB license needed, centiloid_pipeline_tracers.py will use this"
