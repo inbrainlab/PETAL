@@ -260,7 +260,7 @@ it is just:
 bash code/centiloid/run_all_A4_florbetapir.sh
 
 # one subject only, to try it out or debug
-bash code/centiloid/run_all_A4_florbetapir.sh B10693248
+bash code/centiloid/run_all_A4_florbetapir.sh B99999999
 ```
 
 Only set `A4_DATA_DIR`/`A4_OUT_DIR` yourself if you want your data somewhere other than the defaults:
