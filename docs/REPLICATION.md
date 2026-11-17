@@ -75,25 +75,27 @@ Re-running the same command later continues where it left off instead of redoing
 ## Compare with the published values
 
 If `PUBLIC_PACKAGE` (this folder, or the `resolved` folder if your data is a coded release), `FS_LUT`
-(`FreeSurferColorLUT.txt`) and `FSROI_LIST` (`fsroi_list_FTP.csv` for Tau; FDG uses
-`data/fsroi_list_FDG.csv`) are defined, the pipeline script does this at the end. You can also run it
+(`FreeSurferColorLUT.txt`) and `FSROI_LIST` (`data/rois_ftp.csv` for Tau; FDG uses
+`data/rois_fdg.csv`) are defined, the pipeline script does this at the end. You can also run it
 yourself:
 
 ```bash
 python3 code/replication_tool/evaluate_subject.py --type tau --package . \
     --output_dir <PETPIPELINE_BASE>/output --subject <ID> \
-    --fsroi-list fsroi_list_FTP.csv --lut FreeSurferColorLUT.txt
+    --fsroi-list data/rois_ftp.csv --lut FreeSurferColorLUT.txt
 ```
 
 `--output_dir` is the folder containing `<subject>/output.csv` (Tau) or `<subject>/output_fdg.csv` +
 `output_brainstem_fdg.csv` (FDG) -- the same folder `run_public_pipeline.sh` writes into. It defaults to
 `PETPIPELINE_BASE/output`, so it can be omitted if you used that default.
 
-`--type fdg` works the same way with `--fsroi-list data/fsroi_list_FDG.csv`; `--type centiloid` takes
+`--type fdg` works the same way with `--fsroi-list data/rois_fdg.csv`; `--type centiloid` takes
 `--results <CSV written by centiloid_pipeline_tracers.py>`. If the subject is in `data/`, your values are
 compared with the published ones; if it is not, only your own output is returned and nothing is compared.
-Use `--all` for every subject with output. `fsroi_list_FTP.csv` (Tau) must be obtained from its original
-source. `FreeSurferColorLUT.txt` is not distributed either, but it ships inside the FreeSurfer Docker
+Use `--all` for every subject with output. Both ROI lists (`data/rois_ftp.csv` for Tau,
+`data/rois_fdg.csv` for FDG) are shipped in `data/` and can be rebuilt from
+`FreeSurferColorLUT.txt` with `code/replication_tool/make_roi_lists.py`.
+`FreeSurferColorLUT.txt` is not distributed, but it ships inside the FreeSurfer Docker
 image already required above; copy it out once:
 
 ```bash
@@ -118,7 +120,7 @@ Besides the composites, `evaluate_subject.py` writes the SUVR of every bilateral
 |---|---|
 | `values_tau_bilateral.csv` | Tau without PVC: 44 regions, hemispheres averaged weighted by volume (mm³); reference = whole cerebellar cortex |
 | `values_tau_bilateral_pvc.csv` | Tau with PVC (`mri_gtmpvc`, values already rescaled to the cerebellar cortex): same 44 regions, weighted by number of voxels. Written only if `gtm.stats.dat` exists |
-| `values_fdg_bilateral.csv` | FDG without PVC: bilateral regions of `data/fsroi_list_FDG.csv`, weighted by volume (mm³); reference = pons |
+| `values_fdg_bilateral.csv` | FDG without PVC: bilateral regions of `data/rois_fdg.csv`, weighted by volume (mm³); reference = pons |
 
 Columns: `subject, region, suvr, nvoxels, volume_mm3` (empty for PVC). A region is reported only when both
 hemispheres are present in your segmentation. The published counterparts are

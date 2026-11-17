@@ -14,7 +14,7 @@ Key differences with respect to the Tau/A4 comparison:
   - OUR output_fdg.csv holds RAW (non-normalized) intensity, so it is
     divided by the Mean of the 'Pons' row of output_brainstem_fdg.csv.
   - There is no PVC step for FDG.
-  - Bilateral regions are built FROM the LEADS fsroi_list_FDG.csv (source of
+  - Bilateral regions are built FROM the LEADS rois_fdg.csv (source of
     truth), not hardcoded, to avoid assuming region names that may not match
     the FreeSurfer version in use.
 
@@ -27,7 +27,7 @@ Usage:
     python3 compare_fdg_leads.py \
         --output_dir /path/to/fastsurfer/output \
         --leads-base      /path/to/leads/data/processed \
-        --fsroi-list      /path/to/leads_processing/config/fsroi_list_FDG.csv \
+        --fsroi-list      /path/to/leads_processing/config/rois_fdg.csv \
         --csv_regions cohort_fdg_per_region.csv \
         --csv_raw     cohort_fdg_pairs.csv
 """
@@ -92,7 +92,7 @@ def get_pons_mean(brainstem_dict):
 
 
 def parse_fsroi_list(path):
-    """Reads fsroi_list_FDG.csv (roi_name,roi_labels) and builds the set of
+    """Reads rois_fdg.csv (roi_name,roi_labels) and builds the set of
     bilateral regions FROM the names used by LEADS -- only rows with a
     single name 'ctx_lh_X'/'Left_X' that has its counterpart
     'ctx_rh_X'/'Right_X' (composite regions such as meta_temporal, which
@@ -295,7 +295,7 @@ def main():
     default_leads_base = os.path.join(petpipeline_base, "leads_data")
     default_fsroi_list = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        "data", "fsroi_list_FDG.csv")
+        "data", "rois_fdg.csv")
 
     p = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -306,7 +306,7 @@ def main():
                    help="folder with the LEADS outputs: <subject>/FDG_*/*_suvr-pons_roi-extractions.csv; "
                         f"default: {default_leads_base}")
     p.add_argument("--fsroi-list", default=default_fsroi_list,
-                   help=f"fsroi_list_FDG.csv (default: {default_fsroi_list})")
+                   help=f"rois_fdg.csv (default: {default_fsroi_list})")
     p.add_argument("--csv_regions", default="cohort_fdg_per_region.csv")
     p.add_argument("--csv_raw", default=None,
                    help="if given, dump all raw pairs (subject,region,leads_ref,ours)")
@@ -429,7 +429,7 @@ def main():
                 # (LEADS reports them per hemisphere, like the other
                 # bilateral regions; only meta_temporal comes already
                 # combined because it is defined that way in
-                # fsroi_list_FDG.csv).
+                # rois_fdg.csv).
                 leads_suvr = leads_bi.get(region_name)
                 if leads_suvr is None:
                     continue

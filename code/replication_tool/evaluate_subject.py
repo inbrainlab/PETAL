@@ -19,7 +19,7 @@ bilateral region (left + right hemisphere, divided by the reference region):
   Tau (no PVC)  44 regions (BILATERAL_TAU), weighted by volume (mm3); reference = whole cerebellar cortex.
   Tau (PVC)     same 44 regions from mri_gtmpvc (gtm.stats.dat), weighted by number of voxels;
                 written to values_tau_bilateral_pvc.csv when gtm.stats.dat exists.
-  FDG (no PVC)  regions of the FDG ROI list (--fsroi-list data/fsroi_list_FDG.csv), weighted by
+  FDG (no PVC)  regions of the FDG ROI list (--fsroi-list data/rois_fdg.csv), weighted by
                 volume (mm3); reference = pons.
 A region is reported only when both hemispheres are present in your segmentation. Published bilateral
 values are in data/tau_bilateral_published.csv, data/tau_bilateral_pvc_published.csv and
@@ -27,16 +27,16 @@ data/fdg_bilateral_published.csv (same columns); merge on (subject, region) to c
 
 Inputs by type:
   tau        <base>/<subject>/output.csv  (mri_segstats; normalised by the whole cerebellar cortex)
-             + --fsroi-list fsroi_list_FTP.csv + --lut FreeSurferColorLUT.txt
+             + --fsroi-list data/rois_ftp.csv + --lut FreeSurferColorLUT.txt
   fdg        <base>/<subject>/output_fdg.csv and output_brainstem_fdg.csv (reference: pons)
-             + --fsroi-list data/fsroi_list_FDG.csv + --lut FreeSurferColorLUT.txt
+             + --fsroi-list data/rois_fdg.csv + --lut FreeSurferColorLUT.txt
   centiloid  CSV written by centiloid_pipeline_tracers.py (--results)
 
 Examples:
   python3 evaluate_subject.py --type tau --package /path/to/repo --output_dir /path/to/output \\
-      --subject S001 --fsroi-list fsroi_list_FTP.csv --lut FreeSurferColorLUT.txt
+      --subject S001 --fsroi-list data/rois_ftp.csv --lut FreeSurferColorLUT.txt
   python3 evaluate_subject.py --type fdg --package /path/to/repo --output_dir /path/to/output --all \\
-      --fsroi-list /path/to/repo/data/fsroi_list_FDG.csv --lut FreeSurferColorLUT.txt
+      --fsroi-list /path/to/repo/data/rois_fdg.csv --lut FreeSurferColorLUT.txt
   python3 evaluate_subject.py --type centiloid --package /path/to/repo --results centiloid_results.csv --all
 """
 import argparse
@@ -398,9 +398,9 @@ def main():
                    help="tau/fdg: folder containing <subject>/output*.csv "
                         f"(default: {default_output_dir}, i.e. PETPIPELINE_BASE/output)")
     p.add_argument("--seg-filename", default="output.csv", help="tau: name of the segstats table")
-    p.add_argument("--fsroi-list", help="tau/fdg: ROI list (fsroi_list_FTP.csv for Tau, default "
-                   "<package>/fsroi_list_FTP.csv; data/fsroi_list_FDG.csv for FDG, default "
-                   "<package>/data/fsroi_list_FDG.csv)")
+    p.add_argument("--fsroi-list", help="tau/fdg: ROI list (rois_ftp.csv for Tau, default "
+                   "<package>/data/rois_ftp.csv; data/rois_fdg.csv for FDG, default "
+                   "<package>/data/rois_fdg.csv)")
     p.add_argument("--lut", default=default_lut,
                    help=f"FreeSurferColorLUT.txt (default: {default_lut})")
     p.add_argument("--results", help="centiloid: CSV written by centiloid_pipeline_tracers.py")
@@ -410,8 +410,8 @@ def main():
     if not a.subject and not a.all:
         p.error("give --subject ID (repeatable) or --all")
     if not a.fsroi_list:
-        a.fsroi_list = (os.path.join(a.package, "data", "fsroi_list_FDG.csv") if a.type == "fdg"
-                        else os.path.join(a.package, "fsroi_list_FTP.csv"))
+        a.fsroi_list = (os.path.join(a.package, "data", "rois_fdg.csv") if a.type == "fdg"
+                        else os.path.join(a.package, "data", "rois_ftp.csv"))
 
     pub = load_published(a.package, a.type)
     ctx = paper_context(a.package, a.type)

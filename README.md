@@ -100,7 +100,7 @@ Compare with the published values:
 ```bash
 python3 code/replication_tool/evaluate_subject.py --type tau --package . \
     --output_dir <PETPIPELINE_BASE>/output --subject <ID> \
-    --fsroi-list fsroi_list_FTP.csv --lut FreeSurferColorLUT.txt
+    --fsroi-list data/rois_ftp.csv --lut FreeSurferColorLUT.txt
 ```
 
 `--output_dir` defaults to `PETPIPELINE_BASE/output` and can be omitted if you used that default.
@@ -327,7 +327,6 @@ ADNI period, frame counts, and T1/PET image dimensions.
   published values of this work. The scripts in `code/centiloid/` and `code/tau_fdg/` that reproduce this work's
   comparisons with the reference (`compare_*_a4.py`, `compare_fdg_leads.py`, `nrmse_cohort.py` and the Avid/A4 plots)
   need the reference data, which must be obtained from the original providers.
-* `fsroi_list_FTP.csv` (Tau ROI list): obtain it from its original source.
 * `FreeSurferColorLUT.txt`: not distributed either, but it ships inside the FreeSurfer Docker image
   already required above -- copy it out once with
   `docker run --rm -v ~/freesurfer:/out freesurfer/freesurfer:7.4.1 cp "$FREESURFER_HOME/FreeSurferColorLUT.txt" /out/FreeSurferColorLUT.txt`

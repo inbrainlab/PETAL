@@ -7,7 +7,7 @@ cohort.
 Neither side has a ready-made composite column: the A4 TAUSUVR file only has
 individual per-hemisphere Mean_*/Volume_mm3_* columns and already-bilateral
 bi_* columns, and our own segstats output is per-region too. So BOTH
-composites are computed with the exact same definition (fsroi_list_FTP.csv,
+composites are computed with the exact same definition (rois_ftp.csv,
 from LEADS), which avoids any VOI-definition mismatch between the two sides.
 
   - A4 side: composite_from_bi_row() -- combines A4's own bi_<name> SUVR
@@ -26,7 +26,7 @@ Usage:
     python3 compare_tau_composite_a4.py \
         --fastsurfer-base /path/to/fastsurfer/output \
         --tausuvr /path/to/A4/TAUSUVR.csv \
-        --fsroi-list /path/to/leads_processing/config/fsroi_list_FTP.csv \
+        --fsroi-list /path/to/leads_processing/config/rois_ftp.csv \
         --lut $FREESURFER_HOME/FreeSurferColorLUT.txt \
         --csv_out cohort_tau_composite.csv
 """
@@ -150,7 +150,7 @@ def main():
     default_fastsurfer_base = os.path.join(petpipeline_base, "output")
     default_fsroi_list = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        "data", "fsroi_list_FTP.csv")
+        "data", "rois_ftp.csv")
     default_lut = os.path.expanduser("~/freesurfer/FreeSurferColorLUT.txt")
 
     p = argparse.ArgumentParser(description=__doc__,
@@ -159,7 +159,7 @@ def main():
                    help=f"folder with <subject>/<seg-filename> (our Tau segstats); default: {default_fastsurfer_base}")
     p.add_argument("--tausuvr", required=True, help="A4 TAUSUVR_*.csv")
     p.add_argument("--fsroi-list", default=default_fsroi_list,
-                   help=f"fsroi_list_FTP.csv (default: {default_fsroi_list}; not shipped, place it there)")
+                   help=f"rois_ftp.csv (default: {default_fsroi_list}; not shipped, place it there)")
     p.add_argument("--lut", default=default_lut,
                    help=f"FreeSurferColorLUT.txt (default: {default_lut})")
     p.add_argument("--seg-filename", default="output.csv",

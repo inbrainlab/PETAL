@@ -43,9 +43,9 @@ PYTHON="${PYTHON:-$HOME/.venv_pet_pipeline/bin/python3}"
 PUBLIC_PACKAGE="${PUBLIC_PACKAGE:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 FS_LUT="${FS_LUT:-$HOME/freesurfer/FreeSurferColorLUT.txt}"
 if [ "$TRACER" == "FDG" ]; then
-    FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FDG.csv}"
+    FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/rois_fdg.csv}"
 else
-    FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"
+    FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/rois_ftp.csv}"
 fi
 MCR_DIR="${MCR_DIR:-$PETPIPELINE_BASE/MCRv97}"               # same variable as run_public_pipeline.sh
 

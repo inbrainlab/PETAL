@@ -2,7 +2,7 @@
 """
 composite_regions.py -- shared helpers to compute composite ROIs
 (meta_temporal, mtl_no_hippocampus, basolateral_temporal, temporoparietal,
-ctx_desikan) from a LEADS fsroi_list_*.csv definition file. Used by both
+ctx_desikan) from a LEADS rois_*.csv definition file. Used by both
 the FDG-vs-LEADS and Tau-vs-A4 comparison scripts and by the subject
 evaluation tool, so the composite definitions stay in exactly one place.
 
@@ -19,7 +19,7 @@ from collections import defaultdict
 
 
 def read_composites(fsroi_list_path):
-    """Reads a fsroi_list_*.csv (roi_name,roi_labels). Returns
+    """Reads a rois_*.csv (roi_name,roi_labels). Returns
     {composite_name: [label_id, ...]} -- ONLY for rows with more than
     one ';'-separated label id (the true composites; single-region rows
     like 'ctx_lh_bankssts,1001' are skipped, those are handled by the
@@ -99,7 +99,7 @@ def _strip_hemi_prefix(struct_name):
     """'ctx-lh-entorhinal' -> ('entorhinal','lh'); 'Left-Amygdala' ->
     ('Amygdala','lh'); 'ctx-rh-X' -> ('X','rh'); 'Right-X' -> ('X','rh').
     Tolerates both dash (standard FreeSurferColorLUT.txt convention) and
-    underscore (LEADS' fsroi_list_*.csv convention) separators."""
+    underscore (LEADS' rois_*.csv convention) separators."""
     if struct_name is None:
         return None, None
     s = struct_name

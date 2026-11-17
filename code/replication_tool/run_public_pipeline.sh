@@ -21,8 +21,8 @@
 #   are computed by evaluate_subject.py.
 #
 # At the end, if you define PUBLIC_PACKAGE (folder of the public package, with
-# data/), FS_LUT (FreeSurferColorLUT.txt) and FSROI_LIST (fsroi_list_FTP.csv for
-# Tau; for FDG data/fsroi_list_FDG.csv is used if you do not set it),
+# data/), FS_LUT (FreeSurferColorLUT.txt) and FSROI_LIST (data/rois_ftp.csv for
+# Tau; for FDG data/rois_fdg.csv is used if you do not set it),
 # evaluate_subject.py is run: if the subject is among the published values, your
 # result is compared against them; otherwise only your output is reported.
 
@@ -39,7 +39,7 @@ PYTHON="${PYTHON:-$HOME/.venv_pet_pipeline/bin/python3}"    # virtualenv python3
 PUBLIC_PACKAGE="${PUBLIC_PACKAGE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"  # folder of the public package (with data/) used for comparison; defaults to this repo's own root
 FS_LUT="${FS_LUT:-$HOME/freesurfer/FreeSurferColorLUT.txt}"  # generic placeholder -- FreeSurferColorLUT.txt is NOT shipped in this repo, set the real path on your machine
 FSROI_LIST_USER_SET="${FSROI_LIST:+1}"                       # remembers whether YOU exported FSROI_LIST, before the FTP default below overwrites it (needed so the FDG default further down can still kick in)
-FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/fsroi_list_FTP.csv}"  # generic placeholder -- fsroi_list_FTP.csv is NOT shipped in this repo, set the real path on your machine (FDG instead defaults to data/fsroi_list_FDG.csv further below)
+FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/rois_ftp.csv}"  # Tau ROI list, shipped in data/ and regenerable with code/replication_tool/make_roi_lists.py (FDG instead defaults to data/rois_fdg.csv further below)
 MCR_DIR="${MCR_DIR:-$PETPIPELINE_BASE/MCRv97}"                # Matlab Compiled Runtime v97, needed by segmentBS.sh (FDG and classic recon-all brainstem step)
 
 # ── arguments ──────────────────────────────────────────────────────────────────────
@@ -886,7 +886,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 EVAL_PY="$(dirname "${BASH_SOURCE[0]}")/evaluate_subject.py"
 if [ "$TRACER" == "FTP" ]; then EVAL_TYPE="tau"; else EVAL_TYPE="fdg"; fi
 if [ "$EVAL_TYPE" == "fdg" ] && [ -z "${FSROI_LIST_USER_SET:-}" ] && [ -n "${PUBLIC_PACKAGE:-}" ]; then
-    FSROI_LIST="$PUBLIC_PACKAGE/data/fsroi_list_FDG.csv"
+    FSROI_LIST="$PUBLIC_PACKAGE/data/rois_fdg.csv"
 fi
 echo ""
 echo "── Comparison with the published values ──────────────"
