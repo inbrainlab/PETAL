@@ -358,19 +358,5 @@ is reported at the end together with its log file. `run_public_pipeline.sh` is r
 the cohort run is interrupted, simply running the same command again continues where it left off instead of
 reprocessing finished subjects.
 
-## What you get out
+The outputs each run produces are listed in the README, under "What you get out".
 
-Running `bash run_public_pipeline.sh <SUBJECT>` produces, per subject, under
-`~/Downloads/pet_pipeline/output/<SUBJECT>/`:
-
-- `output.csv` (FTP) / `output_fdg.csv` (FDG) — raw regional means from
-  `mri_segstats` for the target region.
-- `output_brainstem_fdg.csv` (FDG only) — raw regional means for the
-  pons/brainstem, used as the FDG reference region.
-- `gtmpvc_T1space_mask.output/gtm.stats.dat` (FTP only) — partial
-  volume-corrected regional means.
-
-If `PUBLIC_PACKAGE`, `FS_LUT` and `FSROI_LIST` are set, the script also
-runs `evaluate_subject.py` at the end and compares your subject against
-the published values, when that subject is among them. See the
-repository's README for the full quick-start.

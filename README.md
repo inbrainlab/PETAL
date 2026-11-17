@@ -332,6 +332,46 @@ ADNI period, frame counts, and T1/PET image dimensions.
   `docker run --rm -v ~/freesurfer:/out freesurfer/freesurfer:7.4.1 cp "$FREESURFER_HOME/FreeSurferColorLUT.txt" /out/FreeSurferColorLUT.txt`
   (matches the `--lut` default, `~/freesurfer/FreeSurferColorLUT.txt`).
 
+## What you get out
+
+Each subject's files land under `pet_pipeline/output/<SUBJECT>/`. Alongside them FreeSurfer
+writes its own standard directories (`mri/`, `surf/`, `label/`, `stats/`, `scripts/`), and the
+pipeline leaves its intermediate images and coregistration transforms there as well. The results
+worth looking at are these.
+
+**From `run_public_pipeline.sh`,** directly in the subject's folder:
+
+* `output.csv` — regional means from `mri_segstats` for the Tau scan, one row per FreeSurfer
+  structure. This is what the Tau evaluation reads.
+* `output_fdg.csv` — the equivalent measurement for the FDG scan, written by the same step when
+  the pipeline is run with `--tracer FDG`.
+* `output_brainstem_fdg.csv` — means restricted to the pons, which FDG uses as its reference
+  region. Tau does not need this file: it normalises by the whole cerebellar cortex, which is
+  already one of the structures in `output.csv`.
+* `gtmpvc_T1space_mask.output/gtm.stats.dat` — regional means after partial-volume correction,
+  produced by `mri_gtmpvc`. Tau only; it is what makes the PVC values below possible.
+
+**From `evaluate_subject.py`,** which `run_public_pipeline.sh` runs at the end, in
+`evaluation_tau/` or `evaluation_fdg/` inside the same folder:
+
+* `values_tau.csv` and `values_fdg.csv` — your SUVR for `meta_temporal` and for each of its six
+  constituent regions. This is the file compared against the published values, and the one
+  `compare_with_published.py` reads.
+* `values_tau_bilateral.csv` and `values_fdg_bilateral.csv` — SUVR for every bilateral region
+  resolved in your segmentation, with the voxel count and volume each value was computed from. A
+  region appears only when both hemispheres are present.
+* `values_tau_bilateral_pvc.csv` — the bilateral Tau values recomputed from the partial-volume
+  corrected data, written whenever `gtm.stats.dat` exists.
+* `<SUBJECT>_tau_comparison.csv` and `<SUBJECT>_fdg_comparison.csv` — your value next to the
+  published one, region by region, with the difference. **These two appear only if the subject is
+  among the published values.** For any other subject the evaluation still runs and still writes
+  everything above, but there is nothing to compare against and no comparison file is produced.
+
+**From `centiloid_pipeline_tracers.py`,** in the folder given to `--out`:
+
+* `centiloid_results.csv` — SUVR and Centiloid per subject, accumulated across runs, so an
+  interrupted cohort can be resumed without losing the subjects already processed.
+
 ## Integrity
 
 ```bash
