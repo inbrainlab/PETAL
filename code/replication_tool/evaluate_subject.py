@@ -43,6 +43,7 @@ import argparse
 import csv
 import math
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -202,6 +203,42 @@ def own_values(a, subject, composites, lut):
     if err:
         return None, {"*": err}
     return tau_fdg_regions(seg, ref, composites, lut, resolver=resolve_name if a.type == "fdg" else None)
+
+
+# Participant codes: a release may ship data/ with coded participant ids (see docs/PARTICIPANT_CODES.md)
+# instead of the real ADNI/A4 ones. Looking up a real id against a coded table finds nothing, which is
+# indistinguishable from "this subject was simply not published" unless we say so.
+CODED_ID = re.compile(r"^(ADNI|A4):\d+:[0-9a-f]+$")
+
+
+def coded_ids_note(published_ids, missing_ids):
+    """Warn when the subject was not found AND the published table is coded: that combination almost
+    always means the ids were never decoded, not that the subject is unpublished. Returns None when the
+    table holds real ids, so the message never appears where it would be misleading."""
+    if getattr(coded_ids_note, "_shown", False):
+        return None          # one warning per run, not one per subject
+    published_ids = list(published_ids)
+    if not published_ids:
+        return None
+    n_coded = sum(1 for s in published_ids if CODED_ID.match(str(s)))
+    if n_coded == 0:
+        return None
+    if any(CODED_ID.match(str(s)) for s in missing_ids):
+        return None   # the caller already passed coded ids: nothing to decode
+    example = next(s for s in published_ids if CODED_ID.match(str(s)))
+    coded_ids_note._shown = True
+    return (
+        "\n  NOTE: the published tables in this release carry CODED participant ids "
+        f"(e.g. {example}), not ADNI/A4 ids,\n"
+        f"  and {n_coded} of {len(published_ids)} are coded. A real id is therefore never found in them, "
+        "so the subject(s)\n"
+        "  above may well be published and simply not decoded yet. If you have approved ADNI / A4 access, "
+        "restore\n"
+        "  the real ids first and run this again:\n"
+        "      python3 code/replication_tool/resolve_subjects.py --help\n"
+        "  See docs/PARTICIPANT_CODES.md. Without that access the comparison is not possible, and the "
+        "values above are still valid."
+    )
 
 
 # ------------------------------------------------------ bilateral regions
@@ -439,6 +476,9 @@ def main():
             else:
                 not_compared.append(s)
                 print(f"\n{s}: not among the published values -> only your output is returned, nothing is compared.")
+                _note = coded_ids_note(pub.keys(), [s])
+                if _note:
+                    print(_note)
         if values_out:
             _write_rows(os.path.join(a.output, "values_centiloid.csv"), list(values_out[0].keys()), values_out,
                         extrasaction="ignore")
@@ -482,6 +522,9 @@ def main():
             else:
                 not_compared.append(s)
                 print(f"\n{s}: not among the published values -> only your output is returned, nothing is compared.")
+                _note = coded_ids_note(pub.keys(), [s])
+                if _note:
+                    print(_note)
         _write_rows(os.path.join(a.output, f"values_{a.type}.csv"), ["subject", "composite_region", "value"], values_out)
         if bilat_out:
             path_b = os.path.join(a.output, f"values_{a.type}_bilateral.csv")
