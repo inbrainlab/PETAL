@@ -1,6 +1,6 @@
 #!/bin/bash
 # run_public_pipeline.sh -- PET processing for Tau (Flortaucipir, FTP) and FDG.
-# Usage:  bash run_public_pipeline.sh <SUBJECT> [--tracer FTP|FDG] [--rewrite N|0b|all]
+# Usage:  bash run_public_pipeline.sh <SUBJECT> [--tracer FTP|FDG] [--rewrite N|0b|all] [--package DIR]
 #
 # Expected layout (PETPIPELINE_BASE, default ~/pet_pipeline):
 #   mri_data/<SUBJECT>/<SUBJECT>_T1.nii[.gz]
@@ -54,11 +54,16 @@ MCR_DIR="${MCR_DIR:-$PETPIPELINE_BASE/MCRv97}"                # Matlab Compiled 
 # Non-positional parsing: --tracer and --rewrite may appear in any order after $1.
 print_usage() {
     cat <<USAGE
-Usage: bash run_public_pipeline.sh <SUBJECT> [--tracer FTP|FDG] [--rewrite N|0b|all]
+Usage: bash run_public_pipeline.sh <SUBJECT> [--tracer FTP|FDG] [--rewrite N|0b|all] [--package DIR]
 
   <SUBJECT>          Subject ID (matches the folder under MRI_DATA_DIR and the
                       file prefix, e.g. <SUBJECT>_T1.nii -- see docs/REPLICATION.md).
   --tracer FTP|FDG   Which PET tracer to process. Default: FTP (Flortaucipir).
+  --package DIR      Folder holding the data/ tables your result is compared against, at the
+                     end of the run. Default: this repository's own root. Point it at the
+                     output of resolve_subjects.py (for example --package resolved) when the
+                     shipped data/ carries coded participant ids and yours are the real ADNI
+                     or A4 ones, otherwise no subject will be found to compare against.
   --rewrite N        Force STEP N (and everything after it) to re-run, even if
                       its output already exists. See "Resuming from any step"
                       in docs/REPLICATION.md for the full list of step numbers.
@@ -101,6 +106,16 @@ while [ $# -gt 0 ]; do
             fi
             shift 2
             ;;
+        --package)
+            [ -z "${2:-}" ] && { echo "ERROR: --package requires a folder"; exit 1; }
+            PUBLIC_PACKAGE="$(cd "$2" 2>/dev/null && pwd)" \
+                || { echo "ERROR: --package folder not found: $2"; exit 1; }
+            [ -d "$PUBLIC_PACKAGE/data" ] \
+                || { echo "ERROR: $PUBLIC_PACKAGE has no data/ subfolder -- --package expects the"; \
+                     echo "       folder that CONTAINS data/, e.g. --package resolved (not resolved/data)"; exit 1; }
+            PACKAGE_USER_SET=1
+            shift 2
+            ;;
         --tracer)
             TRACER=$(echo "$2" | tr '[:lower:]' '[:upper:]')
             if [ "$TRACER" != "FTP" ] && [ "$TRACER" != "FDG" ]; then
@@ -116,6 +131,12 @@ while [ $# -gt 0 ]; do
             ;;
     esac
 done
+
+# FSROI_LIST was derived from PUBLIC_PACKAGE before the arguments were parsed, so --package has
+# to re-derive it -- unless you exported FSROI_LIST yourself, which still wins.
+if [ -n "${PACKAGE_USER_SET:-}" ] && [ -z "$FSROI_LIST_USER_SET" ]; then
+    FSROI_LIST="$PUBLIC_PACKAGE/data/rois_ftp.csv"
+fi
 
 # ── per-tracer tags ───────────────────────────────────────────────────────────
 # FTP uses unsuffixed file names. FDG uses the suffix _fdg so that FTP and FDG
