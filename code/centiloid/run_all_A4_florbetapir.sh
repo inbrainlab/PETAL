@@ -31,14 +31,17 @@ set -uo pipefail
 # before running if they are not the defaults below, e.g.:
 #   A4_DATA_DIR=/data/A4_raw A4_OUT_DIR=/data/A4_results bash run_all_A4_florbetapir.sh
 #
-# VOI_METHOD (optional): 'avid' or 'klunk'. If not set, the flag is omitted and the Python script
-# uses its own default (klunk). E.g.:
-#   VOI_METHOD=avid bash run_all_A4_florbetapir.sh
+# VOI_METHOD (optional): 'avid' or 'klunk'. Defaults to 'avid', the six cortical VOIs of Joshi 2015,
+# which is what the A4 analysis of this work uses. This differs from centiloid_pipeline_tracers.py's
+# own default ('klunk', the GAAIN Standard Centiloid VOIs), which is the right one for the GAAIN
+# validation run with --all but not for this cohort, so the flag is always passed explicitly below.
+# To override:
+#   VOI_METHOD=klunk bash run_all_A4_florbetapir.sh
 PIPELINE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PETPIPELINE_BASE="${PETPIPELINE_BASE:-$(cd "$PIPELINE_DIR/../.." && pwd)/pet_pipeline}"  # same convention as run_public_pipeline.sh (this repo's own pet_pipeline/ folder)
 A4_DATA_DIR="${A4_DATA_DIR:-$PETPIPELINE_BASE/A4_pipeline_input}"   # input: your original T1/PET NIfTI files, never written to
 A4_OUT_DIR="${A4_OUT_DIR:-$PETPIPELINE_BASE/A4_pipeline_output}"    # output: everything this pipeline generates (per-subject work files, results CSV)
-VOI_METHOD="${VOI_METHOD:-}"
+VOI_METHOD="${VOI_METHOD:-avid}"
 PYTHON_SCRIPT="$PIPELINE_DIR/centiloid_pipeline_tracers.py"
 
 cd "$PIPELINE_DIR" || { echo "ERROR: cannot find $PIPELINE_DIR"; exit 1; }
@@ -49,10 +52,7 @@ if [ ! -d "$A4_DATA_DIR" ]; then
 fi
 mkdir -p "$A4_OUT_DIR"
 
-VOI_METHOD_FLAG=()
-if [ -n "$VOI_METHOD" ]; then
-    VOI_METHOD_FLAG=(--voi_method "$VOI_METHOD")
-fi
+VOI_METHOD_FLAG=(--voi_method "$VOI_METHOD")
 
 # One subject only (debug), or every subject found under A4_DATA_DIR
 if [ $# -ge 1 ]; then
@@ -91,7 +91,7 @@ if [ $# -ge 1 ] && [ ! -d "$A4_DATA_DIR/$1" ]; then
 fi
 
 # VOI files: check once here (they are the same for every subject) instead of failing subject by subject
-VOI_CHECK="${VOI_METHOD:-klunk}"      # the Python script's own default is klunk
+VOI_CHECK="$VOI_METHOD"               # always set, and always passed to the Python script below
 VOI_BASE="${CENTILOID_BASE_DIR:-$PETPIPELINE_BASE/centiloid_input}"
 if [ "$VOI_CHECK" == "avid" ]; then
     VOI_FOLDER="$VOI_BASE/VOIs_2mm"

@@ -272,6 +272,15 @@ Only set `A4_DATA_DIR`/`A4_OUT_DIR` yourself if you want your data somewhere oth
 A4_DATA_DIR=<folder from the layout below> A4_OUT_DIR=<where results should go> bash code/centiloid/run_all_A4_florbetapir.sh
 ```
 
+**VOIs.** This wrapper defaults to `--voi_method avid`, the six cortical VOIs of Joshi 2015, which is the
+method used for the A4 analysis of this work, and it reads them from `centiloid_input/VOIs_2mm/`. Note this
+is not the default of `centiloid_pipeline_tracers.py` itself, which is `klunk` (the GAAIN Standard Centiloid
+VOIs) because that is the right one for the GAAIN validation run with `--all`. To use those here instead:
+
+```bash
+VOI_METHOD=klunk bash code/centiloid/run_all_A4_florbetapir.sh
+```
+
 `run_all_A4_florbetapir.sh` passes `--skip_dcm2niix --input_dir "$A4_DATA_DIR"`, so
 `centiloid_pipeline_tracers.py` does not look for DICOM or `base_dir` at all for these subjects -- it reads
 the T1 and PET directly from each subject's own folder under `A4_DATA_DIR` (the PET already summed if it
