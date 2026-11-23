@@ -227,10 +227,12 @@ should_run() {
 # never read.
 require_license() {
     if [ -f "$FS_LICENSE_DIR/.license" ]; then return 0; fi
-    echo "ERROR: License not found at $FS_LICENSE_DIR/.license"
-    echo "  This step runs FreeSurfer/FastSurfer in Docker, which requires it."
-    echo "  It is free: https://surfer.nmr.mgh.harvard.edu/registration.html -- save the file"
-    echo "  you receive as $FS_LICENSE_DIR/.license (note the leading dot)."
+    # To stderr on purpose: run_fs is also called inside $( ), where anything on stdout is
+    # captured into the variable and the user would see nothing at all.
+    echo "ERROR: License not found at $FS_LICENSE_DIR/.license" >&2
+    echo "  This step runs FreeSurfer/FastSurfer in Docker, which requires it." >&2
+    echo "  It is free: https://surfer.nmr.mgh.harvard.edu/registration.html -- save the file" >&2
+    echo "  you receive as $FS_LICENSE_DIR/.license (note the leading dot)." >&2
     exit 1
 }
 
@@ -352,13 +354,23 @@ elif should_run 0 "mri/brainstemSsLabels.v13.FSvoxelSpace.mgz" "segmentBS.sh"; t
 fi
 
 # ── get number of frames ──────────────────────────────────────────────────
-NFRAMES=$(run_fs "mri_info /data/$SUBJECT/$PET_BASENAME 2>/dev/null | grep nframes | awk '{print \$2}'")
-if ! [[ "$NFRAMES" =~ ^[0-9]+$ ]] || [ "$NFRAMES" -lt 1 ]; then
-    echo "ERROR: invalid NFRAMES ('$NFRAMES') for $SUBJECT -- aborting"
-    exit 1
+# NFRAMES is used only by STEPS 1-7. Asking for it means running FreeSurfer in Docker, so when
+# those steps are already done it must not be asked for at all: otherwise a fully processed
+# subject still demands Docker and the license to produce a number nothing will read.
+if [ "$REWRITE_FROM" -gt 7 ] \
+   && [ -f "$SUBJECT_DIR/$FRAMES_DONE_FLAG" ] \
+   && [ -f "$SUBJECT_DIR/$PET_SUMMED_RAW" ]; then
+    NFRAMES=""
+    echo ""; echo "PET frames: not queried -- STEPS 1-7 are already done for this subject"
+else
+    NFRAMES=$(run_fs "mri_info /data/$SUBJECT/$PET_BASENAME 2>/dev/null | grep nframes | awk '{print \$2}'")
+    if ! [[ "$NFRAMES" =~ ^[0-9]+$ ]] || [ "$NFRAMES" -lt 1 ]; then
+        echo "ERROR: invalid NFRAMES ('$NFRAMES') for $SUBJECT -- aborting"
+        exit 1
+    fi
+    echo ""; echo "PET frames: $NFRAMES"
 fi
-echo ""; echo "PET frames: $NFRAMES"
-if [ "$NFRAMES" -eq 1 ]; then
+if [ "$NFRAMES" == "1" ]; then
     echo "  ℹ️  Single frame detected: the PET is probably already preprocessed (ADNI-style"
     echo "      'Coreg, Avg, Std Img and Vox Siz'). STEPS 1-7 will run as safe no-ops"
     echo "      (coregistering a frame to itself, summing a single frame) -- this is not an error."
