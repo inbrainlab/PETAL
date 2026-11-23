@@ -342,7 +342,8 @@ ADNI period, frame counts, and T1/PET image dimensions.
 * `FreeSurferColorLUT.txt`: not distributed either, but it ships inside the FreeSurfer Docker image
   already required above -- copy it out once with
   `docker run --rm -v ~/freesurfer:/out freesurfer/freesurfer:7.4.1 cp "$FREESURFER_HOME/FreeSurferColorLUT.txt" /out/FreeSurferColorLUT.txt`
-  (matches the `--lut` default, `~/freesurfer/FreeSurferColorLUT.txt`).
+  The tools look for it in `pet_pipeline/` first and then in `~/freesurfer/`, so either location works
+  with no `--lut` or `FS_LUT` needed.
 
 ## What you get out
 

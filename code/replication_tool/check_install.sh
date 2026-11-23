@@ -41,7 +41,15 @@ FASTSURFER_IMAGE="deepmi/fastsurfer:cu126-v2.4.2"
 FREESURFER_IMAGE="freesurfer/freesurfer:7.4.1"
 PYTHON="${PYTHON:-$HOME/.venv_pet_pipeline/bin/python3}"
 PUBLIC_PACKAGE="${PUBLIC_PACKAGE:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-FS_LUT="${FS_LUT:-$HOME/freesurfer/FreeSurferColorLUT.txt}"
+# FreeSurferColorLUT.txt is not shipped with this repo: prefer a copy kept inside PETPIPELINE_BASE
+# (same convention as MCRv97 and the SPM standalone), otherwise fall back to ~/freesurfer.
+if [ -z "${FS_LUT:-}" ]; then
+    if [ -f "$PETPIPELINE_BASE/FreeSurferColorLUT.txt" ]; then
+        FS_LUT="$PETPIPELINE_BASE/FreeSurferColorLUT.txt"
+    else
+        FS_LUT="$HOME/freesurfer/FreeSurferColorLUT.txt"
+    fi
+fi
 if [ "$TRACER" == "FDG" ]; then
     FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/rois_fdg.csv}"
 else

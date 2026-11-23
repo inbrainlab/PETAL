@@ -103,7 +103,7 @@ docker run --rm -v ~/freesurfer:/out freesurfer/freesurfer:7.4.1 \
     cp "$FREESURFER_HOME/FreeSurferColorLUT.txt" /out/FreeSurferColorLUT.txt
 ```
 
-That matches the `--lut` default (`~/freesurfer/FreeSurferColorLUT.txt`), so once copied it does not
+The tools look in `pet_pipeline/` first and then in `~/freesurfer/`, so once copied it does not
 need to be passed by hand either.
 
 ## Three or more subjects

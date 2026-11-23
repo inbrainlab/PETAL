@@ -9,6 +9,9 @@ evaluation_*/
 *.nii.gz
 *.mgz
 # never commit reference or controlled-access data
+# FreeSurferColorLUT.txt belongs to FreeSurfer and is deliberately not redistributed here;
+# the README says how to copy it out of the FreeSurfer image.
+FreeSurferColorLUT.txt
 A4_*
 TAUSUVR*
 license.txt

@@ -422,7 +422,12 @@ def main():
     default_package = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     petpipeline_base = os.environ.get("PETPIPELINE_BASE") or os.path.join(default_package, "pet_pipeline")
     default_output_dir = os.path.join(petpipeline_base, "output")
-    default_lut = os.path.expanduser("~/freesurfer/FreeSurferColorLUT.txt")
+    # FreeSurferColorLUT.txt is not shipped with this repo (see the README). Prefer a copy kept
+    # inside the working directory -- same convention as MCRv97 and the SPM standalone -- and fall
+    # back to ~/freesurfer, which is where the README's docker command writes it.
+    _lut_in_base = os.path.join(petpipeline_base, "FreeSurferColorLUT.txt")
+    default_lut = (_lut_in_base if os.path.exists(_lut_in_base)
+                   else os.path.expanduser("~/freesurfer/FreeSurferColorLUT.txt"))
     default_output = os.path.join(petpipeline_base, "subject_evaluation")
 
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)

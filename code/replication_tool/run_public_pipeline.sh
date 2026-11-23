@@ -37,7 +37,15 @@ FASTSURFER_IMAGE="deepmi/fastsurfer:cu126-v2.4.2"           # optional GPU path,
 FREESURFER_IMAGE="freesurfer/freesurfer:7.4.1"              # classic recon-all, the default method
 PYTHON="${PYTHON:-$HOME/.venv_pet_pipeline/bin/python3}"    # virtualenv python3, used for small inline NIfTI-reading steps
 PUBLIC_PACKAGE="${PUBLIC_PACKAGE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"  # folder of the public package (with data/) used for comparison; defaults to this repo's own root
-FS_LUT="${FS_LUT:-$HOME/freesurfer/FreeSurferColorLUT.txt}"  # generic placeholder -- FreeSurferColorLUT.txt is NOT shipped in this repo, set the real path on your machine
+# FreeSurferColorLUT.txt is not shipped with this repo: prefer a copy kept inside PETPIPELINE_BASE
+# (same convention as MCRv97 and the SPM standalone), otherwise fall back to ~/freesurfer.
+if [ -z "${FS_LUT:-}" ]; then
+    if [ -f "$PETPIPELINE_BASE/FreeSurferColorLUT.txt" ]; then
+        FS_LUT="$PETPIPELINE_BASE/FreeSurferColorLUT.txt"
+    else
+        FS_LUT="$HOME/freesurfer/FreeSurferColorLUT.txt"
+    fi
+fi
 FSROI_LIST_USER_SET="${FSROI_LIST:+1}"                       # remembers whether YOU exported FSROI_LIST, before the FTP default below overwrites it (needed so the FDG default further down can still kick in)
 FSROI_LIST="${FSROI_LIST:-$PUBLIC_PACKAGE/data/rois_ftp.csv}"  # Tau ROI list, shipped in data/ and regenerable with code/replication_tool/make_roi_lists.py (FDG instead defaults to data/rois_fdg.csv further below)
 MCR_DIR="${MCR_DIR:-$PETPIPELINE_BASE/MCRv97}"                # Matlab Compiled Runtime v97, needed by segmentBS.sh (FDG and classic recon-all brainstem step)
