@@ -211,6 +211,15 @@ Without `--auto_reorient`, a subject whose images are far from the MNI origin ca
 misaligned at the SPM Coregister step. `--auto_reorient` is recommended as the default; only skip it if you
 already know your data is well-centered.
 
+**Which reorientation, `--reorient_method a` or `b`.** They differ in what they can fix, and the wrong one
+produces a wrong Centiloid *without any error*. Method `a` applies one shared offset to PET and MRI: it
+centres both on the origin but preserves whatever PET-MRI displacement the raw data already had. Method `b`
+offsets each modality independently, which closes that gap. You normally do not need to choose: the default
+is `b` for `--voi_method klunk` (the GAAIN cohort, whose DICOMs arrive with PET and MRI far apart) and `a`
+otherwise. On GAAIN subject `225403`, method `a` gave 138.33 CL against a published 104.99, while `b` gave
+105.50. Whenever PET and MRI are still far apart after reorienting, the run now says so and names the method
+to retry with, so you are not left to spot it in the numbers.
+
 It looks for everything under `--base_dir`, which defaults to `PETPIPELINE_BASE/centiloid_input` (i.e.
 ``pet_pipeline/centiloid_input` unless you export `PETPIPELINE_BASE`) -- put your data there and
 none of the commands above need `--base_dir` at all. Pass `--base_dir <folder>` only if you keep your data

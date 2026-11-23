@@ -783,6 +783,23 @@ def auto_reorient_subject(t1_file, pet_file, work_dir,
     print(f"       PET: |COM| {dist_pet:.1f} -> {new_pet_dist:.1f} mm")
     print(f"       |COM_MRI-COM_PET|: {relative_dist:.1f}mm -> {new_relative_dist:.1f}mm")
 
+    # A PET and an MRI of the same head should end up within a few cm of each other. If they do not,
+    # SPM Coregister starts from a hopeless position and usually settles in a wrong local minimum --
+    # and the pipeline still produces a plausible-looking SUVr, which is the dangerous part. Warn
+    # loudly instead of letting a silently wrong Centiloid through.
+    if new_relative_dist > REORIENT_TH_MRI_MM:
+        print(f"    !  WARNING: PET and MRI are still {new_relative_dist:.1f}mm apart after reorienting "
+              f"(threshold {REORIENT_TH_MRI_MM:.0f}mm).")
+        if method == "a":
+            print( "       Method A applies the SAME offset to both, so it never corrects a PET-MRI")
+            print( "       displacement already present in the raw data -- it only preserves it.")
+            print( "       SPM Coregister will probably fail from here and the SUVr may come out wrong")
+            print( "       WITHOUT any error. Re-run this subject with:  --reorient_method b")
+        else:
+            print( "       Even with independent offsets (method B) they did not come together: check that")
+            print( "       the PET and the T1 really belong to the same subject, and inspect them with")
+            print( "       fsleyes before trusting the result.")
+
     return t1_out, pet_out, {
         "reoriented":  True,
         "method":      method,
@@ -1668,15 +1685,15 @@ def parse_args():
         help="Auto-reorient the images (see --reorient_method; default: shared "
              "offset) before SPM. Recommended: rescues subjects whose center "
              "of mass is far from MNI without affecting the ones that are fine.")
-    parser.add_argument("--reorient_method", choices=["a", "b"], default="a",
-        help="Method of --auto_reorient. 'a' (default, shared offset): "
-             "safe, does not break subjects that already worked, but does not "
-             "correct large PET-MRI displacements already present in the raw "
-             "data. 'b' (independent offsets, centroids): directly addresses "
-             "large displacements, but may break subjects that 'a' handles "
-             "if PET and MRI were already reasonably aligned "
-             "-- use it selectively on subjects where 'a' failed, not as a "
-             "general default.")
+    parser.add_argument("--reorient_method", choices=["a", "b"], default=None,
+        help="Method of --auto_reorient. 'a' (shared offset): safe, does not "
+             "break subjects that already worked, but does not correct large "
+             "PET-MRI displacements already present in the raw data -- it only "
+             "preserves them. 'b' (independent offsets, centroids): directly "
+             "addresses large displacements. Default: 'b' with --voi_method "
+             "klunk (the GAAIN cohort, whose DICOMs sit far from the MNI "
+             "origin; method 'a' leaves PET and MRI metres apart there and the "
+             "resulting Centiloid is wrong without any error), 'a' otherwise.")
 
     parser.add_argument("--tracer", choices=["fbp", "pib"], default="fbp",
         help="Tracer to process: 'fbp' (Florbetapir, default) or 'pib' (C-11 PiB).\n"
@@ -1726,6 +1743,16 @@ def main():
 
     args = parse_args()
 
+    # ---- Default reorientation method, which depends on the cohort ----
+    # The GAAIN DICOMs (--voi_method klunk) come with PET and MRI far apart in world
+    # coordinates; method "a" applies one shared offset and preserves that gap, so SPM
+    # Coregister lands in the wrong place and the Centiloid comes out wrong with no error
+    # (observed: 138.33 vs a published 104.99 for subject 225403, corrected to 105.50 by
+    # method "b"). Method "b" offsets each modality independently and closes the gap.
+    _explicit_reorient = args.reorient_method is not None
+    if not _explicit_reorient:
+        args.reorient_method = "b" if args.voi_method == "klunk" else "a"
+
     # ---- Apply the (tracer, voi_method) configuration ----
     tracer_cfg = TRACER_CONFIG[args.tracer]
     cal_cfg    = tracer_cfg["calibration"][args.voi_method]
@@ -1759,6 +1786,10 @@ def main():
     print("\n=== Centiloid Pipeline ===")
     print(f"  Tracer:        {tracer_cfg['name']} ({args.tracer})")
     print(f"  VOI method:    {args.voi_method}")
+    if args.auto_reorient:
+        _how = "shared offset" if args.reorient_method == "a" else "independent offsets"
+        print(f"  Reorient:      method {args.reorient_method.upper()} ({_how})"
+              f"{'' if _explicit_reorient else ' -- default for --voi_method ' + args.voi_method}")
     print(f"  Calibration:   CL = {CL_SLOPE} * SUVr + ({CL_INTERCEPT})")
     print(f"  Threshold:     {CL_THRESHOLD_POSITIVE} CL = SUVr {SUVR_THRESHOLD_POSITIVE}")
     print(f"  VOI dir:       {args.voi}")

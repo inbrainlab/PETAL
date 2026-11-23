@@ -292,7 +292,8 @@ echo "RESULT: $PASS ok, $WARN warning(s), $FAIL failed"
 if [ $FAIL -eq 0 ]; then
     echo "Everything required is in place. To run it:"
     if [ "$MODE" == "a4" ]; then echo "  VOI_METHOD=$VOI bash code/centiloid/run_all_A4_florbetapir.sh <ID>      # one subject (omit <ID> for all)"
-    else echo "  python3 code/centiloid/centiloid_pipeline_tracers.py --test <ID> --voi_method $VOI --auto_reorient"; fi
+    else echo "  python3 code/centiloid/centiloid_pipeline_tracers.py --test <ID> --voi_method $VOI --auto_reorient"
+         echo "  (--auto_reorient picks its method from --voi_method: 'b' for klunk, 'a' otherwise; see README)"; fi
 else
     echo "Fix the FAIL lines above (each one says how), then run this check again."
 fi
