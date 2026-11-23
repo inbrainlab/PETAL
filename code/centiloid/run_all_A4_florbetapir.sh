@@ -81,6 +81,38 @@ if [ ${#SUBJECT_IDS[@]} -eq 0 ]; then
     exit 1
 fi
 
+# One subject requested: say clearly if ITS folder is the problem (and what is available)
+if [ $# -ge 1 ] && [ ! -d "$A4_DATA_DIR/$1" ]; then
+    echo "ERROR: subject folder not found: $A4_DATA_DIR/$1"
+    echo "  Subject folders available in $A4_DATA_DIR:"
+    ls -1 "$A4_DATA_DIR" 2>/dev/null | head -10 | sed 's/^/    /'
+    echo "  Each subject needs: $A4_DATA_DIR/<ID>/<ID>_t1.nii and <ID>_pet.nii"
+    exit 1
+fi
+
+# VOI files: check once here (they are the same for every subject) instead of failing subject by subject
+VOI_CHECK="${VOI_METHOD:-klunk}"      # the Python script's own default is klunk
+VOI_BASE="${CENTILOID_BASE_DIR:-$PETPIPELINE_BASE/centiloid_input}"
+if [ "$VOI_CHECK" == "avid" ]; then
+    VOI_FOLDER="$VOI_BASE/VOIs_2mm"
+    VOI_NEEDED="anterior_cingulate.nii.gz posterior_cingulate.nii.gz parietal.nii.gz precuneus.nii.gz temporal.nii.gz frontal_med_orb.nii.gz cere_all.nii.gz"
+else
+    VOI_FOLDER="$VOI_BASE/VOIs_klunk"
+    VOI_NEEDED="voi_ctx_2mm.nii voi_WhlCbl_2mm.nii"
+fi
+VOI_MISSING=""
+for f in $VOI_NEEDED; do [ -f "$VOI_FOLDER/$f" ] || VOI_MISSING="$VOI_MISSING $f"; done
+if [ -n "$VOI_MISSING" ]; then
+    echo "ERROR: VOI files not found for VOI_METHOD=$VOI_CHECK. This is NOT a problem with the subjects:"
+    echo "  the VOI masks used to measure the SUVr are missing."
+    echo "  VOI folder: $VOI_FOLDER"
+    echo "  Missing:   $VOI_MISSING"
+    echo "  Found there: $(ls "$VOI_FOLDER" 2>/dev/null | head -12 | tr '\n' ' ')"
+    echo "  Put the VOI files in that folder (they are not distributed with the repository), or set CENTILOID_BASE_DIR."
+    echo "  Check everything with: bash code/centiloid/check_install_centiloid.sh --voi_method $VOI_CHECK"
+    exit 1
+fi
+
 N_TOTAL=${#SUBJECT_IDS[@]}
 N_OK=0
 N_ERR=0

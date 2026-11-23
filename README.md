@@ -30,7 +30,7 @@ place.
 data/   Values produced by the authors' pipelines (one CSV per analysis) - see docs/DATA_REFERENCE.md
 code/
   replication_tool/   process your subject and compare it with the published values; check_install.sh verifies the setup; resolve_subjects.py restores IDs if a release ships coded tables
-  centiloid/          Centiloid pipeline (DICOM -> SUVR) and comparison with the A4 reference
+  centiloid/          Centiloid pipeline (DICOM -> SUVR) and comparison with the A4 reference; check_install_centiloid.sh verifies its setup
   tau_fdg/            cohort-level comparison scripts for Tau and FDG (they need the reference data)
   gaain_validation/   validation of a Centiloid pipeline against the GAAIN Centiloid Project
   dicom_to_nifti/     DICOM -> NIfTI conversion and organisation of downloaded ADNI scans (no MATLAB)
@@ -243,6 +243,9 @@ python3 code/gaain_validation/klunk_gaain_validation_plot.py --centiloid_results
 ```
 
 ### Centiloid for the A4 cohort (alphanumeric IDs, already NIfTI)
+
+Before the first run, check the setup (SPM, FSL, VOIs, your data) -- every problem comes with its fix:
+`bash code/centiloid/check_install_centiloid.sh --subject <SUBJECT_ID>` (details in [docs/INSTALL.md](docs/INSTALL.md)).
 
 A4 subjects (IDs like `B99999999`) don't fit `--all` above: their IDs and folder layout don't match the
 pattern `centiloid_pipeline_tracers.py` expects. `code/centiloid/run_all_A4_florbetapir.sh` works around

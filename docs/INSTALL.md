@@ -26,7 +26,7 @@ this is where to change it in the code:**
 | SPM standalone (Centiloid only, alternative to MATLAB) | launcher `$PETPIPELINE_BASE/spm12_standalone/run_spm*.sh`, runtime `$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R*/` | export `CENTILOID_SPM_STANDALONE_RUN` and `CENTILOID_SPM_MCR_DIR` (section 8A) |
 | MATLAB (Centiloid only) | `/opt/MATLAB/R2022b/bin/matlab` | `MATLAB_BIN` in `code/centiloid/centiloid_pipeline_tracers.py` (configuration block), or export `CENTILOID_MATLAB_BIN` |
 | SPM12 (Centiloid only) | `/opt/MATLAB/R2022b/toolbox/spm12` | `SPM12_PATH` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_SPM12_PATH` |
-| MNI template (Centiloid only) | `/opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii` | `MNI_TEMPLATE` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_MNI_TEMPLATE` |
+| MNI template (Centiloid only) | found automatically inside the SPM standalone (`spm12_mcr/.../canonical/avg152T1.nii`); otherwise `/opt/MATLAB/R2022b/toolbox/spm12/canonical/avg152T1.nii` | `MNI_TEMPLATE` in `code/centiloid/centiloid_pipeline_tracers.py`, or export `CENTILOID_MNI_TEMPLATE` |
 
 Line numbers are for this version of the script; if they've drifted,
 search for the `# ── configuration ──` block near the top of the file
@@ -280,32 +280,31 @@ sudo apt-get install -y libxt6 libxext6 libxmu6 libxrender1 libnsl2 libasound2t6
 If it complains about a lock on the runtime's cache folder, run it once with `MCR_INHIBIT_CTF_LOCK=1` in front.
 
 SPM's own templates (`canonical/avg152T1.nii` and the Old Segment tissue priors in `toolbox/OldSeg/`) live
-inside the archive that the first run just unpacked, so point the script at them (add the line to `~/.bashrc`
-to keep it for new terminals):
+inside the folder (`spm12_mcr/`) that this first run just unpacked. `centiloid_pipeline_tracers.py` finds them
+there by itself, and finds the launcher (`run_spm*.sh` in `$PETPIPELINE_BASE/spm12_standalone/`) and the runtime
+(`$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R*/`) too, which is exactly where the commands above put
+everything. **You do not need to export anything.** If SPM was never run, the pipeline stops with a message
+telling you to run it once (the line above does exactly that).
 
-```bash
-export CENTILOID_MNI_TEMPLATE=$(find ~/Downloads/pet_pipeline/spm12_standalone -path "*/canonical/avg152T1.nii" | head -1)
-ls $(dirname $CENTILOID_MNI_TEMPLATE)/../toolbox/OldSeg/grey.nii    # must print a path, not an error
-```
-
-`centiloid_pipeline_tracers.py` finds the launcher (`run_spm*.sh` in `$PETPIPELINE_BASE/spm12_standalone/`) and
-the runtime (`$PETPIPELINE_BASE/spm12_standalone/MATLAB_Runtime/R*/`) by itself, which is exactly where the
-commands above put them. `check_install.sh` reports `SPM standalone found` when both are in place.
+Before processing anything, check the whole Centiloid setup (SPM, templates, FSL, VOIs, Python, your data) with
+`bash code/centiloid/check_install_centiloid.sh` -- see "Checking everything is installed" below. It tells you,
+for each problem, how to fix it.
 
 **Different location, SPM version or OS.** Any SPM version works (SPM12, SPM25, ...), as long as you install the
 Runtime release named in *that* zip's file name (see
-https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/ for the macOS and Windows builds). If either half
+https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/ for the macOS and Windows builds). If something
 is somewhere else, export its path and it wins over the automatic search:
 
 ```bash
 export CENTILOID_SPM_STANDALONE_RUN=/path/to/run_spmXX.sh
 export CENTILOID_SPM_MCR_DIR=/path/to/MATLAB_Runtime/<release>
+export CENTILOID_MNI_TEMPLATE=/path/to/<spm>/canonical/avg152T1.nii    # only if the templates are not next to the launcher
 ```
 
 ### B. Using a licensed MATLAB
 
 Install MATLAB and the SPM12 toolbox yourself (https://www.fil.ion.ucl.ac.uk/spm/software/spm12/). The script
-looks for them at these default paths:
+looks for them at these default paths (the newest MATLAB found under `/opt/MATLAB` or `/usr/local/MATLAB`):
 
 ```
 MATLAB:        /opt/MATLAB/R2022b/bin/matlab
@@ -321,6 +320,8 @@ export CENTILOID_SPM12_PATH=/path/to/spm12
 export CENTILOID_MNI_TEMPLATE=/path/to/spm12/canonical/avg152T1.nii
 ```
 
+If both SPM standalone and MATLAB are present, the standalone is used, and the templates are taken from the
+standalone too, so SPM and its templates always come from the same place.
 
 ## Checking everything is installed
 
@@ -339,6 +340,22 @@ exact command to fix it. Exit code is 0 only if nothing failed.
 
 `bash check_install.sh --help` (and the same for `run_public_pipeline.sh` and `run_cohort.sh`) prints the full
 usage for that script without running anything.
+
+### Centiloid (amyloid)
+
+Centiloid has its own check, because it needs different tools (SPM and FSL instead of Docker/FreeSurfer):
+
+```bash
+bash code/centiloid/check_install_centiloid.sh [--mode a4|gaain] [--voi_method avid|klunk] [--subject ID] [--test-spm]
+```
+
+It checks, without processing anything: the pipeline files, Python and its packages (and the `python` command that
+`run_all_A4_florbetapir.sh` calls), FSL (`flirt`, `fslstats`), SPM (standalone with its MATLAB Runtime, or MATLAB +
+SPM12, in the same order the pipeline uses), SPM's templates (MNI template and Old Segment priors), the VOI files
+for the method you choose, and your input data (for `--mode a4`: `<ID>_t1.nii` and `<ID>_pet.nii` in
+`pet_pipeline/A4_pipeline_input/<ID>/`, opened to confirm they are readable). Each problem is a `FAIL` line followed
+by the exact fix; when nothing fails it prints the command to run. `--test-spm` also launches SPM once to prove it
+starts (1-2 minutes the first time). Defaults: `--mode a4`, `--voi_method avid` (or `$VOI_METHOD` if set).
 
 ## Running the whole cohort
 

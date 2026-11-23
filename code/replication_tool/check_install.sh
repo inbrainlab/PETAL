@@ -113,7 +113,7 @@ elif [ -d "$MCR_DIR" ] && [ -n "$(ls -A "$MCR_DIR" 2>/dev/null)" ]; then
     MISSING=""
     [ -f "$MCR_LAUNCHER" ] || MISSING="$MISSING bin/glnxa64/libmwlaunchermain.so"
     [ -f "$MCR_RUNTIME" ]  || MISSING="$MISSING runtime/glnxa64/libmwmclmcrrt.so.9.7"
-    bad "MCR en $MCR_DIR esta incompleto (instalacion parcial/fallida) -- falta:$MISSING -- reinstala en una carpeta temporal y movela a su lugar, ver docs/INSTALL.md seccion 4"
+    bad "MCR in $MCR_DIR is incomplete (partial/failed install) -- missing:$MISSING -- reinstall into a temporary folder and move it into place, see docs/INSTALL.md section 4"
 else
     bad "MCR NOT found at $MCR_DIR -- see docs/INSTALL.md section 4"
 fi

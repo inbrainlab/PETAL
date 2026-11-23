@@ -109,22 +109,6 @@ def _newest_glob_match(*patterns):
     return sorted(matches)[-1] if matches else None
 
 
-# MATLAB + SPM12 (regular, licensed install). Scans every version under the
-# two common Linux/macOS install roots instead of assuming one exact version.
-MATLAB_BIN = os.environ.get("CENTILOID_MATLAB_BIN") or _newest_glob_match(
-    "/opt/MATLAB/R*/bin/matlab",
-    "/usr/local/MATLAB/R*/bin/matlab",
-) or "/opt/MATLAB/R2022b/bin/matlab"
-
-# SPM12_PATH/MNI_TEMPLATE live under that same MATLAB installation's own
-# toolbox/ folder, so they are derived from MATLAB_BIN's own version by
-# default rather than hardcoding a version a second time.
-_matlab_root = os.path.dirname(os.path.dirname(MATLAB_BIN))  # strip "/bin/matlab"
-SPM12_PATH = os.environ.get(
-    "CENTILOID_SPM12_PATH", os.path.join(_matlab_root, "toolbox", "spm12"))
-MNI_TEMPLATE = os.environ.get(
-    "CENTILOID_MNI_TEMPLATE", os.path.join(SPM12_PATH, "canonical", "avg152T1.nii"))
-
 # SPM standalone + MATLAB Runtime (free, no MATLAB license needed). Both are
 # looked for in this repo's own working directory ($PETPIPELINE_BASE, the
 # same convention as MCR_DIR in run_public_pipeline.sh) and, for the Runtime,
@@ -169,6 +153,49 @@ SPM_MCR_DIR = os.environ.get("CENTILOID_SPM_MCR_DIR") or _newest_glob_match(
         os.path.join(_PETPIPELINE_BASE, "spm12_standalone", "MATLAB_Runtime", "R*", "bin")) +
         glob.glob("/usr/local/MATLAB/MATLAB_Runtime/R*/bin")]
 )
+
+# MATLAB + SPM12 (regular, licensed install). Scans every version under the
+# two common Linux/macOS install roots instead of assuming one exact version.
+MATLAB_BIN = os.environ.get("CENTILOID_MATLAB_BIN") or _newest_glob_match(
+    "/opt/MATLAB/R*/bin/matlab",
+    "/usr/local/MATLAB/R*/bin/matlab",
+) or "/opt/MATLAB/R2022b/bin/matlab"
+
+# SPM12_PATH/MNI_TEMPLATE live under that same MATLAB installation's own
+# toolbox/ folder, so they are derived from MATLAB_BIN's own version by
+# default rather than hardcoding a version a second time.
+_matlab_root = os.path.dirname(os.path.dirname(MATLAB_BIN))  # strip "/bin/matlab"
+SPM12_PATH = os.environ.get(
+    "CENTILOID_SPM12_PATH", os.path.join(_matlab_root, "toolbox", "spm12"))
+
+# SPM standalone is "ready" under the same condition run_spm() uses to pick it over MATLAB.
+SPM_STANDALONE_READY = bool(
+    SPM_STANDALONE_RUN and SPM_MCR_DIR
+    and os.path.exists(SPM_STANDALONE_RUN) and os.path.isdir(SPM_MCR_DIR)
+)
+
+def _find_standalone_file(*relative_tail):
+    """Find a file of SPM's own tree inside the unpacked standalone (the folder that holds
+    run_spm*.sh gets a <spm>_mcr/ folder the first time the launcher runs; on macOS it sits
+    inside <spm>.app/Contents/Resources/). Returns None if the standalone is not unpacked yet."""
+    if not SPM_STANDALONE_READY:
+        return None
+    root = os.path.dirname(os.path.abspath(SPM_STANDALONE_RUN))
+    tail = os.path.join(*relative_tail)
+    hits = []
+    for pattern in (os.path.join(root, "*_mcr", "**", tail),
+                    os.path.join(root, "*.app", "Contents", "Resources", "*_mcr", "**", tail)):
+        hits.extend(glob.glob(pattern, recursive=True))
+    return sorted(hits)[-1] if hits else None
+
+# The templates (MNI template and the Old Segment tissue priors next to it) must come from the
+# SAME SPM that runs the batch -- run_spm() prefers the standalone, so look there first:
+#   1. CENTILOID_MNI_TEMPLATE            (explicit, always wins)
+#   2. unpacked SPM standalone           (<spm>_mcr/.../canonical/avg152T1.nii)
+#   3. MATLAB's own SPM12 toolbox        (SPM12_PATH/canonical/avg152T1.nii)
+MNI_TEMPLATE = (os.environ.get("CENTILOID_MNI_TEMPLATE")
+                or _find_standalone_file("canonical", "avg152T1.nii")
+                or os.path.join(SPM12_PATH, "canonical", "avg152T1.nii"))
 
 # ---------------------------------------------------------------
 # PER-TRACER AND PER-VOI-METHOD CONFIGURATION (--tracer + --voi_method)
@@ -928,6 +955,16 @@ def run_spm(batch_m):
         and os.path.exists(SPM_STANDALONE_RUN)
         and os.path.isdir(SPM_MCR_DIR)
     )
+    if not os.path.exists(MNI_TEMPLATE):
+        how = ("SPM standalone is installed but not unpacked yet -- run it once so it creates its "
+               f"<spm>_mcr folder:\n    {SPM_STANDALONE_RUN} {SPM_MCR_DIR} eval \"disp(1)\"\n"
+               "  (takes 1-2 minutes the first time), or set CENTILOID_MNI_TEMPLATE to "
+               "<spm>/canonical/avg152T1.nii."
+               if standalone_ready else
+               "install MATLAB + SPM12 or SPM standalone (docs/INSTALL.md section 8), or set "
+               "CENTILOID_MNI_TEMPLATE to <spm>/canonical/avg152T1.nii.")
+        sys.exit(f"ERROR: SPM template not found: {MNI_TEMPLATE}\n  {how}\n"
+                 "  Check everything first with: bash code/centiloid/check_install_centiloid.sh")
     if standalone_ready:
         run(
             [SPM_STANDALONE_RUN, SPM_MCR_DIR, "batch", batch_m],
@@ -958,6 +995,72 @@ def run_spm(batch_m):
 # =============================================
 # STEP 4 - EXTRACT SUVr
 # =============================================
+
+def required_voi_files(voi_method):
+    """VOI files the chosen method needs inside the VOI folder."""
+    return list(VOI_MAP_KLUNK.keys()) if voi_method == "klunk" else list(VOI_MAP_AVID.keys())
+
+
+def _short_listing(names, limit=12):
+    if not names:
+        return "(empty)"
+    return ", ".join(names[:limit]) + (" ..." if len(names) > limit else "")
+
+
+def voi_problem_text(voi_dir, voi_method, missing=None):
+    """Explain a VOI problem so that nobody mistakes it for a problem with the subject."""
+    if missing is None:
+        missing = [f for f in required_voi_files(voi_method)
+                   if not os.path.exists(os.path.join(voi_dir, f))]
+    lines = [f"VOI files not found for --voi_method {voi_method}. This is NOT a problem with the "
+             "subject(s): the VOI masks used to measure the SUVr are missing."]
+    if not os.path.isdir(voi_dir):
+        lines.append(f"  VOI folder does not exist: {voi_dir}")
+    else:
+        found = sorted(os.listdir(voi_dir))
+        lines.append(f"  VOI folder:  {voi_dir}")
+        lines.append(f"  Missing:     {', '.join(missing)}")
+        lines.append(f"  Found there: {_short_listing(found)}")
+        if voi_method == "avid" and any(f.startswith("voi_") and f.endswith("_2mm.nii") for f in found):
+            lines.append("  Those voi_*_2mm.nii files are the standard (Klunk) VOIs, not the Avid VOIs: use "
+                         "--voi_method klunk with them in VOIs_klunk/, or put the Avid VOIs in this folder.")
+    if voi_method == "klunk":
+        lines.append("  Standard Centiloid VOIs: download them from GAAIN (https://www.gaain.org/centiloid-project) "
+                     "into that folder. Required: " + ", ".join(required_voi_files(voi_method)))
+    else:
+        lines.append("  Avid VOIs required: " + ", ".join(required_voi_files(voi_method))
+                     + " (not distributed with the repository).")
+    lines.append("  Use another folder with --voi <folder>, or check everything with: "
+                 f"bash code/centiloid/check_install_centiloid.sh --voi_method {voi_method}")
+    return "\n".join(lines)
+
+
+def subject_problem_text(subject_id, src_dir, input_dir, has_t1=None, has_pet=None):
+    """Explain a missing subject / missing subject file, saying exactly what was looked for and where."""
+    import difflib
+    lines = []
+    if not os.path.isdir(input_dir):
+        lines.append(f"Input folder not found: {input_dir}")
+        lines.append("  Pass the right one with --input_dir <folder> (A4_DATA_DIR for run_all_A4_florbetapir.sh).")
+    elif not os.path.isdir(src_dir):
+        subs = sorted(d for d in os.listdir(input_dir) if os.path.isdir(os.path.join(input_dir, d)))
+        lines.append(f"Subject folder not found: {src_dir}")
+        lines.append(f"  Subject folders in {input_dir}: {_short_listing(subs, 10) if subs else '(none)'}")
+        close = difflib.get_close_matches(subject_id, subs, n=3)
+        if close:
+            lines.append(f"  Did you mean: {', '.join(close)}?")
+    else:
+        found = sorted(f for f in os.listdir(src_dir) if not f.startswith("._"))
+        lines.append(f"Subject folder found ({src_dir}) but its input files are not:")
+        if not has_t1:
+            lines.append(f"  - T1 not found: expected {subject_id}_t1.nii")
+        if not has_pet:
+            lines.append(f"  - PET not found: expected {subject_id}_pet.nii")
+        lines.append(f"  Files in that folder: {_short_listing(found)}")
+        lines.append("  Names must match exactly (3D uncompressed NIfTI; a .nii.gz is not read: gunzip it).")
+    lines.append(f"  Expected layout: {input_dir}/<ID>/<ID>_t1.nii and <ID>_pet.nii")
+    return "\n".join(lines)
+
 
 def fslstats_mean(pet_file, mask_file):
     result = subprocess.run(
@@ -1001,6 +1104,13 @@ def extract_suvr(wpet_file, voi_dir, voi_map, voi_method="avid"):
     else:  # avid
         ref_voi_file = "cere_all.nii.gz"
         cere_region  = "blcere_all"
+
+    # All VOI files must exist: say so clearly, before nibabel/fslstats fail with a bare
+    # "No such file or directory" that looks like a problem with the subject.
+    _missing = [f for f in list(voi_map.keys()) + [ref_voi_file]
+                if not os.path.exists(os.path.join(voi_dir, f))]
+    if _missing:
+        raise FileNotFoundError(voi_problem_text(voi_dir, voi_method, sorted(set(_missing))))
 
     # Check dimensions against the reference VOI
     ref_voi  = os.path.join(voi_dir, ref_voi_file)
@@ -1051,7 +1161,7 @@ def extract_suvr(wpet_file, voi_dir, voi_map, voi_method="avid"):
     for voi_file, region_name in voi_map.items():
         mask_path = os.path.join(voi_dir, voi_file)
         if not os.path.exists(mask_path):
-            raise FileNotFoundError(f"VOI not found: {mask_path}")
+            raise FileNotFoundError(voi_problem_text(voi_dir, voi_method, [voi_file]))
         raw_values[region_name] = fslstats_mean(wpet_file, mask_path)
 
     cere = raw_values[cere_region]
@@ -1226,14 +1336,16 @@ def process_subject(subject_id, base_dir, voi_dir, out_dir, ref_xlsx,
             import shutil
             src_dir = os.path.join(input_dir, subject_id)
             if not os.path.isdir(src_dir):
-                raise FileNotFoundError(f"input_dir subject folder not found: {src_dir}")
+                raise FileNotFoundError(subject_problem_text(subject_id, src_dir, input_dir))
             src_files = [f for f in
                 glob.glob(os.path.join(src_dir, f"{subject_id}_t1*.nii")) +
                 glob.glob(os.path.join(src_dir, f"{subject_id}_pet*.nii"))
                 if "_reor" not in os.path.basename(f)]
-            if not src_files:
+            _has_t1  = any(os.path.basename(f).startswith(f"{subject_id}_t1") for f in src_files)
+            _has_pet = os.path.exists(os.path.join(src_dir, f"{subject_id}_pet.nii"))
+            if not (_has_t1 and _has_pet):
                 raise FileNotFoundError(
-                    f"no {subject_id}_t1*.nii / {subject_id}_pet*.nii found in {src_dir}")
+                    subject_problem_text(subject_id, src_dir, input_dir, has_t1=_has_t1, has_pet=_has_pet))
             for src in src_files:
                 dst = os.path.join(work_dir, os.path.basename(src))
                 if not os.path.exists(dst):
@@ -1266,9 +1378,15 @@ def process_subject(subject_id, base_dir, voi_dir, out_dir, ref_xlsx,
                 glob.glob(os.path.join(work_dir, f"{subject_id}_pet.nii"))
                 if "_reor" not in os.path.basename(f)]
             if not t1_candidates:
-                raise FileNotFoundError(f"T1 not found in {work_dir}")
+                raise FileNotFoundError(
+                    f"T1 not found in {work_dir} (expected {subject_id}_t1*.nii). Without --input_dir, "
+                    f"--skip_dcm2niix looks for the files directly in that folder; if your data are in "
+                    f"another folder, pass --input_dir <folder> (layout: <folder>/{subject_id}/{subject_id}_t1.nii).")
             if not pet_candidates:
-                raise FileNotFoundError(f"PET not found in {work_dir}")
+                raise FileNotFoundError(
+                    f"PET not found in {work_dir} (expected {subject_id}_pet.nii). Without --input_dir, "
+                    f"--skip_dcm2niix looks for the files directly in that folder; if your data are in "
+                    f"another folder, pass --input_dir <folder> (layout: <folder>/{subject_id}/{subject_id}_pet.nii).")
             t1_file    = t1_candidates[0]
             pet_summed = pet_candidates[0]
             print(f"    T1:  {os.path.basename(t1_file)}")
@@ -1630,13 +1748,12 @@ def main():
 
     os.makedirs(args.out, exist_ok=True)
 
-    # Check that the VOI folder exists and warn if not
-    if not os.path.isdir(args.voi):
-        print(f"\nX VOI folder does not exist: {args.voi}")
-        if args.voi_method == "klunk":
-            print(f"  To use --voi_method klunk, download the Standard Centiloid VOIs")
-            print(f"  from GAAIN (https://www.gaain.org/centiloid-project) and unzip them")
-            print(f"  into {args.voi}. Required: voi_ctx_2mm.nii, voi_WhlCbl_2mm.nii")
+    # Check the VOI folder and every VOI file BEFORE processing anything (otherwise a missing VOI
+    # is only found at the very last step, after SPM, as a bare "No such file or directory").
+    _missing_vois = [f for f in required_voi_files(args.voi_method)
+                     if not os.path.exists(os.path.join(args.voi, f))]
+    if _missing_vois:
+        print("\nX " + voi_problem_text(args.voi, args.voi_method, _missing_vois))
         sys.exit(1)
 
     print("\n=== Centiloid Pipeline ===")
@@ -1698,6 +1815,7 @@ def main():
     n_ok    = 0
     n_error = 0
 
+    failed = {}   # subject_id -> (kind, message); kind: "input" | "coreg" | "other"
     for sid in subject_ids:
         try:
             result = process_subject(
@@ -1717,9 +1835,22 @@ def main():
             n_ok += 1
             print(f"\n  OK Subject {sid} saved to CSV ({n_ok}/{len(subject_ids)})")
 
+        except FileNotFoundError as e:
+            # Input files/folders (subject, T1, PET, VOIs) not found: say exactly what and where
+            msg = str(e)
+            print(f"\n  X {sid}: file or folder not found")
+            for line in msg.splitlines():
+                print(f"    {line}")
+            failed[sid] = ("input", msg)
+            update_csv_row(csv_path, sid,
+                           {"status": "error", "error": msg.splitlines()[0][:200]})
+            n_error += 1
+            print(f"  Continuing with the next subject...\n")
+
         except ValueError as e:
             # Overlap/zero error -- failed registration
             msg = str(e)
+            failed[sid] = ("coreg", msg)
             print(f"\n  WARNING {sid}: {msg}")
             if "does not overlap" in msg or "zero" in msg.lower() or "0" in msg:
                 print(f"  Suggestion: redo the coregistration for {sid}")
@@ -1731,6 +1862,7 @@ def main():
 
         except Exception as e:
             print(f"\n  X Failed {sid}: {e}")
+            failed[sid] = ("other", str(e))
             update_csv_row(csv_path, sid,
                            {"status": "error", "error": str(e)[:200]})
             n_error += 1
@@ -1749,28 +1881,40 @@ def main():
     print(f"\n  Accumulated results: {csv_path}")
 
     if n_error > 0:
-        # List subjects with errors from the CSV
-        df_csv = pd.read_csv(csv_path)
-        df_csv["subject_id"] = df_csv["subject_id"].astype(str)
-        df_err = df_csv[df_csv["status"] == "error"]
-        df_err = df_err[df_err["subject_id"].isin([str(s) for s in subject_ids])]
+        # Group the errors by cause, so that a missing file is never presented as a coregistration problem
+        by_kind = {"input": [], "coreg": [], "other": []}
+        for sid_, (kind, msg_) in failed.items():
+            by_kind[kind].append((sid_, msg_))
 
-        if not df_err.empty:
-            print(f"\n  REDO COREGISTRATION ({len(df_err)} subjects):")
-            for _, row in df_err.iterrows():
-                err_msg = str(row.get("error", ""))[:60]
-                print(f"    - {row['subject_id']}: {err_msg}...")
+        if by_kind["input"]:
+            print(f"\n  INPUT FILES NOT FOUND ({len(by_kind['input'])} subject(s)) -- nothing is wrong with the")
+            print(f"  coregistration; a file or folder this pipeline looks for does not exist:")
+            for sid_, msg_ in by_kind["input"]:
+                print(f"    - {sid_}: {msg_.splitlines()[0][:150]}")
+            print(f"  The full explanation (what was looked for, where, and what was found) is printed above,")
+            print(f"  under each subject. To check everything before running:")
+            print(f"    bash code/centiloid/check_install_centiloid.sh --subject <ID>")
+
+        if by_kind["other"]:
+            print(f"\n  OTHER ERRORS ({len(by_kind['other'])} subject(s)):")
+            for sid_, msg_ in by_kind["other"]:
+                print(f"    - {sid_}: {msg_.splitlines()[0][:150]}")
+
+        if by_kind["coreg"]:
+            print(f"\n  REDO COREGISTRATION ({len(by_kind['coreg'])} subjects):")
+            for sid_, msg_ in by_kind["coreg"]:
+                print(f"    - {sid_}: {msg_.splitlines()[0][:60]}...")
             print(f"\n  Then, for each one:")
             print(f"    1. Reorient in SPM Display")
             print(f"    2. Coregister MRI->MNI and PET->MRI in SPM")
             print(f"    3. python centiloid_pipeline_tracers.py --test <ID> --skip_dcm2niix --skip_coreg")
 
-            # Save the list of subjects to redo
+            # Save the list of subjects to redo (coregistration problems only)
             redo_path = os.path.join(args.out, "subjects_to_redo.txt")
             with open(redo_path, "w") as f:
                 f.write("subject_id\terror\n")
-                for _, row in df_err.iterrows():
-                    f.write(f"{row['subject_id']}\t{row.get('error','')}\n")
+                for sid_, msg_ in by_kind["coreg"]:
+                    f.write(f"{sid_}\t{msg_.splitlines()[0]}\n")
             print(f"\n  List saved to: {redo_path}")
 
     print(sep)
