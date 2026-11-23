@@ -177,9 +177,6 @@ if [ "$TRACER" == "FDG" ] && [[ "$PET_BASENAME" != A4_* ]]; then
     echo "      The published values were computed from the 'Uniform 6mm Res' series; a different"
     echo "      series changes the resolution and therefore the SUVR."
 fi
-if [ ! -f "$FS_LICENSE_DIR/.license" ]; then
-    echo "ERROR: License not found at $FS_LICENSE_DIR/.license"; exit 1
-fi
 if [ ! -f "$PYTHON" ]; then
     echo "ERROR: Python not found at $PYTHON"
     echo "Run: python3 -m venv ~/.venv_pet_pipeline && ~/.venv_pet_pipeline/bin/pip install nibabel"
@@ -222,8 +219,24 @@ should_run() {
     return 0
 }
 
+# ── FreeSurfer license ────────────────────────────────────────────────────────
+# Only the steps that actually run FreeSurfer or FastSurfer inside Docker need the license.
+# A subject whose outputs already exist skips every one of those steps, so this is checked
+# where it is used rather than up front: re-running a finished subject (to regenerate only
+# the comparison with the published values, say) must not be blocked by a license it will
+# never read.
+require_license() {
+    if [ -f "$FS_LICENSE_DIR/.license" ]; then return 0; fi
+    echo "ERROR: License not found at $FS_LICENSE_DIR/.license"
+    echo "  This step runs FreeSurfer/FastSurfer in Docker, which requires it."
+    echo "  It is free: https://surfer.nmr.mgh.harvard.edu/registration.html -- save the file"
+    echo "  you receive as $FS_LICENSE_DIR/.license (note the leading dot)."
+    exit 1
+}
+
 # ── FreeSurfer docker helper ──────────────────────────────────────────────────
 run_fs() {
+    require_license
     docker run --rm \
         -v "$MRI_DATA_DIR":/data \
         -v "$SUBJECTS_DIR":/output \
@@ -263,6 +276,7 @@ RECON_METHOD="${RECON_METHOD:-freesurfer}"
 OPENMP_THREADS="${OPENMP_THREADS:-4}"
 
 if should_run 0 "mri/aparc+aseg.mgz" "recon-all ($RECON_METHOD)"; then
+    require_license
     RECON_LOG_0A="$SUBJECTS_DIR/$SUBJECT/scripts/recon-all.log"
 
     if [ "$RECON_METHOD" == "fastsurfer" ]; then

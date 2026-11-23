@@ -20,6 +20,9 @@ same defaults as run_public_pipeline.sh, so it checks exactly what the
 pipeline will use on this machine.
 
   --tracer FTP|FDG   Which tracer's FSROI_LIST default to check. Default: FTP.
+  --evaluate-only    Only check what evaluate_subject.py needs to read results you already have
+                     (Python, the ROI list, the LUT, the output folder). Skips Docker, the
+                     FreeSurfer license and the MCR, which are only needed to PROCESS new subjects.
   -h, --help         Show this help and exit.
 
 Exit code: 0 if every required check passed (optional checks only warn), 1 otherwise.
@@ -30,7 +33,14 @@ esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TRACER="FTP"
-[ "$1" == "--tracer" ] && TRACER="${2:-FTP}"
+EVAL_ONLY=0
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --tracer)        TRACER="${2:-FTP}"; shift 2 ;;
+        --evaluate-only) EVAL_ONLY=1; shift ;;
+        *)               shift ;;
+    esac
+done
 
 # ── same configuration as run_public_pipeline.sh ───────────────────────────────
 PETPIPELINE_BASE="${PETPIPELINE_BASE:-$(cd "$SCRIPT_DIR/../.." && pwd)/pet_pipeline}"  # defaults to this repo's own pet_pipeline/ folder
@@ -65,6 +75,14 @@ bad()  { echo "  FAIL  $1"; FAIL=$((FAIL+1)); }
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Checking installation for run_public_pipeline.sh (tracer: $TRACER)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Sections 1-4 install the tools that PROCESS a subject (Docker + FreeSurfer/FastSurfer, the
+# license, the MCR). Reading results that already exist needs none of them, so --evaluate-only
+# skips them instead of reporting failures for tools that are not going to be used.
+if [ "$EVAL_ONLY" -eq 1 ]; then
+    echo ""; echo "── Docker / FreeSurfer license / MCR"
+    echo "  (skipped: --evaluate-only -- these are only needed to process new subjects)"
+else
 
 # 1. Docker
 echo ""; echo "── Docker"
@@ -125,6 +143,8 @@ elif [ -d "$MCR_DIR" ] && [ -n "$(ls -A "$MCR_DIR" 2>/dev/null)" ]; then
 else
     bad "MCR NOT found at $MCR_DIR -- see docs/INSTALL.md section 4"
 fi
+
+fi   # end of the processing-only sections (1-4)
 
 # 5. Python virtualenv
 echo ""; echo "── Python virtualenv (PYTHON=$PYTHON)"
